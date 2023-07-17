@@ -4,12 +4,13 @@ Internet Related Chat for 42
 # ✏️After finishing this module... <br>
 
 ## I can answer these questions below : <br>
-1. what is RFC documentation? Can you read and understand it? <br>
-2. Can you make a mini-server that follows RFC rules? <br>
-3. What is IRC? <br> 
-4. What is kqueue, kevent? <br>
-5. Do you understand IO-multiplexing? <br>
-6. Can you code socket-programming? <br>
+1. what is RFC documentation?
+2. Can you read the RFC documentation and understand it? <br>
+3. Can you make a mini-server that follows RFC rules? <br>
+4. What is IRC? <br> 
+5. What is kqueue, kevent? <br>
+6. Do you understand IO-multiplexing? <br>
+7. Can you code socket-programming? <br>
 
 
 ## I collected some knowledges to finish this module: <br>
