@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ClientHandler.hpp                                  :+:      :+:    :+:   */
+/*   ClientManager.hpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: ebang <ebang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/14 12:48:26 by ebang             #+#    #+#             */
-/*   Updated: 2023/07/14 20:44:17 by ebang            ###   ########.fr       */
+/*   Updated: 2023/07/17 14:54:44 by ebang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@
 #include <map>
 #include "ErrorHandler.hpp"
 
-class ClientHandler{
+class ClientManager{
 public:
     struct Client{
     public:

@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ChannelHandler.hpp                                 :+:      :+:    :+:   */
+/*   ChannelManager.hpp                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: ebang <ebang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/14 12:48:26 by ebang             #+#    #+#             */
-/*   Updated: 2023/07/17 14:52:20 by ebang            ###   ########.fr       */
+/*   Updated: 2023/07/17 14:54:00 by ebang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@
 #include <map>
 #include <ctime>
 #include "ErrorHandler.hpp"
-#include "ClientHandler.hpp"
+#include "ClientManager.hpp"
 
 namespace Permission
 {

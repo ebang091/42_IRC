@@ -6,7 +6,7 @@ SRCS = main.cpp \
 		SocketHandler.cpp \
 		ErrorHandler.cpp \
 		EventHandler.cpp \
-		ClientHandler.cpp \
+		ClientManager.cpp \
 		ChannelManager.cpp
 OBJS = $(SRCS:.cpp=.o)
 NAME = ircserv
