@@ -6,7 +6,7 @@
 /*   By: ebang <ebang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/14 13:18:51 by ebang             #+#    #+#             */
-/*   Updated: 2023/07/14 14:41:41 by ebang            ###   ########.fr       */
+/*   Updated: 2023/07/17 17:28:09 by ebang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,13 +26,13 @@
 #include "ErrorHandler.hpp"
 #include "SocketHandler.hpp"
 #include "Parser.hpp"
+#include "ClientManager.hpp"
 #include <iostream>
 
 class EventHandler{
 private:
     EventHandler();
     std::vector<struct kevent> _changeList;
-	std::map<int, bool> _clients;
     
 private:
 	void changeEvents(std::vector<struct kevent>& changeList, uintptr_t ident, int16_t filter,\

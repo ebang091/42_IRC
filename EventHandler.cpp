@@ -2,7 +2,6 @@
 
 EventHandler::EventHandler()
 	: _changeList()
-	, _clients()
 {
 }
 
@@ -21,17 +20,22 @@ void EventHandler::changeEvents(std::vector<struct kevent>& changeList, uintptr_
 
 void EventHandler::closeAllClients()
 {
-	std::map<int, bool>::iterator iter = _clients.begin();
+	//ClientManager 에서 호출
+    
+    // std::map<int, bool>::iterator iter = _clients.begin();
 
-    //TODO : clientinfo Delete!!
-	for (; iter != _clients.end(); ++iter)
-		close((*iter).first);
+    // //TODO : clientinfo Delete!!
+	// for (; iter != _clients.end(); ++iter){
+		
+    //     close((*iter).first);
+    // }
 }
 
 void EventHandler::listenToClients(){
     
     int serverSocket = SocketHandler::getInstance().getServerSocket();
     Parser &parser = Parser::getInstance();
+    ClientManager &clientManager = ClientManager::getInstance();
     struct kevent event_list[EVENT_BUFFER_SIZE]; // kevent array for eventlist
     int kq;
     int numberOfNewEvents;
@@ -50,6 +54,7 @@ void EventHandler::listenToClients(){
             throw ErrorHandler::KeventException();
 
         _changeList.clear(); // clear changeList for new changes
+
         for (int i = 0; i < numberOfNewEvents; ++i){
             curEvent = &event_list[i];
 
@@ -64,7 +69,7 @@ void EventHandler::listenToClients(){
                 {
                     //어쩌면 quit 일 때도 이럴 수도..?
                     close(curEvent->ident);
-					_clients.erase(curEvent->ident);
+                    clientManager.eraseClientByFD(curEvent->ident);
                 }
             }
 			else if (curEvent->filter == EVFILT_READ)
@@ -81,23 +86,26 @@ void EventHandler::listenToClients(){
 
                     /* add event for client socket - add read && write event */
                     changeEvents(_changeList, clientSocket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
-                    _clients.insert(std::make_pair(clientSocket, true));
+                    clientManager.insertClientByFD(curEvent->ident);
                 }
                 else
                 {
                     /* read data from client */
                     char buf[READ_BUFFER_SIZE];
 					int n = recv(curEvent->ident, buf, READ_BUFFER_SIZE, MSG_DONTWAIT);
+                    buf[n] = '\0';
+                    std::cout << n << "bytes read""\n";
 					if (n == -1){
 						close(curEvent->ident);
-						_clients.erase(curEvent->ident);
+						clientManager.eraseClientByFD(curEvent->ident);
                 	}
                 	else if (n > READ_MAX){
                 	    //안된다고 출력하고 아무 반응도 안함.                    	
                 	}
                 	else{
                 	     //parser.parseCommands(buf);//파싱하고 실행                           
-						send(curEvent->ident, buf, READ_BUFFER_SIZE, MSG_DONTWAIT);
+						send(curEvent->ident, buf, n, MSG_DONTWAIT);
+                        std::cout << "write to client : " << buf << "\n";
                 	}
                 }
 			}

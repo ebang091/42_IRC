@@ -7,8 +7,12 @@
 
 /*
 	TODO List
-	1. 서버 동작 확인
-	2. 채널, 클라이언트 클래스 설계 (채널 매니저, 클라이언트 매니저)
+	0. 서버 동작 확인
+	1. 채널, 클라이언트 클래스 설계
+		1. 클라 : 클라 클래스 만들기, 매니저에서 두 가지의 map getter, setter 구현
+		2. 채널 : 권한 getter setter 함수
+	2. 파싱
+	3. 커맨드 처리
 */
 
 #include <iostream>
@@ -21,4 +25,6 @@ int main(int argc, char **argv){
 	}
 
 	Server::getInstance().run(argv[1], argv[2]);
+
+	
 }

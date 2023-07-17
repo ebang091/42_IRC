@@ -6,7 +6,7 @@
 /*   By: ebang <ebang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/14 12:48:26 by ebang             #+#    #+#             */
-/*   Updated: 2023/07/17 14:54:44 by ebang            ###   ########.fr       */
+/*   Updated: 2023/07/17 17:39:19 by ebang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,25 +18,23 @@
 #include <iostream>
 #include <map>
 #include "ErrorHandler.hpp"
+#include "Client.hpp"
 
 class ClientManager{
-public:
-    struct Client{
-    public:
-        //hostname
-        //username
-        //realname
-        
-        //socket number
-
-        
-    public:
-        Client(const std::string& name);
-    };
-
 private:
-    std::map<std::string, Client> _clientInfo;
+    std::map<std::string, Client*> _clientByNick;
+    std::map<int, Client*> _clientByFD;
 
+public:
+    static ClientManager& getInstance();
+    Client* getClientByNick(const std::string& target);
+    Client* getClientByFD(int fd);
+    void insertClientByNick(const std::string& target, Client* client);
+    void insertClientByFD(int fd);
+    void eraseClientByNick(const std::string& target);
+    void eraseClientByFD(int fd);
+
+    void deleteAndCloseAllClients();
 };
 
 #endif

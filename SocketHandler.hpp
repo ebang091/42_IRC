@@ -16,7 +16,7 @@ private:
 public:
     int getServerSocket();
     static SocketHandler& getInstance();
-    void makeAndListenSocket(int portNumber);
+    void makeSocketAndListen(int portNumber);
 };
 
 #endif

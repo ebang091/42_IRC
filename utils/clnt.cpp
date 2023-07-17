@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include <iostream>
 
 #define BUF_SIZE 1024
 void error_handling(char *message);
@@ -45,7 +46,8 @@ int main(int argc, char *argv[])
 		write(sock, message, strlen(message));
 		str_len=read(sock, message, BUF_SIZE-1);
 		message[str_len]=0;
-		printf("Message from server: %s", message);
+		std::cout << "read length : " << str_len << "\n";
+		std::cout << "Message from server: "<< message << "\n";
 	}
 	
 	close(sock);
