@@ -21,20 +21,20 @@ void EventHandler::changeEvents(std::vector<struct kevent>& changeList, uintptr_
 
 void EventHandler::closeAllClients()
 {
-    //clientinfo Delete!!
 	std::map<int, bool>::iterator iter = _clients.begin();
 
+    //TODO : clientinfo Delete!!
 	for (; iter != _clients.end(); ++iter)
 		close((*iter).first);
 }
 
 void EventHandler::listenToClients(){
     
-    int kq;
     int serverSocket = SocketHandler::getInstance().getServerSocket();
-    struct kevent event_list[EVENT_BUFFER_SIZE]; // kevent array for eventlist
-    int numberOfNewEvents;
     Parser &parser = Parser::getInstance();
+    struct kevent event_list[EVENT_BUFFER_SIZE]; // kevent array for eventlist
+    int kq;
+    int numberOfNewEvents;
     struct kevent* curEvent;
 
     
@@ -42,7 +42,7 @@ void EventHandler::listenToClients(){
         throw ErrorHandler::KqueueException();
 
     changeEvents(_changeList, serverSocket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
-    
+
     while (1)
     {
         numberOfNewEvents = kevent(kq, &_changeList[0], _changeList.size(), event_list, EVENT_BUFFER_SIZE, NULL);

@@ -6,13 +6,13 @@
 /*   By: ebang <ebang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/14 12:28:31 by ebang             #+#    #+#             */
-/*   Updated: 2023/07/14 20:47:08 by ebang            ###   ########.fr       */
+/*   Updated: 2023/07/17 14:52:20 by ebang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "ChannelHandler.hpp"
+#include "ChannelManager.hpp"
 
-void ChannelHandler::joinChannel(std::string channelName, Client &client){
+void ChannelManager::joinChannel(std::string channelName, Client &client){
     //channelinfo에서 확인한 후 없으면 만듬
     if(_channelInfo.find(channelName) == _channelInfo.end()){
 		_channelInfo.insert(std::make_pair(channelName, Channel(channelName, &Client)));
@@ -26,7 +26,7 @@ void ChannelHandler::joinChannel(std::string channelName, Client &client){
     }
 }
 
-ChannelHandler::Channel::Channel(const std::string& channelName, Client* client)
+ChannelManager::Channel::Channel(const std::string& channelName, Client* client)
 	: _name(name)
 	, _permissions(0)
 	, _clientList()

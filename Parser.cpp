@@ -77,7 +77,7 @@ void Parser::parseCommands(char *command){
    //JOIN
    /*
     요청한 클라이언트 socket number에 대해서 join 시킴. (+i)
-    ChannelHandler::joinChannel();
+    ChannelManager::joinChannel();
    */
 
   
