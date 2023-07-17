@@ -9,7 +9,7 @@ int SocketHandler::getServerSocket(){
 	return _serverSocket;
 }
 
-void SocketHandler::makeAndListenSocket(int portNumber){
+void SocketHandler::makeSocketAndListen(int portNumber){
     struct sockaddr_in server_addr;
     
     if ((_serverSocket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1)

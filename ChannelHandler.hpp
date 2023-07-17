@@ -6,7 +6,7 @@
 /*   By: ebang <ebang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/14 12:48:26 by ebang             #+#    #+#             */
-/*   Updated: 2023/07/14 20:45:00 by ebang            ###   ########.fr       */
+/*   Updated: 2023/07/14 20:48:12 by ebang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,11 +37,10 @@ private:
     	short _permissions;
 		std::map<std::string, Client*> _clientList;
         time_t _creationTime;
-        
         Client *_operator; //없으면 NULL
 
 	public:
-		Channel(const std::string& name, Client* client);
+		Channel(const std::string& channelame, Client* client);
     };
 
     std::map<std::string, Channel> _channelInfo;
