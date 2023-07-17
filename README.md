@@ -15,4 +15,4 @@ Internet Related Chat for 42
 
 
 ## ✏️To complete this module, I collected the following knowledge:
-1. make a programming-guideline [server protocol guide using figma](https://www.figma.com/file/8SRXf6NStWpQQy6EJiozHy/IRC?type=whiteboard&node-id=0%3A1&t=gT5AAx2sKtclGTWx-1) <br>
+1. make a programming-guideline [server protocol guide (using figma)](https://www.figma.com/file/8SRXf6NStWpQQy6EJiozHy/IRC?type=whiteboard&node-id=0%3A1&t=gT5AAx2sKtclGTWx-1) <br>
