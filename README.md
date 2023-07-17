@@ -15,4 +15,4 @@ Internet Related Chat for 42
 
 
 ## I collected some knowledges to finish this module: <br>
-how to make an guideline [my guide using figma] (https://www.figma.com/file/8SRXf6NStWpQQy6EJiozHy/IRC?type=whiteboard&node-id=0-1&t=YkCsqiNSJvdgfiP8-0) <br>
+1. how to make an guideline [my guide using figma](https://www.figma.com/file/8SRXf6NStWpQQy6EJiozHy/IRC?type=whiteboard&node-id=0%3A1&t=gT5AAx2sKtclGTWx-1) <br>
