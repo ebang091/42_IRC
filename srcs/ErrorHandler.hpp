@@ -5,6 +5,16 @@
 #include <exception>
 #include <unistd.h>
 
+//irc.local 696 one #q l * :You must specify a parameter for the limit mode. Syntax: <limit>.
+namespace ERROR
+{
+	enum CODE
+	{
+		NO_PARAM = 696,
+		INVALID_NICK = 432
+	};
+};
+
 class ErrorHandler
 {
 public:

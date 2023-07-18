@@ -17,11 +17,16 @@ Parser& Parser::getInstance(){
 	return instance;
 }
 
-int Parser::parsePortNumber(std::string portNumber){
+int Parser::parsePortNumber(std::string portnumber){
     int value = 0;
     bool isValid = true;
+	int i = 0;
+    char portNumber[1024];
 
-    for(size_t i = 0; i < portNumber.size(); i++){
+    
+    portnumber.copy(portNumber, portnumber.size(), 0);
+    portNumber[portnumber.size()] = '\0';
+    while (portNumber[i] != '\0'){
         if(std::isdigit(portNumber[i])){
             value = value * 10 + portNumber[i] - '0';
         }
@@ -29,18 +34,33 @@ int Parser::parsePortNumber(std::string portNumber){
             isValid = false;
             break;
         }
+		++i;
     }
     if(isValid == false || value < PORT_MIN || value > PORT_MAX)
         throw ErrorHandler::PortNmberException();
     
-    //포트넘버 객체에 반환..(int형 반환값)
     return value;
 }
 
+
 void Parser::parseCommands(char *command){
     //파싱 방식: 스페이스 단위로 parameter list를 만들어 반환받는다. 가장 앞은 CMD, 그 뒤는 parameters
-    //
+    std::string cmd;
+    std::string word;
+    std::vector<std::string> parameters;
+    std::stringstream ss(command);
 
+    CommandHandler& commandHandler = CommandHandler::getInstance();
+
+    ss >> cmd;  
+    while(ss >> word){
+        parameters.push_back(cmd);
+    }
+    CMD::CODE cmdCode = commandHandler.identifyCommand(cmd);//NONE 이면 무시? 에러?
+    commandHandler.executeCommand(cmdCode, parameters); //실행 및 출력
+    
+    
+    
 
    
    //첫 접속
@@ -48,38 +68,7 @@ void Parser::parseCommands(char *command){
    //CAP LS -> 갖고 있는 MAX_LEN 들, 가용 용량 send
    //NICK nickname 
 
-   /*
-   파싱 방식: 스페이스 단위로 parameter list를 만들어 반환받는다.
 
-   -> parameter의 개수가 0개이면 (ERR_NONICKNAMEGIVEN)
-   -> 1개보다 크면 스페이스바가 있다는 뜻이므로 invalid
-
-   -> 서버에서 이미 쓰이는 닉네임인지 (ERR_NICKNAMEINUSE)
-   -> invalid 닉네임인지(ERR_ERRONEUSNICKNAME)
-   -> valid check : 1개이상의 alphanumeric character, {,}, \, |
-                    - 앞에 #, #&, &# 불가
-                    - 앞에 : 불가
-                    - 중간에 스페이스 불가.
-    -> 갖고 있는 NICKLEN 이하의 개수인지
-   */
-
-
-    //
-
-
-    //USER 
-    /*
-        USER root root 127.0.0.1 :root
-
-        USER <username> 0 * <realname>
-        realname은 
-    */
-
-   //JOIN
-   /*
-    요청한 클라이언트 socket number에 대해서 join 시킴. (+i)
-    ChannelManager::joinChannel();
-   */
 
   
 

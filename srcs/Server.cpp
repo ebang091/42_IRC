@@ -6,7 +6,7 @@
 /*   By: ebang <ebang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/14 12:28:31 by ebang             #+#    #+#             */
-/*   Updated: 2023/07/17 17:13:07 by ebang            ###   ########.fr       */
+/*   Updated: 2023/07/18 12:59:18 by ebang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,8 +37,7 @@ void Server::run(std::string portnumber, std::string password){
     try
     {
         //parse portnumber
-        _portNumber = parser.parsePortNumber(portnumber);
-        //socket(), bind(), listen()
+        _portNumber = parser.parsePortNumber(portnumber.c_str());
         socketHandler.makeSocketAndListen(_portNumber);
         eventHandler.listenToClients();
         

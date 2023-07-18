@@ -7,24 +7,57 @@
 
 /*
 	TODO List
-	0. 서버 동작 확인
-	1. 채널, 클라이언트 클래스 설계
-		1. 클라 : 클라 클래스 만들기, 매니저에서 두 가지의 map getter, setter 구현
-		2. 채널 : 권한 getter setter 함수
-	2. 파싱
-	3. 커맨드 처리
-*/
+	1. 에러 핸들러 - 에러 코드 및 에러 메시지 관리 함수 구현
+	2. 클라이언트 매니저 - 클라이언트 설정 정의 및 제한 (닉네임 글자 수 제한, 가입 채널 수 제한 등)
+	3. 채널 매니저 - 채널 설정 정의 및 제한 (채널명 제한, 채널 인원 수 제한 등)
+	4. 클라이언트에게 받은 문자열 파싱 후 커맨드 핸들러로 넘겨줌
+	5. 커맨드 핸들러 - 커맨드 동작 함수 구현
+	6. 이벤트 핸들러 메인 함수 리팩토링 (모듈화 더)
+
+
+ 	AWAYLEN=200 CASEMAPPING=rfc1459 CHANLIMIT=#:20 CHANMODES=b,k,l,imnpst CHANNELLEN=64 CHANTYPES=# ELIST=CMNTU HOSTLEN=64 KEYLEN=32 KICKLEN=255 LINELEN=512 MAXLIST=b:100 :are supported by this server
+ 	MAXTARGETS=20 MODES=20 NAMELEN=128 NETWORK=Localnet NICKLEN=30 PREFIX=(ov)@+ SAFELIST STATUSMSG=@+ TOPICLEN=307 USERLEN=10 USERMODES=,,s,iow WHOX :are supported by this server
+
+
+	NETWORK=Localnet
+	
+	제한 사항
+	**channel**
+
+	CHANLIMIT=#:20 (유저가 참여할 수 있는 최대 채널 수)
+	CHANMODES=k,l,o,int  (사용 가능한 채널 모드)
+	CHANNELLEN=64  (채널 이름의 최대 길이)
+	CHANTYPES=#   ('#' 모든 서버가 알고 있다는 의미.)
+	KEYLEN=32  	  (key 설정 시 최대 길이)
+	KICKLEN=255   (KICK 시에 보내는 msg 최대길이)
+	LINELEN=512   (buffer size)
+	TOPICLEN=307  (TOPIC 최대 길이)
+	MODES (user가 /mode 명령어로 최대 설정할 수 있는 channel의 mode 수)
+
+	**user**
+
+	USERLEN=10	(사용자 아이디의  최대  길이 (옥텟), number 지정 시 제한 없음)
+	HOSTLEN=64    (client 의 host 이름 최대 길이. 너무 길게 되면 IP로 본다.)
+	MAXTARGETS (PRIVMSG 보내는 대상 지정 시 그 길이)	
+	NAMELEN=128 (user name 길이)
+	NICKLEN=30 (user nickname 길이)
+	PREFIX=@ (채널 특권을 표현하는 문자. @: operator && creator)
+
+	*/
 
 #include <iostream>
 #include "Server.hpp"
+#include "Parser.hpp"
 
 int main(int argc, char **argv){
-	if(argc != 3){
-		std::cout << "usage: ./isrcserv <port> <password>\n";
-		return 1;
-	}
+	// if(argc != 3){
+	// 	std::cout << "usage: ./isrcserv <port> <password>\n";
+	// 	return 1;
+	// }
 
-	Server::getInstance().run(argv[1], argv[2]);
+	// Server::getInstance().run(argv[1], argv[2]);
 
-	
+	Parser &parser = Parser::getInstance();
+	parser.parseCommands(argv[1]);
+
 }

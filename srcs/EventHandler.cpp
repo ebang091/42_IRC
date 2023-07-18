@@ -78,8 +78,11 @@ void EventHandler::listenToClients(){
                 {
                     /* accept new client */
                     int clientSocket;
+                    
                     if ((clientSocket = accept(serverSocket, NULL, NULL)) == -1)
                         throw ErrorHandler::AcceptException();
+                    
+                    //client 와 통신해서 비밀번호 입력해야함
                     
                     std::cout << "(testmsg) accept new client: " << clientSocket << "\n";
                     fcntl(clientSocket, F_SETFL, O_NONBLOCK);
@@ -103,8 +106,9 @@ void EventHandler::listenToClients(){
                 	    //안된다고 출력하고 아무 반응도 안함.                    	
                 	}
                 	else{
-                	     //parser.parseCommands(buf);//파싱하고 실행                           
-						send(curEvent->ident, buf, n, MSG_DONTWAIT);
+                        std::string str;
+                	    parser.parseCommands(buf);//파싱하고 실행
+						send(curEvent->ident, str.c_str(), str.length(), MSG_DONTWAIT);
                         std::cout << "write to client : " << buf << "\n";
                 	}
                 }

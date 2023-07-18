@@ -10,7 +10,6 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-
 #pragma once
 #ifndef PARSER_HPP
 #define PARSER_HPP
@@ -20,16 +19,15 @@
 #include <string>
 #include <cstring>
 #include <iostream>
+#include <sstream>
+#include <vector>
 #include "ErrorHandler.hpp"
+#include "CommandHandler.hpp"
 
 class Parser{
-private:
-    
 public:
 	static Parser& getInstance();
-	int parsePortNumber(std::string portNumber);
+	int parsePortNumber(std::string portnumber);
 	void parseCommands(char *command);
 };
-
-
 #endif
