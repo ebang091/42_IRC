@@ -31,10 +31,12 @@ ERROR::CODE CommandHandler::cap(std::vector<std::string>& parameters){
     if (parameters.size() == 1 && parameters[0] == "LS"){
         //출력 .. 쫘르륵 : Channel, Client 에서 불러와서 define 된 값. 
     }
+	return ERROR::SUCCESS;
 }
 
 ERROR::CODE CommandHandler::quit(std::vector<std::string>& parameters){
-
+	
+	return ERROR::SUCCESS;
 }
 
 ERROR::CODE CommandHandler::nick(std::vector<std::string>& parameters){
@@ -80,29 +82,37 @@ ERROR::CODE CommandHandler::join(std::vector<std::string>& parameters){
     std::string candidateChannelList = parameters[0]; //#channel1,#channel2,...  ','로 구분
     std::string candidateKeyList = parameters[1];// 그뒤에 password가 주어지는 걸로 알고 있습니다.. ','로 구분
 	
-	std::stringstream ss(str);
-	while (getline(ss, word, ' ')).
+	std::stringstream ss(candidateChannelList);
+	std::string word;
+	while (std::getline(ss, word, ','))
+	{
+		// ,로 split되어 word에 저장
+	}
     
 	for(int i = 0; i < candidateChannelList.size();i++){
         //#를 기준으로 자를 수 있나염????#다음이 channel명. 
        
     }
-    
-    }
+	return ERROR::SUCCESS;
+}
 
 ERROR::CODE CommandHandler::kick(std::vector<std::string>& parameters){
-
+	
+	return ERROR::SUCCESS;
 }
 
 ERROR::CODE CommandHandler::invite(std::vector<std::string>& parameters){
-
+	
+	return ERROR::SUCCESS;
 }
 
 ERROR::CODE CommandHandler::topic(std::vector<std::string>& parameters){
-
+	
+	return ERROR::SUCCESS;
 }
 
 ERROR::CODE CommandHandler::mode(std::vector<std::string>& parameters){
-
+	
+	return ERROR::SUCCESS;
 }
 

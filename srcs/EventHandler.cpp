@@ -50,7 +50,6 @@ void EventHandler::listenToClients(){
             if (curEvent->flags & EV_ERROR)
             {
                 if (curEvent->ident == serverSocket){
-                    closeAllClients();
 					throw ErrorHandler::KeventException();
                 }
                 else
@@ -112,7 +111,7 @@ void EventHandler::listenToClients(){
 }
 
 
-Client* EventHandler::*getRequestClient() const
+Client* EventHandler::getRequestClient() const
 {
     return _requestClient;
 }

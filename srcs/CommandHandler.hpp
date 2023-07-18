@@ -13,7 +13,6 @@
 class CommandHandler
 {
 private:
-	ERROR::CODE queueParser(std::queue<std::string>& options, std::queue<std::string>& params, ERROR::CODE (*func)());
 	ERROR::CODE cap(std::vector<std::string>& parameters);
 	ERROR::CODE quit(std::vector<std::string>& parameters);
 	ERROR::CODE nick(std::vector<std::string>& parameters);
