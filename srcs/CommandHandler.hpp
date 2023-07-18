@@ -7,20 +7,23 @@
 #include <queue>
 #include "ErrorHandler.hpp"
 #include "ClientManager.hpp"
+#include "ChannelManager.hpp"
 #include "EventHandler.hpp"
 #include "Enums.hpp"
+#include "Channel.hpp"
 
 class CommandHandler
 {
 private:
-	ERROR::CODE cap(std::vector<std::string>& parameters);
-	ERROR::CODE quit(std::vector<std::string>& parameters);
-	ERROR::CODE nick(std::vector<std::string>& parameters);
-	ERROR::CODE join(std::vector<std::string>& parameters);
-	ERROR::CODE kick(std::vector<std::string>& parameters);
-	ERROR::CODE invite(std::vector<std::string>& parameters);
-	ERROR::CODE topic(std::vector<std::string>& parameters);
-	ERROR::CODE mode(std::vector<std::string>& parameters);
+	void parseByDelimeter(char delimeter, std::string& parsingLine, std::queue<std::string> &buffer);
+	NUMERIC::CODE cap(std::vector<std::string>& parameters);
+	NUMERIC::CODE quit(std::vector<std::string>& parameters);
+	NUMERIC::CODE nick(std::vector<std::string>& parameters);
+	NUMERIC::CODE join(std::vector<std::string>& parameters);
+	NUMERIC::CODE kick(std::vector<std::string>& parameters);
+	NUMERIC::CODE invite(std::vector<std::string>& parameters);
+	NUMERIC::CODE topic(std::vector<std::string>& parameters);
+	NUMERIC::CODE mode(std::vector<std::string>& parameters);
 
 public:
 	static CommandHandler& getInstance();

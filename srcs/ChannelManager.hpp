@@ -6,7 +6,7 @@
 /*   By: ebang <ebang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/14 12:48:26 by ebang             #+#    #+#             */
-/*   Updated: 2023/07/17 17:40:15 by ebang            ###   ########.fr       */
+/*   Updated: 2023/07/18 18:00:27 by ebang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@
 #include <ctime>
 #include "ErrorHandler.hpp"
 #include "Client.hpp"
+#include "Channel.hpp"
 
 #define GET_PERMISSION_N(permissions) permissions & Permission::N
 #define SET_PERMISSION_N(permissions) permissions |= Permission::N
@@ -49,21 +50,7 @@ namespace Permission
 
 class ChannelManager{
 private:
-    struct Channel{
-	public:
-		std::string _name;
-        std::string _topic;
-    	short _permissions;
-		std::map<std::string, Client*> _clientList;
-        std::map<std::string, Client*> _operators; //없으면 NULL
-        time_t _creationTime;
-
-	public:
-        Channel();
-		Channel(const std::string& channelName, Client* client);
-    };
-
-    std::map<std::string, Channel> _channelInfo;
+    std::map<std::string, Channel> _channelInfo;//Channel 포인터로 바꿀까요?
 
       /*
        client 리스트 출력하기 (방장)
@@ -96,7 +83,9 @@ private:
 
     public:
         static ChannelManager& getInstance();
-        void joinChannel(const std::string& channelName, Client *client); //- > 이렇게 하면서 channel 객체 하나 만들고 기본값 +nt, list에는 빈 리스트 
+        void insertChannel(const std::string& channelName, Client *client); //- > 이렇게 하면서 channel 객체 하나 만들고 기본값 +nt, list에는 빈 리스트
+        Channel *getChannelByName(const std::string &channelName);
+        void eraseChannel(const std::string &channelName);
 };
 
 #endif
