@@ -13,8 +13,6 @@
 #pragma once
 #ifndef PARSER_HPP
 #define PARSER_HPP
-#define PORT_MIN 1023
-#define PORT_MAX 49152
 
 #include <string>
 #include <cstring>

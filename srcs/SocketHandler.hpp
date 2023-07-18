@@ -1,13 +1,13 @@
 #pragma once
 #ifndef SOCKET_HANDLER_HPP
 #define SOCKET_HANDLER_HPP
-#define LISTEN_QUEUE_SIZE 15
 
 #include <cstring>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include "ErrorHandler.hpp"
+#include "Enums.hpp"
 
 class SocketHandler{
 private:

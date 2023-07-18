@@ -4,28 +4,16 @@
 
 #include <string>
 #include <vector>
+#include <queue>
 #include "ErrorHandler.hpp"
-#include "ClientHandler.hpp"
-
-namespace CMD{
-	enum CODE{
-		NONE = -1,
-		CAP,
-		QUIT,
-		NICK,
-		JOIN,
-		KICK,
-		INVITE,
-		TOPIC,
-		MODE,
-		SIZE
-	};
-};
+#include "ClientManager.hpp"
+#include "EventHandler.hpp"
+#include "Enums.hpp"
 
 class CommandHandler
 {
 private:
-	//fp [] = {Channel::function(), Client::function()}
+	ERROR::CODE queueParser(std::queue<std::string>& options, std::queue<std::string>& params, ERROR::CODE (*func)());
 	ERROR::CODE cap(std::vector<std::string>& parameters);
 	ERROR::CODE quit(std::vector<std::string>& parameters);
 	ERROR::CODE nick(std::vector<std::string>& parameters);

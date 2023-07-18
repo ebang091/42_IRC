@@ -1,7 +1,8 @@
 #include "EventHandler.hpp"
 
 EventHandler::EventHandler()
-	: _changeList()
+	: _requestClient(NULL)
+    , _changeList()
 {
 }
 
@@ -16,19 +17,6 @@ void EventHandler::changeEvents(std::vector<struct kevent>& changeList, uintptr_
 
     EV_SET(&temp_event, ident, filter, flags, fflags, data, udata);
     changeList.push_back(temp_event);
-}
-
-void EventHandler::closeAllClients()
-{
-	//ClientManager 에서 호출
-    
-    // std::map<int, bool>::iterator iter = _clients.begin();
-
-    // //TODO : clientinfo Delete!!
-	// for (; iter != _clients.end(); ++iter){
-		
-    //     close((*iter).first);
-    // }
 }
 
 void EventHandler::listenToClients(){
@@ -83,6 +71,8 @@ void EventHandler::listenToClients(){
                         throw ErrorHandler::AcceptException();
                     
                     //client 와 통신해서 비밀번호 입력해야함
+
+
                     
                     std::cout << "(testmsg) accept new client: " << clientSocket << "\n";
                     fcntl(clientSocket, F_SETFL, O_NONBLOCK);
@@ -97,6 +87,9 @@ void EventHandler::listenToClients(){
                     char buf[READ_BUFFER_SIZE];
 					int n = recv(curEvent->ident, buf, READ_BUFFER_SIZE, MSG_DONTWAIT);
                     buf[n] = '\0';
+                    
+                    this->_requestClient = clientManager.getClientByFD(curEvent->ident);                    
+
                     std::cout << n << "bytes read""\n";
 					if (n == -1){
 						close(curEvent->ident);
@@ -116,4 +109,10 @@ void EventHandler::listenToClients(){
         }
 
     }
+}
+
+
+Client* EventHandler::*getRequestClient() const
+{
+    return _requestClient;
 }

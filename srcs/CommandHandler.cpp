@@ -38,30 +38,57 @@ ERROR::CODE CommandHandler::quit(std::vector<std::string>& parameters){
 }
 
 ERROR::CODE CommandHandler::nick(std::vector<std::string>& parameters){
-    ClientHandler &clientHandler = ClientHandler::getInstance();
-
+    ClientManager &clientHandler = ClientManager::getInstance();
+    std::string candidateNickname = parameters[0];
     bool isValid = true;
+
     if(parameters.size() == 0)
         return ERROR::NO_PARAM;
     if(parameters.size() != 1)
-		return ERROR::INVALID_NICK; // 
-        //  432 "<client> <nick> :Erroneus nickname" 
-    std::string candidateNickname = parameters[0];
+		isValid =  false;
+        //  432 "<client> <nick> :Erroneus nickname"  (ERR_ERRONEUSNICKNAME )
     if(candidateNickname[0] == '#' || candidateNickname[0] == ':')
-        isValid =  false;
+        return ERROR::INVALID_NICK;
     
-    
-    //NICK nick name
-    
-    
+    Client *foundDuplicate = clientHandler.getClientByNick(candidateNickname);
+	Client *requestClient = EventHandler::getInstance().getRequestClient();
+    if(foundDuplicate){
+        if (foundDuplicate == requestClient)
+			return ERROR::NOTHING;
+		else
+			return ERROR::DUP_NICK;
+            //433 "<client> <nick> :Nickname is already in use" (ERR_NICKNAMEINUSE)  
+    }
+	
+    if(candidateNickname.length() > CONFIG::NICKLEN)
+        return ERROR::INVALID_NICK;
 
-
-
+    requestClient->SetNickName(candidateNickname);
+    return ERROR::SUCCESS;
 }
 
 ERROR::CODE CommandHandler::join(std::vector<std::string>& parameters){
-
-}
+    
+    bool alreadyExists = false;
+    bool isValid = false;
+    std::queue<std::string> channelList;
+    std::queue<std::string> keyList;
+	
+	if(parameters.size() != 2)
+		return ERROR::NO_PARAM;
+	
+    std::string candidateChannelList = parameters[0]; //#channel1,#channel2,...  ','로 구분
+    std::string candidateKeyList = parameters[1];// 그뒤에 password가 주어지는 걸로 알고 있습니다.. ','로 구분
+	
+	std::stringstream ss(str);
+	while (getline(ss, word, ' ')).
+    
+	for(int i = 0; i < candidateChannelList.size();i++){
+        //#를 기준으로 자를 수 있나염????#다음이 channel명. 
+       
+    }
+    
+    }
 
 ERROR::CODE CommandHandler::kick(std::vector<std::string>& parameters){
 

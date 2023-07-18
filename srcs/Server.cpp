@@ -6,7 +6,7 @@
 /*   By: ebang <ebang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/14 12:28:31 by ebang             #+#    #+#             */
-/*   Updated: 2023/07/18 12:59:18 by ebang            ###   ########.fr       */
+/*   Updated: 2023/07/18 15:53:39 by ebang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,5 +51,4 @@ void Server::run(std::string portnumber, std::string password){
         //오류 잡음
 		std::cout << e.what() << std::endl;
     }
-	// close
 }

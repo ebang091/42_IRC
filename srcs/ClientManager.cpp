@@ -12,19 +12,43 @@
 
 #include "ClientManager.hpp"
 
+ClientManager::~ClientManager(){
+	std::map<int, Client*>::iterator it;
+    
+    it = this->_clientByFD.begin();
+    for(; it != this->_clientByFD.end(); it++){
+        delete it->second;
+        close(it->first);
+    }
+}
+
 ClientManager& ClientManager::getInstance(){
 	static ClientManager instance;
 	return instance;
 }
 
 Client* ClientManager::getClientByNick(const std::string& target){
-	// exception 발생
-	return _clientByNick.at(target);
+	try
+	{
+		Client* tmp = _clientByNick.at(target);		
+		return tmp;
+	}
+	catch(const std::exception& e)
+	{
+		return NULL;
+	}
 }
 
 Client* ClientManager::getClientByFD(int fd){
-	// exception 발생
-	return _clientByFD.at(fd);
+	try
+	{
+		Client* tmp = _clientByFD.at(fd);		
+		return tmp;
+	}
+	catch(const std::exception& e)
+	{
+		return NULL;
+	}
 }
 
 void ClientManager::insertClientByNick(const std::string& target, Client* client){
@@ -41,14 +65,4 @@ void ClientManager::eraseClientByNick(const std::string& target){
 
 void ClientManager::eraseClientByFD(int fd){
 	_clientByFD.erase(fd);
-}
-
-void ClientManager::deleteAndCloseAllClients(){
-    std::map<int, Client*>::iterator it;
-    
-    it = this->_clientByFD.begin();
-    for(; it != this->_clientByFD.end(); it++){
-        delete it->second;
-        close(it->first);
-    }
 }
