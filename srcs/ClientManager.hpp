@@ -6,7 +6,7 @@
 /*   By: ebang <ebang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/14 12:48:26 by ebang             #+#    #+#             */
-/*   Updated: 2023/07/18 16:11:18 by ebang            ###   ########.fr       */
+/*   Updated: 2023/07/19 13:48:24 by ebang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,11 +31,11 @@ public:
 
 public:
     static ClientManager& getInstance();
-    Client* getClientByNick(const std::string& target);
+    Client* getClientByNick(const std::string& nickName);
     Client* getClientByFD(int fd);
-    void insertClientByNick(const std::string& target, Client* client);
+    void insertClientByNick(const std::string& nickName, Client* client);
     void insertClientByFD(int fd);
-    void eraseClientByNick(const std::string& target);
+    void eraseClientByNick(const std::string& nickName);
     void eraseClientByFD(int fd);
 };
 

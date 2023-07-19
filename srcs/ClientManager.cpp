@@ -15,8 +15,8 @@
 ClientManager::~ClientManager(){
 	std::map<int, Client*>::iterator it;
     
-    it = this->_clientByFD.begin();
-    for(; it != this->_clientByFD.end(); it++){
+    it = _clientByFD.begin();
+    for(; it != _clientByFD.end(); it++){
         delete it->second;
         close(it->first);
     }
@@ -27,10 +27,10 @@ ClientManager& ClientManager::getInstance(){
 	return instance;
 }
 
-Client* ClientManager::getClientByNick(const std::string& target){
+Client* ClientManager::getClientByNick(const std::string& nickName){
 	try
 	{
-		Client* tmp = _clientByNick.at(target);		
+		Client* tmp = _clientByNick.at(nickName);		
 		return tmp;
 	}
 	catch(const std::exception& e)
@@ -51,18 +51,30 @@ Client* ClientManager::getClientByFD(int fd){
 	}
 }
 
-void ClientManager::insertClientByNick(const std::string& target, Client* client){
-	_clientByNick.insert(std::make_pair(target, client));
+void ClientManager::insertClientByNick(const std::string& nickName, Client* client){
+	_clientByNick.insert(std::make_pair(nickName, client));
 }
 
 void ClientManager::insertClientByFD(int fd){
 	_clientByFD.insert(std::make_pair(fd, new Client(fd)));
 }
 
-void ClientManager::eraseClientByNick(const std::string& target){
-	_clientByNick.erase(target);
+void ClientManager::eraseClientByNick(const std::string& nickName){
+	std::map<std::string, Client*>::iterator target = _clientByNick.find(nickName);
+
+	if (target != _clientByNick.end())
+	{
+		delete target->second;
+		_clientByNick.erase(nickName);
+	}
 }
 
 void ClientManager::eraseClientByFD(int fd){
-	_clientByFD.erase(fd);
+	std::map<int, Client*>::iterator target = _clientByFD.find(fd);
+
+	if (target != _clientByFD.end())
+	{
+		delete target->second;
+		_clientByFD.erase(fd);
+	}
 }

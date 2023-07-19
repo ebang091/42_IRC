@@ -54,15 +54,11 @@ void Parser::parseCommands(char *command){
 
     ss >> cmd;  
     while(ss >> word){
-        parameters.push_back(cmd);
+        parameters.push_back(word);
     }
     CMD::CODE cmdCode = commandHandler.identifyCommand(cmd);//NONE 이면 무시? 에러?
     commandHandler.executeCommand(cmdCode, parameters); //실행 및 출력
     
-    
-    
-
-   
    //첫 접속
 
    //CAP LS -> 갖고 있는 MAX_LEN 들, 가용 용량 send

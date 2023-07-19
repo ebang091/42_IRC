@@ -1,4 +1,5 @@
 #include "CommandHandler.hpp"
+#include "EventHandler.hpp"
 
 CommandHandler& CommandHandler::getInstance(){
 	static CommandHandler instance;
@@ -65,25 +66,11 @@ NUMERIC::CODE CommandHandler::nick(std::vector<std::string>& parameters){
     if(candidateNickname.length() > CONFIG::NICKLEN)
         return NUMERIC::INVALID_NICK;
 
-    requestClient->SetNickName(candidateNickname);
+    requestClient->setNickName(candidateNickname);
     return NUMERIC::SUCCESS;
 }
 
-void CommandHandler::parseByDelimeter(char delimeter, std::string& parsingLine, std::queue<std::string> &buffer){
-    
-    std::stringstream ssLine(parsingLine);
-    std::string word;
-
-    while (std::getline(ssLine, word, delimeter))
-        buffer.push(word);
-}
-
-NUMERIC::CODE validChannelCheck(Channel *channel, std::string key){
-
-}
-
 NUMERIC::CODE CommandHandler::join(std::vector<std::string>& parameters){
-    
     bool alreadyExists = false;
     bool isValid = true;
     std::queue<std::string> channelList;
@@ -100,21 +87,27 @@ NUMERIC::CODE CommandHandler::join(std::vector<std::string>& parameters){
         std::string channelName = channelList.front();
         if(channelName[0] != '#')
             isValid = false;
-        Channel * foundChannel = channelManager.getChannelByName(channelName); 
-        if(foundChannel){
-            if(GET_PERMISSION_K(foundChannel->_permissions)){
-                if(keyList.empty() == true){
-                    //need password error
-                }
-                validChannelCheck(foundChannel, keyList.front());
-                keyList.pop();
-            } 
-            
-            // checkValid(string channelName, string UserName, string key?)
-            // return NUMERIC::CODE ??
-            //
-        }
+        Channel *foundChannel = channelManager.getChannelByName(channelName); 
+        if (!foundChannel)
+		{
+			// 만들기
+		}
+		else
+		{
+			if(GET_PERMISSION_K(foundChannel->getPermissions()))
+			{
+				if(keyList.empty() == true){
+					//need password error
+				}
+				// validChannelCheck(foundChannel, keyList.front());
+				keyList.pop();
+			} 
+		}
         
+        // checkValid(string channelName, string UserName, string key?)
+        // return NUMERIC::CODE ??
+        //
+    
         
         
         //채널 존재? key option 이면 keyList 불러와서 확인
@@ -159,6 +152,82 @@ NUMERIC::CODE CommandHandler::topic(std::vector<std::string>& parameters){
 
 NUMERIC::CODE CommandHandler::mode(std::vector<std::string>& parameters){
 	
-	return NUMERIC::SUCCESS;
+	//input: MODE +inopt -kft user password
+    //params:+inopt -kft user password
+
+    //parameters[0]    #channel
+    //parameters[1]     + options
+    //parametrs[2]      - options
+    
+    //keys              이후
+    std::string channelName;
+    std::string options;
+    std::queue<std::string> params;
+    EventHandler& eventHandler = EventHandler::getInstance();
+    ChannelManager& channelManager = ChannelManager::getInstance();
+    Channel *requestChannel;
+    Client *requestClient;
+    FSM& fsm = FSM::getInstance();
+    
+    std::cout << "MODE \n";
+    
+	if (parameters.size() < 2)
+		return NUMERIC::NO_PARAM;
+
+	channelName = parameters[0];
+	options = parameters[1];
+
+    std::cout << channelName << "\n";
+    std::cout << options << "\n";
+    if(channelName.front() != CHANNEL_PREFIX)
+        return NUMERIC::UNKNOWN_ERR; //syntax error 400 : must specify #channelname.
+    
+    channelName.erase(0, 1); // PREFIX 지우기
+    
+    eventHandler.setRequestChannel(channelManager.getChannelByName(channelName));
+    requestChannel = eventHandler.getRequestChannel();
+    requestClient = eventHandler.getRequestClient();
+
+    
+    
+    if (requestChannel == NULL){
+        std::cout << "No SUCH CHAN";
+        return NUMERIC::NO_SUCH_CHAN;
+    }
+
+    for(int i = 2; i < parameters.size(); i++)
+        params.push(parameters[i]);
+
+    if(requestChannel->getOperatorByNick(requestClient->getNickName()) == NULL)
+		return NUMERIC::NOT_OPER;
+		//error: 482 two #c :You must have channel op access or above to set channel mode k
+        // "<client> <channel> :You're not channel operator"
+
+        //check
+    std::cout << requestClient->getNickName();
+    std::string str;
+    for(int i  = 0; i < params.size();i++){
+       str = params.front();
+       std::cout << str << "\n";
+       params.pop();
+       params.push(str);       
+    }
+    
+
+    std::cout << "\n";
+    
+
+    fsm.executeMode(params, options);
+	// 반환된 에러 처리
+    
+    return NUMERIC::SUCCESS;
+}
+
+void CommandHandler::parseByDelimeter(char delimeter, std::string& parsingLine, std::queue<std::string> &buffer){
+    std::stringstream ssLine(parsingLine);
+    std::string word;
+
+    while (std::getline(ssLine, word, delimeter))
+        buffer.push(word);
 }
 

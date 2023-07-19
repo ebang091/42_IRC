@@ -98,7 +98,7 @@ void EventHandler::listenToClients(){
                 	    //안된다고 출력하고 아무 반응도 안함.                    	
                 	}
                 	else{
-                        std::string str;
+                        std::string str = "okay";
                 	    parser.parseCommands(buf);//파싱하고 실행
 						send(curEvent->ident, str.c_str(), str.length(), MSG_DONTWAIT);
                         std::cout << "write to client : " << buf << "\n";
@@ -114,4 +114,14 @@ void EventHandler::listenToClients(){
 Client* EventHandler::getRequestClient() const
 {
     return _requestClient;
+}
+
+Channel* EventHandler::getRequestChannel()const
+{
+	return this->_requestChannel;
+}
+
+void EventHandler::setRequestChannel(Channel* channel)
+{
+	_requestChannel = channel;
 }

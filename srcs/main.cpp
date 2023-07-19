@@ -50,14 +50,14 @@
 #include "Parser.hpp"
 
 int main(int argc, char **argv){
-	// if(argc != 3){
-	// 	std::cout << "usage: ./isrcserv <port> <password>\n";
-	// 	return 1;
-	// }
+	if(argc != 3){
+		std::cout << "usage: ./isrcserv <port> <password>\n";
+		return 1;
+	}
 
-	// Server::getInstance().run(argv[1], argv[2]);
+	Server::getInstance().run(argv[1], argv[2]);
 
-	Parser &parser = Parser::getInstance();
-	parser.parseCommands(argv[1]);
-
+	// Parser &parser = Parser::getInstance();
+	// parser.parseCommands(argv[1]);
+	return 0;
 }

@@ -1,6 +1,6 @@
 #pragma once
 #ifndef COMMAND_HANDLER_HPP
-#define COMMAND_HANDLER_HP
+#define COMMAND_HANDLER_HPP
 
 #include <string>
 #include <vector>
@@ -8,14 +8,17 @@
 #include "ErrorHandler.hpp"
 #include "ClientManager.hpp"
 #include "ChannelManager.hpp"
-#include "EventHandler.hpp"
 #include "Enums.hpp"
 #include "Channel.hpp"
+#include "FSM.hpp"
+
+class EventHandler;
 
 class CommandHandler
 {
 private:
 	void parseByDelimeter(char delimeter, std::string& parsingLine, std::queue<std::string> &buffer);
+	NUMERIC::CODE executeModeCommand(STATE::CODE &state, std::queue<std::string>& params, char c);
 	NUMERIC::CODE cap(std::vector<std::string>& parameters);
 	NUMERIC::CODE quit(std::vector<std::string>& parameters);
 	NUMERIC::CODE nick(std::vector<std::string>& parameters);
