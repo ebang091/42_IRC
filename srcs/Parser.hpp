@@ -28,4 +28,5 @@ public:
 	int parsePortNumber(std::string portnumber);
 	void parseCommands(char *command);
 };
+
 #endif
