@@ -15,6 +15,7 @@ Channel::Channel(const std::string& channelName, Client* client)
 	_operators.insert(std::make_pair(client->getNickName(), client));
 }
 
+
 Client* Channel::getOperatorByNick(const std::string& nickName) const
 {
 	try{
@@ -37,14 +38,30 @@ Client* Channel::getClientByNick(const std::string& nickName) const
 	}
 }
 
+Client* Channel::getInviteByNick(const std::string& nickName) const
+{
+	try{
+		Client* find = _invitedList.at(nickName);
+		return find;
+	}
+	catch(std::exception &e){
+		return NULL;
+	}
+}
+
 void Channel::insertOperator(Client* client)
 {
 	_operators.insert(std::make_pair(client->getNickName(), client));
 }
-
+ 
 void Channel::insertClient(Client* client)
 {
 	_clientList.insert(std::make_pair(client->getNickName(), client));
+}
+
+void Channel::insertInvite(Client* client)
+{
+	_invitedList.insert(std::make_pair(client->getNickName(), client));
 }
 
 const std::string& Channel::getName() const{
@@ -100,3 +117,33 @@ void Channel::eraseOperator(const std::string& nickName){
 void Channel::eraseClient(const std::string& nickName){
 	_clientList.erase(nickName);
 }
+
+void Channel::eraseInvite(const std::string& nickName){
+	_invitedList.erase(nickName);
+}
+
+bool Channel::isFull() const{
+	if(this->_clientList.size() >= this->_limit)
+		return true;
+	return false;
+}
+
+void Channel::printClients()
+{
+	std::cout << " * operators \n";
+	for (std::map<std::string, Client*>::iterator iter = _operators.begin(); iter != _operators.end(); ++iter)
+		std::cout << "(" << iter->second->getNickName() << ") - ";
+	std::cout << "\n";
+
+	std::cout << " * clients \n";
+	for (std::map<std::string, Client*>::iterator iter = _clientList.begin(); iter != _clientList.end(); ++iter)
+		std::cout << "(" << iter->second->getNickName() << ") - ";
+	std::cout << "\n";
+
+	std::cout << " * invited \n";
+	for (std::map<std::string, Client*>::iterator iter = _invitedList.begin(); iter != _invitedList.end(); ++iter)
+		std::cout << "(" << iter->second->getNickName() << ") - ";
+	std::cout << "\n";
+
+}
+

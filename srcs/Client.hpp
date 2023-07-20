@@ -25,7 +25,6 @@ public:
 	const std::string& getRealName() const;
     const std::string& getIpAddress() const;
 	int getSocketNumber() const;
-
 	
     void setNickName(const std::string& newNickName);
     void setUserName(const std::string& newUserName);

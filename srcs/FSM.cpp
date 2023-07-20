@@ -61,7 +61,7 @@ INPUT::CODE FSM::getInput(char c) const{
         return INPUT::K;
     else if(c == 'o')
         return INPUT::O;
-    else if(c == 'L')
+    else if(c == 'l')
         return INPUT::L;
     else
         return INPUT::NONE;
@@ -417,7 +417,7 @@ NUMERIC::CODE FSM::minusL(std::queue<std::string>& params, STATE::CODE& state){
 	std::string broadcast;
 
 	char permissions = _channel->getPermissions();
-	if(GET_PERMISSION_L(permissions))
+	if(!(GET_PERMISSION_L(permissions)))
 		return NUMERIC::NOTHING;
     _channel->setPermission(SWITCH_PERMISSION_L(permissions));
 	_channel->setLimit(CONFIG::USERLIMIT);

@@ -7,16 +7,18 @@
 
 /*
 	TODO List
-	1. JOIN, PART 구현 후 MODE 테스트
-	2. NICK, USER
-	3. MessageHandler
-	4. CAP LS
-	6. 이벤트 핸들러 메인 함수 리팩토링 (모듈화 더)
+	1. JOIN, PART 구현 후 MODE 테스트 O
+	2. NICK	O
+	3. MessageHandler O
 
+	TODO
+	1. kick message
+	2. 
+	4. CAP LS 
+	6. 이벤트 핸들러 메인 함수 리팩토링 (모듈화 더)
 
  	AWAYLEN=200 CASEMAPPING=rfc1459 CHANLIMIT=#:20 CHANMODES=b,k,l,imnpst CHANNELLEN=64 CHANTYPES=# ELIST=CMNTU HOSTLEN=64 KEYLEN=32 KICKLEN=255 LINELEN=512 MAXLIST=b:100 :are supported by this server
  	MAXTARGETS=20 MODES=20 NAMELEN=128 NETWORK=Localnet NICKLEN=30 PREFIX=(ov)@+ SAFELIST STATUSMSG=@+ TOPICLEN=307 USERLEN=10 USERMODES=,,s,iow WHOX :are supported by this server
-
 
 	NETWORK=Localnet
 	
@@ -56,7 +58,6 @@ int main(int argc, char **argv){
 
 	Server::getInstance().run(argv[1], argv[2]);
 
-	// Parser &parser = Parser::getInstance();
-	// parser.parseCommands(argv[1]);
+	//test : NICK 으로 닉네임 만든 후 JOIN 해서 채널에 등록되는지 확인  : getClientByNick 해보자
 	return 0;
 }

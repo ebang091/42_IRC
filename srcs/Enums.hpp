@@ -89,6 +89,7 @@ namespace CMD{
 		INVITE,
 		TOPIC,
 		MODE,
+		PART,
 		SIZE
 	};
 };
@@ -105,11 +106,15 @@ namespace NUMERIC{
 		NOT_OPER = 482,
 
 		NO_SUCH_CHAN = 403,
+		NOT_ON_CHAN = 442,
 		ALREADY_ON_CHAN = 443,
-		INCORRECT_KEY = 475,
+		BAD_CHAN_KEY = 475,
 		KEY_ALREADY_SET = 467,
+		FULL_CHANNEL = 471,
 		INVALID_MODE = 472,
-
+		INVITE_ONLY_CHAN = 473,
+		BAD_CHAN_MASK = 476,
+		
 		NOTHING = -1,
 		
 		// --- SUCCESS ---

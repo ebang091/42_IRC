@@ -6,7 +6,7 @@
 /*   By: ebang <ebang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/14 12:28:31 by ebang             #+#    #+#             */
-/*   Updated: 2023/07/19 13:50:39 by ebang            ###   ########.fr       */
+/*   Updated: 2023/07/20 17:54:49 by ebang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,5 +63,21 @@ Channel* ChannelManager::getChannelByName(const std::string& channelName) const
 	catch(const std::exception& e)
 	{
 		return NULL;
+	}
+}
+
+#include <bitset>
+void ChannelManager::printChannels()
+{
+	std::cout << "\n** channel list\n";
+	for (std::map<std::string, Channel*>::iterator iter = _channels.begin(); iter != _channels.end(); ++iter)
+	{
+		std::cout << "channel name [" << iter->second->getName() << "]\n";
+		std::cout << "permission    :" << std::bitset<8>(iter->second->getPermissions()) << "\n";
+		std::cout << "password      :" << iter->second->getPassword() << "\n";
+
+		
+		iter->second->printClients();
+		iter->second->printInvited();
 	}
 }

@@ -16,7 +16,8 @@ private:
 	char _permissions;
     time_t _creationTime;
 	std::map<std::string, Client*> _clientList;
-    std::map<std::string, Client*> _operators; //없으면 NULL
+    std::map<std::string, Client*> _operators;
+	std::map<std::string, Client*> _invitedList;
 
 public:
     Channel();
@@ -38,10 +39,18 @@ public:
 
 	Client* getOperatorByNick(const std::string& nickName) const;
 	Client* getClientByNick(const std::string& nickName) const;
+	Client* getInviteByNick(const std::string& nickName) const;
 	void insertOperator(Client* client);
 	void insertClient(Client* client);
+	void insertInvite(Client* client);
 	void eraseOperator(const std::string& nickName);
 	void eraseClient(const std::string& nickName);
+	void eraseInvite(const std::string& nickName);
+	
+	bool isFull() const;
+
+public:
+	void printClients();
 };
 
 #endif

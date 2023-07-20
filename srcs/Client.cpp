@@ -50,5 +50,4 @@ void Client::setIpAddress(int clientSocket){
     getsockname(clientSocket, &(struct sockaddr& )clnt_addr, &size);
     char* result = inet_ntoa(clnt_addr.sin_addr);
     _ipAddress = result;
-    free(result);
 }

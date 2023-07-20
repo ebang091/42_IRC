@@ -13,11 +13,12 @@ private:
 public:
 	static MessageHandler& getInstance();
 	
+    void makeServerMessage();
+	void makeUserMessage();
+	
     void addRequestClientInfo(Client *client);
 	void addCommand(CMD::CODE command, const std::string& option);
 	void addMessage(const std::string& msg);
     void addError(NUMERIC::CODE errcode, const std::string& description);
 };
-
-
 #endif

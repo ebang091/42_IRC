@@ -78,3 +78,16 @@ void ClientManager::eraseClientByFD(int fd){
 		_clientByFD.erase(fd);
 	}
 }
+
+void ClientManager::printClients()
+{
+	std::cout << "** client by nick list\n";
+	std::cout << "size fd, nick :" << _clientByFD.size() << " " << _clientByNick.size() <<"\n";
+	for (std::map<std::string, Client*>::iterator iter = _clientByNick.begin(); iter != _clientByNick.end(); ++iter)
+		std::cout << "(" << iter->first << ", " << iter->second << ") - ";
+	
+	std::cout << "\n** client by fd list\n";
+	for (std::map<int, Client*>::iterator iter = _clientByFD.begin(); iter != _clientByFD.end(); ++iter)
+		std::cout << "(" << iter->first << ", " << iter->second << ") - ";
+	std::cout << "\n";
+}

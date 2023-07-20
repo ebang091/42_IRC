@@ -19,6 +19,17 @@ void EventHandler::changeEvents(std::vector<struct kevent>& changeList, uintptr_
     changeList.push_back(temp_event);
 }
 
+void test()
+{
+    std::cout << "---- TEST -----\n";
+    ClientManager& clm = ClientManager::getInstance();
+    ChannelManager& chm = ChannelManager::getInstance();
+
+    clm.printClients();
+    chm.printChannels();
+    std::cout << "\n";
+}
+
 void EventHandler::listenToClients(){
     
     int serverSocket = SocketHandler::getInstance().getServerSocket();
@@ -70,15 +81,11 @@ void EventHandler::listenToClients(){
                         throw ErrorHandler::AcceptException();
                     
                     //client 와 통신해서 비밀번호 입력해야함
-
-
-                    
-                    std::cout << "(testmsg) accept new client: " << clientSocket << "\n";
                     fcntl(clientSocket, F_SETFL, O_NONBLOCK);
 
                     /* add event for client socket - add read && write event */
                     changeEvents(_changeList, clientSocket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
-                    clientManager.insertClientByFD(curEvent->ident);
+                    clientManager.insertClientByFD(clientSocket);
                 }
                 else
                 {
@@ -86,10 +93,8 @@ void EventHandler::listenToClients(){
                     char buf[READ_BUFFER_SIZE];
 					int n = recv(curEvent->ident, buf, READ_BUFFER_SIZE, MSG_DONTWAIT);
                     buf[n] = '\0';
-                    
-                    this->_requestClient = clientManager.getClientByFD(curEvent->ident);                    
+                    this->_requestClient = clientManager.getClientByFD(curEvent->ident); 
 
-                    std::cout << n << "bytes read""\n";
 					if (n == -1){
 						close(curEvent->ident);
 						clientManager.eraseClientByFD(curEvent->ident);
@@ -100,8 +105,10 @@ void EventHandler::listenToClients(){
                 	else{
                         std::string str = "okay";
                 	    parser.parseCommands(buf);//파싱하고 실행
+                        test();
+
 						send(curEvent->ident, str.c_str(), str.length(), MSG_DONTWAIT);
-                        std::cout << "write to client : " << buf << "\n";
+                        //std::cout << "write to client : " << buf << "\n";
                 	}
                 }
 			}
