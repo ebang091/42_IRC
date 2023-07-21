@@ -114,8 +114,9 @@ void Channel::eraseOperator(const std::string& nickName){
 	_operators.erase(nickName);
 }
 
-void Channel::eraseClient(const std::string& nickName){
+int Channel::eraseClient(const std::string& nickName){
 	_clientList.erase(nickName);
+	return _clientList.size();
 }
 
 void Channel::eraseInvite(const std::string& nickName){
@@ -147,3 +148,23 @@ void Channel::printClients()
 
 }
 
+void Channel::sendToClients(){
+	for (std::map<std::string, Client*>::iterator iter = _clientList.begin(); iter != _clientList.end(); ++iter)
+	{
+		// iter->second->getSocketNumber();
+		// send();
+	}
+}
+
+void Channel::sendToClients(std::set<int>& isSent){
+	for (std::map<std::string, Client*>::iterator iter = _clientList.begin(); iter != _clientList.end(); ++iter)
+	{
+		int curFd = iter->second->getSocketNumber();
+		if (isSent.find(curFd) != isSent.end())
+			continue;
+
+		isSent.insert(curFd);
+		// iter->second->getSocketNumber();
+		// send();
+	}
+}

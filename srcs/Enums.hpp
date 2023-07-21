@@ -25,7 +25,7 @@
 #define SWITCH_PERMISSION_O(permissions) permissions ^ PERMISSION::O
 #define GET_PERMISSION_L(permissions) permissions & PERMISSION::L
 #define SWITCH_PERMISSION_L(permissions) permissions ^ PERMISSION::L
-
+#define VERIFY_SUCCESS(status) (status == NUMERIC::SUCCESS) || (status == NUMERIC::WELCOME) || (status == NUMERIC::YOURHOST) || (status == NUMERIC::CREATED) || (status == NUMERIC::MYINFO) || (status == NUMERIC::ISUPPORT)
 namespace PERMISSION
 {
 	enum CODE
@@ -90,6 +90,7 @@ namespace CMD{
 		TOPIC,
 		MODE,
 		PART,
+		PRIVMSG,
 		SIZE
 	};
 };
@@ -106,6 +107,7 @@ namespace NUMERIC{
 		NOT_OPER = 482,
 
 		NO_SUCH_CHAN = 403,
+		TARGET_NOT_ON_CHAN = 441,
 		NOT_ON_CHAN = 442,
 		ALREADY_ON_CHAN = 443,
 		BAD_CHAN_KEY = 475,

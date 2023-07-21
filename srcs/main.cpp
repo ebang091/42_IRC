@@ -6,16 +6,14 @@
 */
 
 /*
-	TODO List
-	1. JOIN, PART 구현 후 MODE 테스트 O
-	2. NICK	O
-	3. MessageHandler O
-
 	TODO
-	1. kick message
-	2. 
-	4. CAP LS 
-	6. 이벤트 핸들러 메인 함수 리팩토링 (모듈화 더)
+	1. kick , quit, topic ping
+	2. message
+	3. CAP LS
+	4. server connect 시에 PASS
+	5. 이벤트 핸들러 메인 함수 리팩토링 (모듈화 더)
+
+	join, part channel list 순회하면서 에러 발생 시 해당 channel만 실패하고 계속
 
  	AWAYLEN=200 CASEMAPPING=rfc1459 CHANLIMIT=#:20 CHANMODES=b,k,l,imnpst CHANNELLEN=64 CHANTYPES=# ELIST=CMNTU HOSTLEN=64 KEYLEN=32 KICKLEN=255 LINELEN=512 MAXLIST=b:100 :are supported by this server
  	MAXTARGETS=20 MODES=20 NAMELEN=128 NETWORK=Localnet NICKLEN=30 PREFIX=(ov)@+ SAFELIST STATUSMSG=@+ TOPICLEN=307 USERLEN=10 USERMODES=,,s,iow WHOX :are supported by this server

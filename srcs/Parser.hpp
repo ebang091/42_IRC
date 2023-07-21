@@ -26,7 +26,7 @@ class Parser{
 public:
 	static Parser& getInstance();
 	int parsePortNumber(std::string portnumber);
-	void parseCommands(char *command);
+	void parseCommandsAndExecute(char *command);
 };
 
 #endif

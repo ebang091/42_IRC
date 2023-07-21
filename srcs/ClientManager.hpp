@@ -6,7 +6,7 @@
 /*   By: ebang <ebang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/14 12:48:26 by ebang             #+#    #+#             */
-/*   Updated: 2023/07/20 14:53:55 by ebang            ###   ########.fr       */
+/*   Updated: 2023/07/21 16:31:29 by ebang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 #include <string>
 #include <iostream>
 #include <map>
+#include <unistd.h>
 #include "ErrorHandler.hpp"
 #include "Client.hpp"
 #include "Enums.hpp"
@@ -37,6 +38,10 @@ public:
     void insertClientByFD(int fd);
     void eraseClientByNick(const std::string& nickName);
     void eraseClientByFD(int fd);
+
+    
+
+    
 
 public:
     void printClients();

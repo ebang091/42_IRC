@@ -20,8 +20,8 @@ NUMERIC::CODE FSM::executeAndChangeState(STATE::CODE &state, std::queue<std::str
         //"<client> <modechar> :is unknown mode char to me" ERR_UNKNOWNMODE (472) 
     
     typedef NUMERIC::CODE (FSM::*FP)(std::queue<std::string>&, STATE::CODE&);
-    FP fp[STATE::SIZE][INPUT::SIZE] = {{&FSM::plusN, &FSM::plusT, &FSM::plusI, &FSM::plusK, &FSM::plusO, &FSM::plusL}
-                                    , {&FSM::minusN, &FSM::minusT, &FSM::minusI, &FSM::minusK, &FSM::minusO, &FSM::minusL}
+    FP fp[STATE::SIZE][INPUT::SIZE] = {{&FSM::plusN, &FSM::plusT, &FSM::plusI, &FSM::plusK, &FSM::plusO, &FSM::plusL, &FSM::toPlus, &FSM::toMinus}
+                                    , {&FSM::minusN, &FSM::minusT, &FSM::minusI, &FSM::minusK, &FSM::minusO, &FSM::minusL, &FSM::toPlus, &FSM::toMinus}
                                     , {NULL, NULL, NULL, NULL, NULL, NULL, &FSM::toPlus, &FSM::toMinus}
                                     };
     
@@ -44,8 +44,6 @@ void FSM::executeMode(std::queue<std::string>& params, const std::string& option
 		// mode message
 		// broadcast
 	}
-
-	
 }
 
 INPUT::CODE FSM::getInput(char c) const{
@@ -63,6 +61,8 @@ INPUT::CODE FSM::getInput(char c) const{
         return INPUT::O;
     else if(c == 'l')
         return INPUT::L;
+	else if(c == 't')
+        return INPUT::T;
     else
         return INPUT::NONE;
 }

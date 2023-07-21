@@ -63,10 +63,7 @@ void ClientManager::eraseClientByNick(const std::string& nickName){
 	std::map<std::string, Client*>::iterator target = _clientByNick.find(nickName);
 
 	if (target != _clientByNick.end())
-	{
-		delete target->second;
 		_clientByNick.erase(nickName);
-	}
 }
 
 void ClientManager::eraseClientByFD(int fd){
@@ -74,6 +71,7 @@ void ClientManager::eraseClientByFD(int fd){
 
 	if (target != _clientByFD.end())
 	{
+		close(target->first);
 		delete target->second;
 		_clientByFD.erase(fd);
 	}

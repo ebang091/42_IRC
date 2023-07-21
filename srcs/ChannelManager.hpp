@@ -6,7 +6,7 @@
 /*   By: ebang <ebang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/14 12:48:26 by ebang             #+#    #+#             */
-/*   Updated: 2023/07/20 14:57:37 by ebang            ###   ########.fr       */
+/*   Updated: 2023/07/21 17:01:23 by ebang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 
 #include <string>
 #include <iostream>
+#include <vector>
 #include <map>
 #include <ctime>
 #include "ErrorHandler.hpp"
@@ -65,6 +66,7 @@ private:
     
     public:
         void printChannels();
+        void eraseClientAllChannels(const std::string& targetName);
 };
 
 #endif

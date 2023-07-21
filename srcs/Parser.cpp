@@ -43,7 +43,7 @@ int Parser::parsePortNumber(std::string portnumber){
 }
 
 
-void Parser::parseCommands(char *command){
+void Parser::parseCommandsAndExecute(char *command){
     //파싱 방식: 스페이스 단위로 parameter list를 만들어 반환받는다. 가장 앞은 CMD, 그 뒤는 parameters
     std::string cmd;
     std::string word;

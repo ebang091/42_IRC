@@ -7,7 +7,7 @@ MessageHandler& MessageHandler::getInstance()
 }
 
 void MessageHandler::addMessage(const std::string& msg){
-    _messageQ.push(msg);
+    //_messageQ.push(msg);
 }
 
 void MessageHandler::addRequestClientInfo(Client *client){

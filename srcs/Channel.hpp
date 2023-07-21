@@ -4,6 +4,7 @@
 
 #include <string>
 #include <map>
+#include <set>
 #include "Client.hpp"
 #include "Enums.hpp"
 
@@ -44,10 +45,12 @@ public:
 	void insertClient(Client* client);
 	void insertInvite(Client* client);
 	void eraseOperator(const std::string& nickName);
-	void eraseClient(const std::string& nickName);
+	int eraseClient(const std::string& nickName);
 	void eraseInvite(const std::string& nickName);
 	
 	bool isFull() const;
+	void sendToClients();
+	void sendToClients(std::set<int>& isSent);
 
 public:
 	void printClients();

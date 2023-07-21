@@ -65,6 +65,7 @@
         "__functional_03": "cpp",
         "inet.h": "c",
         "queue": "cpp",
-        "deque": "cpp"
+        "deque": "cpp",
+        "set": "cpp"
     }
 }

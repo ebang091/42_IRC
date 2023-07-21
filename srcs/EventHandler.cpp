@@ -31,7 +31,6 @@ void test()
 }
 
 void EventHandler::listenToClients(){
-    
     int serverSocket = SocketHandler::getInstance().getServerSocket();
     Parser &parser = Parser::getInstance();
     ClientManager &clientManager = ClientManager::getInstance();
@@ -39,7 +38,6 @@ void EventHandler::listenToClients(){
     int kq;
     int numberOfNewEvents;
     struct kevent* curEvent;
-
     
     if ((kq = kqueue()) == -1)
         throw ErrorHandler::KqueueException();
@@ -104,8 +102,10 @@ void EventHandler::listenToClients(){
                 	}
                 	else{
                         std::string str = "okay";
-                	    parser.parseCommands(buf);//파싱하고 실행
+                	    parser.parseCommandsAndExecute(buf);//파싱하고 실행
                         test();
+                        //명령을 실행
+                        
 
 						send(curEvent->ident, str.c_str(), str.length(), MSG_DONTWAIT);
                         //std::cout << "write to client : " << buf << "\n";
