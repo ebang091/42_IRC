@@ -6,7 +6,7 @@
 /*   By: ebang <ebang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/14 12:28:31 by ebang             #+#    #+#             */
-/*   Updated: 2023/07/21 17:18:57 by ebang            ###   ########.fr       */
+/*   Updated: 2023/07/24 17:52:55 by ebang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,7 +98,7 @@ void ChannelManager::printChannels()
 	for (std::map<std::string, Channel*>::iterator iter = _channels.begin(); iter != _channels.end(); ++iter)
 	{
 		std::cout << "channel name [" << iter->second->getName() << "]\n";
-		std::cout << "topic	        :" << iter->second->getTopic() << "\n";
+		std::cout << "topic	        :" << iter->second->getTopic().__content << "\n";
 		std::cout << "creationTime  :" << iter->second->getCreationTime() << "\n";
 		std::cout << "limit	        :" << iter->second->getLimit() << "\n";
 		std::cout << "permission    :" << std::bitset<8>(iter->second->getPermissions()) << "\n";

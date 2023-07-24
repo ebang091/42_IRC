@@ -1,20 +1,21 @@
 #include "Channel.hpp"
+#include "MessageHandler.hpp"
 
 Channel::Channel(){
     
 }
 
 Channel::Channel(const std::string& channelName, Client* client)
-	: _name(channelName)
-	, _topic("")
-	,_limit(CONFIG::USERLIMIT)
+	: _topic()
+	, _name(channelName)
+	, _password()
+	, _limit(CONFIG::USERLIMIT)
 	, _permissions(0)
 {
 	time(&_creationTime);
 	_clientList.insert(std::make_pair(client->getNickName(), client));
 	_operators.insert(std::make_pair(client->getNickName(), client));
 }
-
 
 Client* Channel::getOperatorByNick(const std::string& nickName) const
 {
@@ -68,7 +69,7 @@ const std::string& Channel::getName() const{
 	return this-> _name;
 }
 
-const std::string& Channel::getTopic() const{
+const Channel::Topic& Channel::getTopic() const{
 	return this->_topic;
 }
 
@@ -84,6 +85,7 @@ time_t Channel::getCreationTime() const {
 	return this->_creationTime;	
 }
 
+
 int Channel::getLimit() const
 {
 	return this->_limit;
@@ -92,11 +94,12 @@ int Channel::getLimit() const
 void Channel::setName(const std::string& name){
 	this->_name = name;	
 }
-
-void Channel::setTopic(const std::string& topic){
-	this->_topic = topic;
+//string topic, Client *setUser
+void Channel::setTopic(const std::string& topic, Client *setUser){
+	this->_topic.__content = topic;
+	time(&(this->_topic.__creationTime));
+	this->_topic.__setUser += setUser->getNickName() + "!" + setUser->getUserName() + "@" + setUser->getHost();
 }
-
 
 void Channel::setPassword(const std::string& password){
 	this->_password = password;
@@ -149,22 +152,38 @@ void Channel::printClients()
 }
 
 void Channel::sendToClients(){
+	std::string msg = MessageHandler::getInstance().getBroadcastMsg();
 	for (std::map<std::string, Client*>::iterator iter = _clientList.begin(); iter != _clientList.end(); ++iter)
 	{
-		// iter->second->getSocketNumber();
-		// send();
+		send(iter->second->getSocketNumber(), msg.c_str(), msg.length(), MSG_DONTWAIT);
 	}
 }
 
 void Channel::sendToClients(std::set<int>& isSent){
-	for (std::map<std::string, Client*>::iterator iter = _clientList.begin(); iter != _clientList.end(); ++iter)
-	{
-		int curFd = iter->second->getSocketNumber();
-		if (isSent.find(curFd) != isSent.end())
-			continue;
+	std::string msg = MessageHandler::getInstance().getBroadcastMsg();
+	std::cout << &_clientList << "\n";
+	if(_clientList.size() != 0) {
+		for (std::map<std::string, Client*>::iterator iter = _clientList.begin(); iter != _clientList.end(); ++iter)
+		{
+			int curFd = iter->second->getSocketNumber();
+			if (isSent.find(curFd) != isSent.end())
+				continue;
+			isSent.insert(curFd);
+			std::cout << "msg: " << msg << "\n";
+			send(iter->second->getSocketNumber(), msg.c_str(), msg.length(), MSG_DONTWAIT);
+		}
+	}
+}
 
-		isSent.insert(curFd);
-		// iter->second->getSocketNumber();
-		// send();
+void Channel::getClientList(std::vector<std::string>& list)
+{
+	for (std::map<std::string, Client*>::iterator iter = _clientList.begin(); iter != _clientList.end(); ++iter){
+		std::string elem = "";
+
+		if (_operators.find(iter->first) != _operators.end())
+			elem += "@";
+		elem += iter->first.substr(0, iter->first.length());
+
+		list.push_back(elem);
 	}
 }

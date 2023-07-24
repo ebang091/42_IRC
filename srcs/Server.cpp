@@ -6,7 +6,7 @@
 /*   By: ebang <ebang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/14 12:28:31 by ebang             #+#    #+#             */
-/*   Updated: 2023/07/18 15:53:39 by ebang            ###   ########.fr       */
+/*   Updated: 2023/07/24 18:37:41 by ebang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,6 @@ void Server::run(std::string portnumber, std::string password){
     Parser& parser = Parser::getInstance();
     SocketHandler& socketHandler = SocketHandler::getInstance();
     EventHandler& eventHandler = EventHandler::getInstance();
-
     try
     {
         //parse portnumber

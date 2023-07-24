@@ -16,20 +16,22 @@ private:
     std::string _nickname;
     std::string _username;
     std::string _realname;
-    std::string _ipAddress;
+    std::string _host;
     int _socketNumber;
 
 public:
     const std::string& getNickName() const;
 	const std::string& getUserName() const;
 	const std::string& getRealName() const;
-    const std::string& getIpAddress() const;
+    const std::string& getHost() const;
 	int getSocketNumber() const;
 	
     void setNickName(const std::string& newNickName);
     void setUserName(const std::string& newUserName);
     void setRealName(const std::string& newRealName);
-    void setIpAddress(int clientSocket);
+    void setHost(const std::string& newHost);
+
+    bool checkHost(int clientSocket, const std::string& newHost);
 };
 
 #endif

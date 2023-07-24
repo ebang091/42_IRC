@@ -1,5 +1,8 @@
 #include "CommandHandler.hpp"
 #include "EventHandler.hpp"
+#include "Server.hpp"
+#include "Parser.hpp"
+#include "MessageHandler.hpp"
 
 CommandHandler& CommandHandler::getInstance(){
 	static CommandHandler instance;
@@ -7,13 +10,17 @@ CommandHandler& CommandHandler::getInstance(){
 }
 
 CMD::CODE CommandHandler::identifyCommand(const std::string& cmd){
-    const std::string title[CMD::SIZE] = {"CAP", "QUIT", "NICK", "JOIN", "KICK", "INVITE", "TOPIC", "MODE", "PART", "PRIVMSG", };
+    const std::string title[CMD::SIZE] = {"CAP", "QUIT", "NICK", "JOIN", "KICK", "INVITE", "TOPIC", "MODE", "PART", "PRIVMSG", "USER", "PASS"};
 
     for(int i = 0; i < CMD::SIZE; i++){
         if(cmd == title[i])
 		{
 			// push message
-            return static_cast<CMD::CODE>(i);
+			_messageHandler = &MessageHandler::getInstance();
+			_messageHandler->flushOutput();
+			_messageHandler->setCommand(cmd);
+			// _messageHandler->setCommandCode(static_cast<CMD::CODE>(i));
+        	return static_cast<CMD::CODE>(i);
 		}
 	}
     return CMD::NONE;
@@ -30,6 +37,9 @@ void CommandHandler::executeCommand(CMD::CODE cmdCode, std::vector<std::string>&
 	_channelManager = &ChannelManager::getInstance();
 	_clientManager = &ClientManager::getInstance();
 	_parser = &Parser::getInstance();
+	_messageHandler->setRequestClientInfo(_client);
+	_messageHandler->setEventHandler(_eventHandler);
+	_messageHandler->setRequestClientSocket(_client->getSocketNumber());
 
 	//nickname!hostname@ip 먼저 저장
 
@@ -37,25 +47,30 @@ void CommandHandler::executeCommand(CMD::CODE cmdCode, std::vector<std::string>&
     FP funcs[CMD::SIZE] = {&CommandHandler::cap, &CommandHandler::quit, &CommandHandler::nick, 
 			&CommandHandler::join, &CommandHandler::kick, &CommandHandler::invite,
 			&CommandHandler::topic, &CommandHandler::mode , &CommandHandler::part,
-			&CommandHandler::privmsg};
+			&CommandHandler::privmsg, &CommandHandler::user};
     
 	NUMERIC::CODE status = (this->*funcs[static_cast<int>(cmdCode)])(parameters);// //내부에서 명령어 별 메시지 작성
 	// if(!(VERIFY_SUCCESS(status)));
 		//error message from CommandHandler
+		//PASS_MISMATCH 이면 연결 끊기.
+		//NUMERIC::SEND_ERR  처리
 }
 
 NUMERIC::CODE CommandHandler::nick(std::vector<std::string>& parameters){
-    std::string candidateNickname = parameters[0];
+    std::string candidateNickname;
     bool isValid = true;
 
 	std::cout << "NICK execute\n";
 	//command에 NICK 저장
-	
-    if(parameters.size() == 0)
-        return NUMERIC::NO_PARAM;
 
+    if(parameters.empty())
+        return NUMERIC::NOTHING;
+
+	candidateNickname = parameters[0];
+
+	_messageHandler->setTargetName(candidateNickname);
     if(candidateNickname.front() == '#' || candidateNickname.front() == ':')
-        return NUMERIC::INVALID_NICK;
+		return _messageHandler->sendErrorWithUser(NUMERIC::INVALID_NICK);
 	
     Client *foundDuplicate = _clientManager->getClientByNick(candidateNickname);
 
@@ -63,15 +78,19 @@ NUMERIC::CODE CommandHandler::nick(std::vector<std::string>& parameters){
         if (foundDuplicate == _client)
 			return NUMERIC::NOTHING;
 		else
-			return NUMERIC::DUP_NICK;
+			return _messageHandler->sendErrorWithUser(NUMERIC::DUP_NICK);
             //433 "<client> <nick> :Nickname is already in use" (ERR_NICKNAMEINUSE)  
     }
 	
     if(candidateNickname.length() > CONFIG::NICKLEN)
-        return NUMERIC::INVALID_NICK;
+        return _messageHandler->sendErrorWithUser(NUMERIC::INVALID_NICK);
+	//:three!root@127.0.0.1 NICK :ebang
+	_messageHandler->setParam(parameters);
+	if (_messageHandler->sendNickSuccess(_client->getSocketNumber()) == NUMERIC::SEND_ERR)
+		return NUMERIC::SEND_ERR;
 
-    _client->setNickName(candidateNickname);
 	_clientManager->eraseClientByNick(_client->getNickName());
+	_client->setNickName(candidateNickname);
 	_clientManager->insertClientByNick(candidateNickname, _client);
 	
     return NUMERIC::SUCCESS;
@@ -80,30 +99,30 @@ NUMERIC::CODE CommandHandler::nick(std::vector<std::string>& parameters){
 NUMERIC::CODE CommandHandler::join(std::vector<std::string>& parameters){
     std::queue<std::string> channelList;
     std::queue<std::string> keyList;
-	
-	std::cout << "JOIN executed\n";
-	
-	//command에 JOIN 저장
-	
+
 	if(parameters.empty())
 		return NUMERIC::NO_PARAM;
 	
     //#chnannel, #chanel#,chanel key,key,key
 	_parser->parseByDelimeter(',', parameters[0], channelList);
-	std::cout << "channel list size: " << channelList.size() << "\n";
+	
 	if (parameters.size() >= 2)
 		_parser->parseByDelimeter(',', parameters[1], keyList);
 	
     while (channelList.empty() == false){
+		
         std::string channelName = channelList.front();
+		_messageHandler->setChannel(channelList.front());
 		NUMERIC::CODE code = checkValid(&channelName, NULL, NULL, false);
 		
 		if (code == NUMERIC::NO_SUCH_CHAN)
 		{	
-			if(channelName.find(7) != std::string::npos) //check invalid chann
-				return NUMERIC::BAD_CHAN_MASK;// irc.local 476 two #asd.sdaf :Invalid channel name
+			if(channelName.find(7) != std::string::npos){//check invalid chann
+				_messageHandler->sendError(NUMERIC::BAD_CHAN_MASK);
+				continue;
+			}
 			_channelManager->insertChannel(channelName, _client);
-				// 생성 성공 메시지
+			_eventHandler->setRequestChannel(_channelManager->getChannelByName(channelName));
 		}
 		else if (code == NUMERIC::SUCCESS)  //channel already exists
 		{
@@ -111,38 +130,40 @@ NUMERIC::CODE CommandHandler::join(std::vector<std::string>& parameters){
 
 			if (!foundChannel->getInviteByNick(_client->getNickName()))
 			{
-				if(GET_PERMISSION_K(foundChannel->getPermissions())){//key option
-					if(keyList.empty() == true || foundChannel->getPassword() != keyList.front())
-					{
-						return NUMERIC::BAD_CHAN_KEY;
-						// "<client> <channel> :Cannot join channel (+k)"
+				if(GET_PERMISSION_K(foundChannel->getPermissions())){ // key option
+					if(keyList.empty() == true || foundChannel->getPassword() != keyList.front()){
+						_messageHandler->sendError(NUMERIC::BAD_CHAN_KEY);
+						continue;
 					}					
 					keyList.pop();
 				}
 				if(GET_PERMISSION_I(foundChannel->getPermissions())){ //i option
 					//invitedList 확인
-					if(!foundChannel->getInviteByNick(_client->getNickName()))
-						return NUMERIC::INVITE_ONLY_CHAN;		
-						//irc.local 473 three #qqq :Cannot join channel (invite only)
+					if(!foundChannel->getInviteByNick(_client->getNickName())){
+						_messageHandler->sendError(NUMERIC::INVITE_ONLY_CHAN);
+						continue;
+					}
 				}
 			}
-			
-            if(foundChannel->isFull()) //user limit check
-				return NUMERIC::FULL_CHANNEL;           
-			
-			//check
+            if(foundChannel->isFull()){ //user limit check
+				_messageHandler->sendError(NUMERIC::INVITE_ONLY_CHAN);
+				continue;
+			}
 			foundChannel->insertClient(_client);
 			foundChannel->eraseInvite(_client->getNickName());
-			
-			// 입장 성공 메시지
 		}
 		else
-			return code;
+		{
+			_messageHandler->sendError(NUMERIC::BAD_CHAN_KEY);
+			continue;
+		}			
 		
+		//send to request client
+		if (_messageHandler->sendJoinSuccess() == NUMERIC::SEND_ERR)
+			return NUMERIC::SEND_ERR;
+		//send to channel users (broadcast msg)
+		_eventHandler->getRequestChannel()->sendToClients();
         channelList.pop();
-
-        // 토픽 출력
-        // 유저 리스트 출력
     }
 
 	return NUMERIC::SUCCESS;
@@ -198,7 +219,8 @@ NUMERIC::CODE CommandHandler::part(std::vector<std::string>& parameters){
 	_parser->parseByDelimeter(',', parameters[0], channelList);
 	
 	std::string reason = "";
-	getReason(parameters, 1, reason);
+	if (!getReason(parameters, 1, reason))
+		return NUMERIC::NO_PARAM;
 
     while (channelList.empty() == false){
         channelName = channelList.front();
@@ -243,13 +265,13 @@ NUMERIC::CODE CommandHandler::kick(std::vector<std::string>& parameters){
 		return NUMERIC::NOT_ON_CHAN;
 
 	std::string reason = "";
-	getReason(parameters, 2, reason);
+	if (!getReason(parameters, 2, reason))
+		return NUMERIC::NO_PARAM;
 
 	requestChannel->eraseClient(targetName);
 	requestChannel->eraseOperator(targetName);
-
 	// 채널의 모든 유저에게 메시지 보내기
-	// reason ㄱㅏㅌ이보내기  (one!root@127.0.0.1 KICK #a two : msg)
+	// reason 같이보내기  (one!root@127.0.0.1 KICK #a two : msg)
 	
 	return code;
 }
@@ -322,8 +344,11 @@ NUMERIC::CODE CommandHandler::topic(std::vector<std::string>& parameters){
 		//482 two #a :You do not have access to change the topic on this channel
 
 	std::string topic = "";
-	getReason(parameters, 1, topic);
-	requestChannel->setTopic(topic);
+	if (!getReason(parameters, 1, topic))
+		return NUMERIC::NO_PARAM;
+	
+	requestChannel->setTopic(topic, _client);
+
 	// 채널의 모든 유저에게 메시지 보내기
 	//:one!root@127.0.0.1 TOPIC #a :topic
 
@@ -333,7 +358,9 @@ NUMERIC::CODE CommandHandler::topic(std::vector<std::string>& parameters){
 NUMERIC::CODE CommandHandler::quit(std::vector<std::string>& parameters){
 	std::string msg = "leaving";
 
-	getReason(parameters, 0, msg);
+	if (!getReason(parameters, 0, msg))
+		return NUMERIC::NO_PARAM;
+		
 	_channelManager->eraseClientAllChannels(_client->getNickName());
 	// _clientManager->eraseClientByNick(_client->getNickName());
 	// _clientManager->eraseClientByFD(_client->getSocketNumber());
@@ -341,11 +368,29 @@ NUMERIC::CODE CommandHandler::quit(std::vector<std::string>& parameters){
 	return NUMERIC::SUCCESS;
 }
 
+NUMERIC::CODE CommandHandler::pass(std::vector<std::string>& parameters){
+	//USER setting 되어있으면 return 
+	if(!_client->getUserName().empty())
+		return NUMERIC::NOTHING;
+
+	if(parameters.empty() || Server::getInstance().getPassword() != parameters[0])
+	{
+		_clientManager->eraseClientByNick(_client->getNickName());
+		_clientManager->eraseClientByFD(_client->getSocketNumber());
+		return NUMERIC::PASS_MISMATCH;
+	}
+	return NUMERIC::SUCCESS;	
+}
+
+//PING CAP LS
+
 NUMERIC::CODE CommandHandler::cap(std::vector<std::string>& parameters){
 	if (parameters.size() != 1 || parameters[0] != "LS")
 		return NUMERIC::NOTHING;
 	
-     //출력 .. 쫘르륵 : Channel, Client 에서 불러와서 define 된 값. 
+	
+
+    //출력 .. 쫘르륵 : Channel, Client 에서 불러와서 define 된 값. 
 	return NUMERIC::SUCCESS;
 }
 
@@ -360,7 +405,8 @@ NUMERIC::CODE CommandHandler::privmsg(std::vector<std::string>& parameters){
 
 	NUMERIC::CODE code = checkValid(&target, NULL, NULL, false);
 
-	getReason(parameters, 1, msg);
+	if (!getReason(parameters, 1, msg))
+		return NUMERIC::NO_PARAM;
 
 	if (code == NUMERIC::NO_SUCH_CHAN)
 		return code;
@@ -380,23 +426,55 @@ NUMERIC::CODE CommandHandler::privmsg(std::vector<std::string>& parameters){
 	return NUMERIC::SUCCESS;
 }
 
-void CommandHandler::getReason(std::vector<std::string>& parameters, int startIdx, std::string& result)
-{
+//input 형식 USER <username> <username> <host> :<real name>
+//사용 형식 :one!song@127.0.0.1  (nick!user@host)
+/*
+- <real name> 은 마지막 파라미터여야 하는데, 그 이유는 스페이스바를 포함할 수 있기 때문임.
+- <username>의 최대 길이는 USERLEN RPL_ISUPPORT 파라미터에 명시되어야 하고, 만약에 이것보다 길면 그냥 잘라서 저장
+ 최소 길이는 1이고 비어있으면 안된다. 만약 없으면 ERR_NEEDMOREPARAMS 를 보내야 한다. 
+
+ - 이렇게  저장하고 난 후 USER 가 다시 들어온다면, ERR_ALREADYREGISTERED 을 제출한다. 
+*/
+// USER root root 127.0.0.1 :root
+NUMERIC::CODE CommandHandler::user(std::vector<std::string>& parameters){
+	if (parameters.size() != 4)
+		return NUMERIC::NOTHING;
+	
+	//USER 사용여부 미리 확인	
+	if (!_client->getUserName().empty())
+		return NUMERIC::ALREADY_REGISTERED; //"<client> :You may not reregister"
+
+	if (parameters[0] != parameters[1])
+		return NUMERIC::UNKNOWN_ERR;
+
+	if (parameters[0].size() > CONFIG::USERLEN)
+		parameters[0] = parameters[0].substr(0, CONFIG::USERLEN);
+	
+	if (!_client->checkHost(_client->getSocketNumber(), parameters[2]))
+		return NUMERIC::UNKNOWN_ERR; //UNKNOWN ("invalid host")
+	
+	std::string realName = "";
+	if(!getReason(parameters, 3, realName))
+		return NUMERIC::UNKNOWN_ERR;//"needs colon(:)"
+	
+	_client->setUserName(parameters[0]);	
+	_client->setHost(parameters[2]);
+	_client->setRealName(realName);
+	return NUMERIC::SUCCESS;
+}
+
+bool CommandHandler::getReason(std::vector<std::string>& parameters, int startIdx, std::string& result){
+	if (parameters.front().front() != ':')
+		return false;
+	
+	parameters.front().erase(0, 1);
 	for (int i = startIdx; i < parameters.size(); ++i){
 		result += parameters[i];
 		if (i != parameters.size() - 1)
 			result += " ";
 	}
-}
-
-bool CommandHandler::checkChannelPrefix(std::string& channelName)
-{
-	if(channelName.empty() || channelName.front() != CHANNEL_PREFIX)
-        return false;
-	channelName.erase(0,1);
 	return true;
 }
-
 
 NUMERIC::CODE CommandHandler::checkValid(std::string* channelName, const std::string* targetName, const std::string* callerName, bool checkOper)
 {

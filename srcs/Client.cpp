@@ -19,8 +19,8 @@ const std::string& Client::getRealName() const{
     return this->_realname;
 }
 
-const std::string& Client::getIpAddress() const{
-    return this->_ipAddress;
+const std::string& Client::getHost() const{
+    return this->_host;
 }
 
 int Client::getSocketNumber() const{
@@ -43,11 +43,20 @@ void Client::setRealName(const std::string& newRealName){
    this->_realname = newRealName;
 }
 
-void Client::setIpAddress(int clientSocket){
+void Client::setHost(const std::string& newHost){
+    this->_host = newHost;
+}
+
+#include <iostream>
+bool Client::checkHost(int clientSocket, const std::string& newHost){
     struct sockaddr_in clnt_addr;
     socklen_t size = sizeof(clnt_addr);
 
     getsockname(clientSocket, &(struct sockaddr& )clnt_addr, &size);
-    char* result = inet_ntoa(clnt_addr.sin_addr);
-    _ipAddress = result;
+    std::string host = inet_ntoa(clnt_addr.sin_addr);
+    
+    std::cout << host << ", " << newHost << "\n";
+    if(host != newHost)
+        return false;
+    return true;
 }

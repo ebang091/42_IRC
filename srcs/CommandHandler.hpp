@@ -10,9 +10,11 @@
 #include "ChannelManager.hpp"
 #include "Enums.hpp"
 #include "FSM.hpp"
-#include "Parser.hpp"
+#include "MessageHandler.hpp"
 
+class MessageHandler;
 class EventHandler;
+class Parser;
 
 class CommandHandler
 {
@@ -22,11 +24,11 @@ private:
 	ChannelManager* _channelManager;
 	ClientManager* _clientManager;
 	Parser* _parser;
+	MessageHandler* _messageHandler;
 
 private:
 	NUMERIC::CODE executeModeCommand(STATE::CODE &state, std::queue<std::string>& params, char c);
-	void getReason(std::vector<std::string>& parameters, int startIdx, std::string& result);
-	bool checkChannelPrefix(std::string& channelName);
+	bool getReason(std::vector<std::string>& parameters, int startIdx, std::string& result);
 	NUMERIC::CODE checkValid(std::string* channelName, const std::string* targetName, const std::string* callerName, bool checkOper);
 
 	NUMERIC::CODE cap(std::vector<std::string>& parameters);
@@ -39,6 +41,8 @@ private:
 	NUMERIC::CODE mode(std::vector<std::string>& parameters);
 	NUMERIC::CODE part(std::vector<std::string>& parameters);
 	NUMERIC::CODE privmsg(std::vector<std::string>& parameters);
+	NUMERIC::CODE user(std::vector<std::string>& parameters);
+	NUMERIC::CODE pass(std::vector<std::string>& parameters);
 
 public:
 	static CommandHandler& getInstance();

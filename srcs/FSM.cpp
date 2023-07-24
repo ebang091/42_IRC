@@ -90,7 +90,7 @@ NUMERIC::CODE FSM::plusT(std::queue<std::string>& params, STATE::CODE& state){
 	broadcast += "!";
 	broadcast += _client->getUserName();
 	broadcast += "@";
-	broadcast += _client->getIpAddress();
+	broadcast += _client->getHost();
 	broadcast += " ";
 	
 	broadcast += "MODE ";
@@ -119,7 +119,7 @@ NUMERIC::CODE FSM::plusI(std::queue<std::string>& params, STATE::CODE& state){
 	broadcast += "!";
 	broadcast += _client->getUserName();
 	broadcast += "@";
-	broadcast += _client->getIpAddress();
+	broadcast += _client->getHost();
 	broadcast += " ";
 	
 	broadcast += "MODE ";
@@ -157,7 +157,7 @@ NUMERIC::CODE FSM::plusK(std::queue<std::string>& params, STATE::CODE& state){
 	broadcast += "!";
 	broadcast += _client->getUserName();
 	broadcast += "@";
-	broadcast += _client->getIpAddress();
+	broadcast += _client->getHost();
 	broadcast += " ";
 	
 	broadcast += "MODE ";
@@ -202,7 +202,7 @@ NUMERIC::CODE FSM::plusO(std::queue<std::string>& params, STATE::CODE& state){
 	broadcast += "!";
 	broadcast += _client->getUserName();
 	broadcast += "@";
-	broadcast += _client->getIpAddress();
+	broadcast += _client->getHost();
 	broadcast += " ";
 	
 	broadcast += "MODE ";
@@ -254,7 +254,7 @@ NUMERIC::CODE FSM::plusL(std::queue<std::string>& params, STATE::CODE& state){
 	broadcast += "!";
 	broadcast += _client->getUserName();
 	broadcast += "@";
-	broadcast += _client->getIpAddress();
+	broadcast += _client->getHost();
 	broadcast += " ";
 	
 	broadcast += "MODE ";
@@ -289,7 +289,7 @@ NUMERIC::CODE FSM::minusT(std::queue<std::string>& params, STATE::CODE& state){
 	broadcast += "!";
 	broadcast += _client->getUserName();
 	broadcast += "@";
-	broadcast += _client->getIpAddress();
+	broadcast += _client->getHost();
 	broadcast += " ";
 	
 	broadcast += "MODE ";
@@ -314,7 +314,7 @@ NUMERIC::CODE FSM::minusI(std::queue<std::string>& params, STATE::CODE& state){
 	broadcast += "!";
 	broadcast += _client->getUserName();
 	broadcast += "@";
-	broadcast += _client->getIpAddress();
+	broadcast += _client->getHost();
 	broadcast += " ";
 	
 	broadcast += "MODE ";
@@ -353,7 +353,7 @@ NUMERIC::CODE FSM::minusK(std::queue<std::string>& params, STATE::CODE& state){
 	broadcast += "!";
 	broadcast += _client->getUserName();
 	broadcast += "@";
-	broadcast += _client->getIpAddress();
+	broadcast += _client->getHost();
 	broadcast += " ";
 	
 	broadcast += "MODE ";
@@ -398,7 +398,7 @@ NUMERIC::CODE FSM::minusO(std::queue<std::string>& params, STATE::CODE& state){
 	broadcast += "!";
 	broadcast += _client->getUserName();
 	broadcast += "@";
-	broadcast += _client->getIpAddress();
+	broadcast += _client->getHost();
 	broadcast += " ";
 	
 	broadcast += "MODE ";
@@ -428,7 +428,7 @@ NUMERIC::CODE FSM::minusL(std::queue<std::string>& params, STATE::CODE& state){
 	broadcast += "!";
 	broadcast += _client->getUserName();
 	broadcast += "@";
-	broadcast += _client->getIpAddress();
+	broadcast += _client->getHost();
 	broadcast += " ";
 	
 	broadcast += "MODE ";

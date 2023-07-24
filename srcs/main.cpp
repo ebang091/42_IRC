@@ -7,11 +7,13 @@
 
 /*
 	TODO
-	1. ping USER CAP LS
-	2. message
-	3. 
-	4. server connect 시에 PASS
-	5. 이벤트 핸들러 메인 함수 리팩토링 (모듈화 더)
+	
+	1. Send Error to Exception
+	2. command message 처리
+	3. PING, CAP LS
+	4. 채팅방에 들어와있는 상태에서 닉네임을 바꾸면 모든 채팅방에서 그 클라이언트를 지우고 다시 새로운 닉네임으로 추가함
+	5. 버퍼에 담고 다음에 전송됨
+	4. 이벤트 핸들러 메인 함수 리팩토링 (모듈화 더)
 
 	join, part channel list 순회하면서 에러 발생 시 해당 channel만 실패하고 계속
 

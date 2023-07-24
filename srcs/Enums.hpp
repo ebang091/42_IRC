@@ -26,6 +26,7 @@
 #define GET_PERMISSION_L(permissions) permissions & PERMISSION::L
 #define SWITCH_PERMISSION_L(permissions) permissions ^ PERMISSION::L
 #define VERIFY_SUCCESS(status) (status == NUMERIC::SUCCESS) || (status == NUMERIC::WELCOME) || (status == NUMERIC::YOURHOST) || (status == NUMERIC::CREATED) || (status == NUMERIC::MYINFO) || (status == NUMERIC::ISUPPORT)
+
 namespace PERMISSION
 {
 	enum CODE
@@ -91,6 +92,8 @@ namespace CMD{
 		MODE,
 		PART,
 		PRIVMSG,
+		USER,
+		PASS,
 		SIZE
 	};
 };
@@ -100,6 +103,9 @@ namespace NUMERIC{
 		// --- ERROR ---
 		UNKNOWN_ERR = 400,
 		NO_PARAM = 696,
+		NEED_MORE_PARAM = 461,
+		ALREADY_REGISTERED = 462,
+		PASS_MISMATCH = 464,
 
 		NO_SUCH_NICK = 401,
 		INVALID_NICK = 432,
@@ -117,6 +123,7 @@ namespace NUMERIC{
 		INVITE_ONLY_CHAN = 473,
 		BAD_CHAN_MASK = 476,
 		
+		SEND_ERR = 500,
 		NOTHING = -1,
 		
 		// --- SUCCESS ---
@@ -125,7 +132,12 @@ namespace NUMERIC{
 		YOURHOST = 2,
 		CREATED = 3,
 		MYINFO = 4,
-		ISUPPORT = 5
+		ISUPPORT = 5,
+
+		RPL_NAMREPLY = 353,
+		RPL_ENDOFNAMES = 366,
+		TOPIC = 332,
+		TOPIC_WHOTIME = 333
 	};
 };
 

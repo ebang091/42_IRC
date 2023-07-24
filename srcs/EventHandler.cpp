@@ -84,6 +84,7 @@ void EventHandler::listenToClients(){
                     /* add event for client socket - add read && write event */
                     changeEvents(_changeList, clientSocket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
                     clientManager.insertClientByFD(clientSocket);
+                    
                 }
                 else
                 {
@@ -102,6 +103,7 @@ void EventHandler::listenToClients(){
                 	}
                 	else{
                         std::string str = "okay";
+                        
                 	    parser.parseCommandsAndExecute(buf);//파싱하고 실행
                         test();
                         //명령을 실행
