@@ -7,7 +7,7 @@ CommandHandler& CommandHandler::getInstance(){
 }
 
 CMD::CODE CommandHandler::identifyCommand(const std::string& cmd){
-    const std::string title[CMD::SIZE] = {"CAP", "QUIT", "NICK", "JOIN", "KICK", "INVITE", "TOPIC", "MODE", "PART", "PRIVMSG"};
+    const std::string title[CMD::SIZE] = {"CAP", "QUIT", "NICK", "JOIN", "KICK", "INVITE", "TOPIC", "MODE", "PART", "PRIVMSG", };
 
     for(int i = 0; i < CMD::SIZE; i++){
         if(cmd == title[i])
@@ -29,6 +29,7 @@ void CommandHandler::executeCommand(CMD::CODE cmdCode, std::vector<std::string>&
 	_client = _eventHandler->getRequestClient();
 	_channelManager = &ChannelManager::getInstance();
 	_clientManager = &ClientManager::getInstance();
+	_parser = &Parser::getInstance();
 
 	//nickname!hostname@ip 먼저 저장
 
@@ -88,10 +89,10 @@ NUMERIC::CODE CommandHandler::join(std::vector<std::string>& parameters){
 		return NUMERIC::NO_PARAM;
 	
     //#chnannel, #chanel#,chanel key,key,key
-	parseByDelimeter(',', parameters[0], channelList);
+	_parser->parseByDelimeter(',', parameters[0], channelList);
 	std::cout << "channel list size: " << channelList.size() << "\n";
 	if (parameters.size() >= 2)
-		parseByDelimeter(',', parameters[1], keyList);
+		_parser->parseByDelimeter(',', parameters[1], keyList);
 	
     while (channelList.empty() == false){
         std::string channelName = channelList.front();
@@ -194,7 +195,7 @@ NUMERIC::CODE CommandHandler::part(std::vector<std::string>& parameters){
 		return NUMERIC::NO_PARAM;
 	
     //#chnannel,#chanel,#channle
-	parseByDelimeter(',', parameters[0], channelList);
+	_parser->parseByDelimeter(',', parameters[0], channelList);
 	
 	std::string reason = "";
 	getReason(parameters, 1, reason);
@@ -377,14 +378,6 @@ NUMERIC::CODE CommandHandler::privmsg(std::vector<std::string>& parameters){
 	}
 
 	return NUMERIC::SUCCESS;
-}
-
-void CommandHandler::parseByDelimeter(char delimeter, std::string& parsingLine, std::queue<std::string> &buffer){
-    std::stringstream ssLine(parsingLine);
-    std::string word;
-
-    while (std::getline(ssLine, word, delimeter))
-        buffer.push(word);
 }
 
 void CommandHandler::getReason(std::vector<std::string>& parameters, int startIdx, std::string& result)

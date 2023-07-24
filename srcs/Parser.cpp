@@ -42,22 +42,34 @@ int Parser::parsePortNumber(std::string portnumber){
     return value;
 }
 
+void Parser::parseByDelimeter(char delimeter, std::string& parsingLine, std::queue<std::string> &buffer){
+    std::stringstream ssLine(parsingLine);
+    std::string word;
 
-void Parser::parseCommandsAndExecute(char *command){
+    while (std::getline(ssLine, word, delimeter))
+        buffer.push(word);
+}
+
+void Parser::parseCommandsAndExecute(std::string command){
     //파싱 방식: 스페이스 단위로 parameter list를 만들어 반환받는다. 가장 앞은 CMD, 그 뒤는 parameters
+    std::queue<std::string> commandsQ;
     std::string cmd;
     std::string word;
     std::vector<std::string> parameters;
-    std::stringstream ss(command);
 
     CommandHandler& commandHandler = CommandHandler::getInstance();
+    parseByDelimeter('\n', command, commandsQ);
 
-    ss >> cmd;  
-    while(ss >> word){
-        parameters.push_back(word);
+    while(commandsQ.empty() == false){
+        std::stringstream ss(commandsQ.front());
+        ss >> cmd;
+        while(ss >> word){
+            parameters.push_back(word);
+        }
+        CMD::CODE cmdCode = commandHandler.identifyCommand(cmd);//NONE 이면 무시? 에러?
+        commandHandler.executeCommand(cmdCode, parameters); //실행 및 출력
+        commandsQ.pop();
     }
-    CMD::CODE cmdCode = commandHandler.identifyCommand(cmd);//NONE 이면 무시? 에러?
-    commandHandler.executeCommand(cmdCode, parameters); //실행 및 출력
     
     
    //첫 접속

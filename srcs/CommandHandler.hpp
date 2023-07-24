@@ -10,6 +10,7 @@
 #include "ChannelManager.hpp"
 #include "Enums.hpp"
 #include "FSM.hpp"
+#include "Parser.hpp"
 
 class EventHandler;
 
@@ -20,9 +21,9 @@ private:
 	EventHandler* _eventHandler;
 	ChannelManager* _channelManager;
 	ClientManager* _clientManager;
+	Parser* _parser;
 
 private:
-	void parseByDelimeter(char delimeter, std::string& parsingLine, std::queue<std::string> &buffer);
 	NUMERIC::CODE executeModeCommand(STATE::CODE &state, std::queue<std::string>& params, char c);
 	void getReason(std::vector<std::string>& parameters, int startIdx, std::string& result);
 	bool checkChannelPrefix(std::string& channelName);

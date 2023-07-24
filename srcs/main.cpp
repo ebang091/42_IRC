@@ -7,9 +7,9 @@
 
 /*
 	TODO
-	1. kick , quit, topic ping
+	1. ping USER CAP LS
 	2. message
-	3. CAP LS
+	3. 
 	4. server connect 시에 PASS
 	5. 이벤트 핸들러 메인 함수 리팩토링 (모듈화 더)
 
