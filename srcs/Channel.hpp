@@ -6,9 +6,10 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <unistd.h>
 #include "Client.hpp"
 #include "Enums.hpp"
-#include <unistd.h>
+#include "ErrorHandler.hpp"
 
 class Channel{
 public:

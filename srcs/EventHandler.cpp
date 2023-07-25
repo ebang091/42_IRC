@@ -30,52 +30,57 @@ void test()
     std::cout << "\n";
 }
 
+void EventHandler::init()
+{
+	_serverSocket = SocketHandler::getInstance().getServerSocket();
+    _kq = kqueue();
+    if (_kq == -1)
+        throw ErrorHandler::KqueueException();
+	
+	int option = 1;
+	if (setsockopt(_serverSocket, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option)) == -1)
+		throw ErrorHandler::SocketException();
+
+    changeEvents(_changeList, _serverSocket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+}
+
 void EventHandler::listenToClients(){
-    int serverSocket = SocketHandler::getInstance().getServerSocket();
     Parser &parser = Parser::getInstance();
     ClientManager &clientManager = ClientManager::getInstance();
-    struct kevent event_list[EVENT_BUFFER_SIZE]; // kevent array for eventlist
-    int kq;
-    int numberOfNewEvents;
-    struct kevent* curEvent;
-    
-    if ((kq = kqueue()) == -1)
-        throw ErrorHandler::KqueueException();
-
-    changeEvents(_changeList, serverSocket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+	init();
 
     while (1)
     {
-        numberOfNewEvents = kevent(kq, &_changeList[0], _changeList.size(), event_list, EVENT_BUFFER_SIZE, NULL);
-        if (numberOfNewEvents == -1)
+        _numberOfNewEvents = kevent(_kq, &_changeList[0], _changeList.size(), _event_list, EVENT_BUFFER_SIZE, NULL);
+        if (_numberOfNewEvents == -1)
             throw ErrorHandler::KeventException();
 
         _changeList.clear(); // clear changeList for new changes
 
-        for (int i = 0; i < numberOfNewEvents; ++i){
-            curEvent = &event_list[i];
+        for (int i = 0; i < _numberOfNewEvents; ++i){
+            _curEvent = &_event_list[i];
 
              /* check error event return */
-            if (curEvent->flags & EV_ERROR)
+            if (_curEvent->flags & EV_ERROR)
             {
-                if (curEvent->ident == serverSocket){
+                if (_curEvent->ident == _serverSocket){
 					throw ErrorHandler::KeventException();
                 }
                 else
                 {
                     //어쩌면 quit 일 때도 이럴 수도..?
-                    close(curEvent->ident);
-                    clientManager.eraseClientByFD(curEvent->ident);
+                    close(_curEvent->ident);
+                    clientManager.eraseClientByFD(_curEvent->ident);
                 }
             }
-			else if (curEvent->filter == EVFILT_READ)
+			else if (_curEvent->filter == EVFILT_READ)
 			{
-				if (curEvent->ident == serverSocket)
+				if (_curEvent->ident == _serverSocket)
                 {
                     /* accept new client */
                     int clientSocket;
                     
-                    if ((clientSocket = accept(serverSocket, NULL, NULL)) == -1)
+                    if ((clientSocket = accept(_serverSocket, NULL, NULL)) == -1)
                         throw ErrorHandler::AcceptException();
                     
                     //client 와 통신해서 비밀번호 입력해야함
@@ -90,35 +95,48 @@ void EventHandler::listenToClients(){
                 {
                     /* read data from client */
                     char buf[READ_BUFFER_SIZE];
-					int n = recv(curEvent->ident, buf, READ_BUFFER_SIZE, MSG_DONTWAIT);
-                    buf[n] = '\0';
-                    this->_requestClient = clientManager.getClientByFD(curEvent->ident); 
+					int n = recv(_curEvent->ident, buf, READ_BUFFER_SIZE, MSG_DONTWAIT);
+                    this->_requestClient = clientManager.getClientByFD(_curEvent->ident); 
 
+                    std::cout << "recv len : " << n << "\n";
 					if (n == -1){
-						close(curEvent->ident);
-						clientManager.eraseClientByFD(curEvent->ident);
+                        disconnectCurClient(_curEvent);
+						continue;
+					}
+
+                	if (n > READ_MAX){
+                	    //안된다고 출력하고 아무 반응도 안함.   
+                        continue;                 	
                 	}
-                	else if (n > READ_MAX){
-                	    //안된다고 출력하고 아무 반응도 안함.                    	
-                	}
-                	else{
-                        std::string str = "okay";
-                        
-                	    parser.parseCommandsAndExecute(buf);//파싱하고 실행
-                        test();
-                        //명령을 실행
-                        
-                        
-						send(curEvent->ident, str.c_str(), str.length(), MSG_DONTWAIT);
-                        //std::cout << "write to client : " << buf << "\n";
-                	}
+
+                    buf[n] = '\0';
+                    try
+                    {
+                    	parser.parseCommandsAndExecute(buf);//파싱하고 실행
+                    }
+                    catch(const std::exception& e)
+                    {
+                        std::cerr << e.what() << '\n';
+						disconnectCurClient(_curEvent);
+                    }
+                    test();
+                    std::cout << "Event\n";
                 }
 			}
         }
-
     }
 }
 
+void EventHandler::disconnectCurClient(struct kevent* _curEvent)
+{
+	ClientManager &clientManager = ClientManager::getInstance();
+	Client* curClient = clientManager.getClientByFD(_curEvent->ident);
+	
+	ChannelManager::getInstance().eraseClientAllChannels(curClient->getNickName());
+	clientManager.eraseClientByNick(curClient->getNickName());
+	clientManager.eraseClientByFD(_curEvent->ident);
+    close(_curEvent->ident);
+}
 
 Client* EventHandler::getRequestClient() const
 {

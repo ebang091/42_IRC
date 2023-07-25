@@ -155,13 +155,14 @@ void Channel::sendToClients(){
 	std::string msg = MessageHandler::getInstance().getBroadcastMsg();
 	for (std::map<std::string, Client*>::iterator iter = _clientList.begin(); iter != _clientList.end(); ++iter)
 	{
-		send(iter->second->getSocketNumber(), msg.c_str(), msg.length(), MSG_DONTWAIT);
+		if (send(iter->second->getSocketNumber(), msg.c_str(), msg.length(), MSG_DONTWAIT) == -1)
+			throw ErrorHandler::SendException();
 	}
 }
 
 void Channel::sendToClients(std::set<int>& isSent){
 	std::string msg = MessageHandler::getInstance().getBroadcastMsg();
-	std::cout << "clientList addr in sendToCLient : " << &_clientList << "\n";
+	//std::cout << "clientList addr in sendToCLient : " << &_clientList << "\n";
 	if(_clientList.size() != 0) {
 		for (std::map<std::string, Client*>::iterator iter = _clientList.begin(); iter != _clientList.end(); ++iter)
 		{
@@ -169,8 +170,9 @@ void Channel::sendToClients(std::set<int>& isSent){
 			if (isSent.find(curFd) != isSent.end())
 				continue;
 			isSent.insert(curFd);
-			std::cout << "msg: " << msg << "\n";
-			send(iter->second->getSocketNumber(), msg.c_str(), msg.length(), MSG_DONTWAIT);
+			//std::cout << "msg: " << msg << "\n";
+			if (send(iter->second->getSocketNumber(), msg.c_str(), msg.length(), MSG_DONTWAIT) == -1)
+				throw ErrorHandler::SendException();
 		}
 	}
 }

@@ -128,55 +128,60 @@ void MessageHandler::serializeChannelClientList(){
 	channel->getClientList(list);	
 	for (int i = 0; i < list.size(); ++i)
 		_replyMsg += list[i] + " ";
-
 	_replyMsg += "\n";
-	
 	//:irc.local 353 user = #ch :@hei ...
 }
-NUMERIC::CODE MessageHandler::sendErrorWithTargetUserAndChannel(NUMERIC::CODE code){
+
+void MessageHandler::setServerInfo(NUMERIC::CODE code){
 	std::stringstream ss;
-	ss << _rplCode;
 	
 	setRplCode(code);
+	ss << _rplCode;
 
-	std::cout << "debug1\n";
-	
-	_replyMsg += ":irc.local " + ss.str() + " " + _targetName + " " + _channel + " :" + _reason;
-	std::cout << "debug2\n";
-	send(_clientSocket, _replyMsg.c_str(), _replyMsg.length(), MSG_DONTWAIT);
+	_replyMsg += ":irc.local " + ss.str() + " ";
+}
+
+void MessageHandler::setCallerInfo(){
+	_replyMsg += ":" +  _nickName + "!" + _userName + "@" + _host + " ";
+}
+
+NUMERIC::CODE MessageHandler::sendErrorWithTargetUserAndChannel(NUMERIC::CODE code){
+	setServerInfo(code);
+	_replyMsg += _targetName + " " + _channel + " :" + _reason + "\n";
+
+	sendMessage();
 	return code;
 }
 
 NUMERIC::CODE MessageHandler::sendErrorWithNickAndTargetName(NUMERIC::CODE code){
-	std::stringstream ss;
-	ss << _rplCode;
-	
-	setRplCode(code);
+	setServerInfo(code);
+	_replyMsg += _nickName + " " + _targetName + " :" + _reason + "\n";
 
-	_replyMsg += ":irc.local " + ss.str() + " " + _nickName + " " + _targetName + " :" + _reason;
-	send(_clientSocket, _replyMsg.c_str(), _replyMsg.length(), MSG_DONTWAIT);
+	sendMessage();
 	return code;
 }
 
 NUMERIC::CODE MessageHandler::sendErrorNoParam(NUMERIC::CODE code){
-	std::stringstream ss;
-	setRplCode(code);
-	ss << _rplCode;
+	setServerInfo(code);
+	_replyMsg += _nickName + " " + _reason + "\n";
 
-	_replyMsg += ":irc.local " + ss.str() + " " + _nickName + " " + _reason + "\n";
-	send(_clientSocket, _replyMsg.c_str(), _replyMsg.length(), MSG_DONTWAIT);
-
+	sendMessage();
+	return code;
 }
 
+NUMERIC::CODE MessageHandler::sendErrorUnknownError(const std::string& reason){
+	setServerInfo(NUMERIC::UNKNOWN_ERR);
+	_replyMsg += reason + "\n";
+
+	sendMessage();
+	return NUMERIC::UNKNOWN_ERR;
+}
 
 NUMERIC::CODE MessageHandler::sendErrorWithChannel(NUMERIC::CODE code){
-	std::stringstream ss;
-	setRplCode(code);
-	ss << _rplCode;
-	
+	setServerInfo(code);
+	_replyMsg += _nickName + " " +  _channel + " :" + _reason + "\n";
 
-	_replyMsg += ":irc.local " + ss.str() + " " + _nickName + " " +  _channel + " :" + _reason + "\n";
-	send(_clientSocket, _replyMsg.c_str(), _replyMsg.length(), MSG_DONTWAIT);
+	sendMessage();
 	return code;
 }
 //:irc.local NOTICE #ch :*** one invited two into the channel
@@ -191,25 +196,26 @@ NUMERIC::CODE MessageHandler::sendInviteSuccess(){
 }
 
 NUMERIC::CODE MessageHandler::sendJoinSuccess(){
-	_replyMsg += ":" +  _nickName + "!" + _userName + "@" + _host + " ";
+	setCallerInfo();
 	_replyMsg += _command + " : " + _channel + "\n";
 	
 	serializeChannelClientList();
 	sendErrorWithChannel(NUMERIC::RPL_ENDOFNAMES);
 	if(_eventHandler->getRequestClient() != NULL)
-	_eventHandler->getRequestChannel()->sendToClients();
+		_eventHandler->getRequestChannel()->sendToClients();
 	return NUMERIC::SUCCESS;
 }
 
 NUMERIC::CODE MessageHandler::sendNickSuccess(int clientSocket){
-	_replyMsg += ":" +  _nickName + "!" + _userName + "@" + _host + " ";
+	setCallerInfo();
 	_replyMsg += _command + " : ";
 
 	for (int i = 0; i < _params.size(); ++i)
 		_replyMsg += _params[i] + " ";
+	_replyMsg += "\n";
+
 	setBroadCastMsg();
-	
-	send(_clientSocket, _replyMsg.c_str(), _replyMsg.length(), MSG_DONTWAIT);		
+	sendMessage();	
 	
 	std::set<int> isSet;
 	isSet.insert(clientSocket);
@@ -219,12 +225,11 @@ NUMERIC::CODE MessageHandler::sendNickSuccess(int clientSocket){
 }
 
 NUMERIC::CODE MessageHandler::sendKickSuccess(int clientSocket){
-	_replyMsg += ":" +  _nickName + "!" + _userName + "@" + _host + " ";
-	_replyMsg += _command + " " + _channel + " " +  _targetName + " "  + _description;
+	setCallerInfo();
+	_replyMsg += _command + " " + _channel + " " +  _targetName + " "  + _description + "\n";
 
 	setBroadCastMsg();
-	
-	send(_clientSocket, _replyMsg.c_str(), _replyMsg.length(), MSG_DONTWAIT);
+	sendMessage();
 
 	std::set<int> isSet;
 	isSet.insert(clientSocket);
@@ -233,6 +238,22 @@ NUMERIC::CODE MessageHandler::sendKickSuccess(int clientSocket){
 	return NUMERIC::SUCCESS;
 }
 
+NUMERIC::CODE MessageHandler::sendTopicSuccess(){
+	//:ebang!root@127.0.0.1 TOPIC #n :aa
+	setCallerInfo();
+	_replyMsg += _command + " " + _channel + " " + _description + "\n";
+
+	setBroadCastMsg();
+	std::set<int> isSet;
+	if(_eventHandler->getRequestChannel() != NULL)
+		_eventHandler->getRequestChannel()->sendToClients(isSet);
+	return NUMERIC::SUCCESS;
+}
+
+void MessageHandler::sendMessage(){
+	if (send(_clientSocket, _replyMsg.c_str(), _replyMsg.length(), MSG_DONTWAIT) == -1)
+		throw ErrorHandler::SendException();
+}
 
 void MessageHandler::flushOutput(){
 	_replyMsg.clear();

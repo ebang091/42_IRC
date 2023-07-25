@@ -9,6 +9,7 @@
 #include "Enums.hpp"
 #include "Channel.hpp"
 #include "ClientManager.hpp"
+#include "ErrorHandler.hpp"
 
 class EventHandler;
 
@@ -66,6 +67,9 @@ private:
 private:
     MessageHandler();
     void serializeChannelClientList();
+    void sendMessage();
+    void setCallerInfo();
+    void setServerInfo(NUMERIC::CODE code);
 
 public:
 	static MessageHandler& getInstance();
@@ -86,11 +90,12 @@ public:
 
     void setBroadCastMsg();
 
+    NUMERIC::CODE sendErrorUnknownError(const std::string& reason);
     NUMERIC::CODE sendJoinSuccess();
     NUMERIC::CODE sendNickSuccess(int clientSocket);
     NUMERIC::CODE sendInviteSuccess();
     NUMERIC::CODE sendKickSuccess(int clientSocket);
-
+    NUMERIC::CODE sendTopicSuccess();
     NUMERIC::CODE sendErrorWithTargetUserAndChannel(NUMERIC::CODE code);
     NUMERIC::CODE sendErrorNoParam(NUMERIC::CODE code);
     NUMERIC::CODE sendErrorWithChannel(NUMERIC::CODE code);

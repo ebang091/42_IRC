@@ -6,7 +6,7 @@
 /*   By: ebang <ebang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/14 12:28:31 by ebang             #+#    #+#             */
-/*   Updated: 2023/07/24 18:37:41 by ebang            ###   ########.fr       */
+/*   Updated: 2023/07/25 19:12:17 by ebang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,10 +40,9 @@ void Server::run(std::string portnumber, std::string password){
         socketHandler.makeSocketAndListen(_portNumber);
         eventHandler.listenToClients();
         
-        //이벤트 관리하면서 kevent 발생 시 client 들음. (발생 가능 오류 : bind, listen)
-        //(서버 소켓일 때는 연결, fcntl, accept) (발생 가능 오류 : accpet)
-        //(클라이언트 소켓일 때는) 파싱 -> 실행 (발생 가능 오류 : 파싱,  없는 클라이언트 소켓인데 들어옴)
-        
+        // 이벤트 관리하면서 kevent 발생 시 client 들음. (발생 가능 오류 : bind, listen)
+        // (서버 소켓일 때는 연결, fcntl, accept) (발생 가능 오류 : accpet)
+        // (클라이언트 소켓일 때는) 파싱 -> 실행 (발생 가능 오류 : 파싱,  없는 클라이언트 소켓인데 들어옴)
     }
     catch (const std::exception& e)
     {

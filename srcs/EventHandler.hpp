@@ -6,7 +6,7 @@
 /*   By: ebang <ebang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/14 13:18:51 by ebang             #+#    #+#             */
-/*   Updated: 2023/07/20 17:09:49 by ebang            ###   ########.fr       */
+/*   Updated: 2023/07/25 19:22:38 by ebang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,8 +31,15 @@ private:
     Client *_requestClient;
     Channel *_requestChannel;
     std::vector<struct kevent> _changeList;
-
+    struct kevent _event_list[EVENT_BUFFER_SIZE];
+    struct kevent* _curEvent;
+    int _numberOfNewEvents;
+    int _kq;
+    int _serverSocket;
+    
 private:
+    void init();
+    void disconnectCurClient(struct kevent* curEvent);
 	void changeEvents(std::vector<struct kevent>& changeList, uintptr_t ident, int16_t filter,\
                     uint16_t flags, uint32_t fflags, intptr_t data, void *udata);
 

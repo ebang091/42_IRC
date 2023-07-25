@@ -1,24 +1,17 @@
 /*
-	1. ClassName : UpperCamelCase
-	2. MemberFunctions : lowerCamelCase
-	3. MemberVariables : lowerCamelCase && use _
-	4. use Exception
-*/
-/*
 
 	변경사항
-	INVITE -> 에러마다 send 후에 pop() 안해주면 무한 반복 에러 나는 것 처리
+	INVITE -> 에러마다 send 후에 pop() 안해주면 무한 반복 에러 나는 것 처리 (o)
 
 	KICK -> 자기 자신 kick 못하는 에러  (o)
 	NICK -> 속한 모든 채널의 channelList 에서 저장하는 nick 변경
 
 	TODO
-	1. Send Error to Exception
-	2. command message 처리
-	3. PING, CAP LS
-	4. 채팅방에 들어와있는 상태에서 닉네임을 바꾸면 모든 채팅방에서 그 클라이언트를 지우고 다시 새로운 닉네임으로 추가함
-	5. 버퍼에 담고 다음에 전송됨
-	4. 이벤트 핸들러 메인 함수 리팩토링 (모듈화 더)
+	1. AUTH check - CAP LS, user 처리
+	1. command message 처리 (privmsg)
+	2. PING
+	3. CRLF 받을 떄까지 EOF 받을 동안은 버퍼에 저장
+	4. 이벤트 핸들러 메인 함수 리팩토링 (모듈화 더
 
 	join, part channel list 순회하면서 에러 발생 시 해당 channel만 실패하고 계속
 
@@ -52,7 +45,6 @@
 
 #include <iostream>
 #include "Server.hpp"
-#include "Parser.hpp"
 
 int main(int argc, char **argv){
 	if(argc != 3){
@@ -61,7 +53,5 @@ int main(int argc, char **argv){
 	}
 
 	Server::getInstance().run(argv[1], argv[2]);
-
-	//test : NICK 으로 닉네임 만든 후 JOIN 해서 채널에 등록되는지 확인  : getClientByNick 해보자
 	return 0;
 }

@@ -122,8 +122,7 @@ namespace NUMERIC{
 		INVALID_MODE = 472,
 		INVITE_ONLY_CHAN = 473,
 		BAD_CHAN_MASK = 476,
-		
-		SEND_ERR = 500,
+	
 		NOTHING = -1,
 		
 		// --- SUCCESS ---

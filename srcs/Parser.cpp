@@ -59,27 +59,22 @@ void Parser::parseCommandsAndExecute(std::string command){
 
     CommandHandler& commandHandler = CommandHandler::getInstance();
     parseByDelimeter('\n', command, commandsQ);
-
-    while(commandsQ.empty() == false){
+    int cnt = 0;
+    while(!commandsQ.empty()){
         std::stringstream ss(commandsQ.front());
         ss >> cmd;
-        while(ss >> word){
+        while(ss >> word)
             parameters.push_back(word);
-        }
         CMD::CODE cmdCode = commandHandler.identifyCommand(cmd);//NONE 이면 무시? 에러?
         commandHandler.executeCommand(cmdCode, parameters); //실행 및 출력
+        std::cout << "cnt : " << ++cnt << "\n";
+        std::cout << "command : " << cmdCode << "\n";
         commandsQ.pop();
     }
-    
     
    //첫 접속
 
    //CAP LS -> 갖고 있는 MAX_LEN 들, 가용 용량 send
-   //NICK nickname 
-
-
-
-  
-
+   //NICK nickname
 }
 
