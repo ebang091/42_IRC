@@ -161,7 +161,7 @@ void Channel::sendToClients(){
 
 void Channel::sendToClients(std::set<int>& isSent){
 	std::string msg = MessageHandler::getInstance().getBroadcastMsg();
-	std::cout << &_clientList << "\n";
+	std::cout << "clientList addr in sendToCLient : " << &_clientList << "\n";
 	if(_clientList.size() != 0) {
 		for (std::map<std::string, Client*>::iterator iter = _clientList.begin(); iter != _clientList.end(); ++iter)
 		{

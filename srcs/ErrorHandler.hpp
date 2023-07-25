@@ -17,7 +17,7 @@ public:
 	public:
 		const char* what() const throw();
 	};
-
+	
 	class BindException : public std::exception{
 	public:
 		const char* what() const throw();

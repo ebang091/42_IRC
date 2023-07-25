@@ -5,6 +5,13 @@
 	4. use Exception
 */
 /*
+
+	변경사항
+	INVITE -> 에러마다 send 후에 pop() 안해주면 무한 반복 에러 나는 것 처리
+
+	KICK -> 자기 자신 kick 못하는 에러  (o)
+	NICK -> 속한 모든 채널의 channelList 에서 저장하는 nick 변경
+
 	TODO
 	1. Send Error to Exception
 	2. command message 처리

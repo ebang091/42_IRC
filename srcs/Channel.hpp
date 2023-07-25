@@ -64,6 +64,7 @@ public:
 	bool isFull() const;
 	void sendToClients();
 	void sendToClients(std::set<int>& isSent);
+	void changeAllNickname(std::set<int>& isSent, const std::string originname, const std::string newname);
 
 	void getClientList(std::vector<std::string>& list);
 

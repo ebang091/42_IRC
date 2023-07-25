@@ -6,7 +6,7 @@
 /*   By: ebang <ebang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/14 12:28:31 by ebang             #+#    #+#             */
-/*   Updated: 2023/07/24 17:52:55 by ebang            ###   ########.fr       */
+/*   Updated: 2023/07/25 18:33:55 by ebang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,5 +106,28 @@ void ChannelManager::printChannels()
 
 		
 		iter->second->printClients();
+	}
+}
+
+void ChannelManager::changeNickNameAllChannels(const std::string originname, Client *clientNewNick)
+{
+	std::set<int> isSent;
+	std::vector<Channel*> eraseList;
+
+	for (std::map<std::string, Channel*>::iterator iter = _channels.begin(); iter != _channels.end(); ++iter)
+	{
+		
+		if (!iter->second->getClientByNick(originname))
+			continue;
+		iter->second->eraseClient(originname);
+		if(iter->second->getInviteByNick(originname) != NULL){
+			iter->second->eraseInvite(originname);
+			iter->second->insertClient(clientNewNick);
+		}		
+		if(iter->second->getOperatorByNick(originname) != NULL){
+			iter->second->eraseOperator(originname);
+			iter->second->insertOperator(clientNewNick);
+		}		
+		iter->second->insertClient(clientNewNick);
 	}
 }

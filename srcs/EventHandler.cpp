@@ -108,7 +108,7 @@ void EventHandler::listenToClients(){
                         test();
                         //명령을 실행
                         
-
+                        
 						send(curEvent->ident, str.c_str(), str.length(), MSG_DONTWAIT);
                         //std::cout << "write to client : " << buf << "\n";
                 	}

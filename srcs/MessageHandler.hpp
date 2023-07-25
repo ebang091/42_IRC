@@ -27,6 +27,7 @@ private:
     std::string _command;
     std::string _reason;
     std::string _option;
+    std::string _description;
     CMD::CODE _cmdCode;
     std::vector<std::string> _params;
 
@@ -75,18 +76,24 @@ public:
     void setRequestClientSocket(int socket);
     void setRequestClientInfo(const Client *client);
 	void setCommand(const std::string& command);
-    void setOption(const std::string& option);
     void setParam(const std::vector<std::string>& params);
 	void setChannel(const std::string& channel);
     void setRplCode(NUMERIC::CODE code);
     void setReason(const std::string& reason);
+    void setOption(const std::string& option);
     void setTargetName(const std::string& targetName);
+    void setDescription(const std::string &description);
 
     void setBroadCastMsg();
 
     NUMERIC::CODE sendJoinSuccess();
     NUMERIC::CODE sendNickSuccess(int clientSocket);
-    NUMERIC::CODE sendError(NUMERIC::CODE code);
-    NUMERIC::CODE sendErrorWithUser(NUMERIC::CODE code);
+    NUMERIC::CODE sendInviteSuccess();
+    NUMERIC::CODE sendKickSuccess(int clientSocket);
+
+    NUMERIC::CODE sendErrorWithTargetUserAndChannel(NUMERIC::CODE code);
+    NUMERIC::CODE sendErrorNoParam(NUMERIC::CODE code);
+    NUMERIC::CODE sendErrorWithChannel(NUMERIC::CODE code);
+    NUMERIC::CODE sendErrorWithNickAndTargetName(NUMERIC::CODE code);
 };
 #endif

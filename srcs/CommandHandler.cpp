@@ -68,7 +68,7 @@ NUMERIC::CODE CommandHandler::nick(std::vector<std::string>& parameters){
 
 	_messageHandler->setTargetName(candidateNickname);
     if(candidateNickname.front() == '#' || candidateNickname.front() == ':')
-		return _messageHandler->sendErrorWithUser(NUMERIC::INVALID_NICK);
+		return _messageHandler->sendErrorWithNickAndTargetName(NUMERIC::INVALID_NICK);
 	
     Client *foundDuplicate = _clientManager->getClientByNick(candidateNickname);
 
@@ -76,22 +76,24 @@ NUMERIC::CODE CommandHandler::nick(std::vector<std::string>& parameters){
         if (foundDuplicate == _client)
 			return NUMERIC::NOTHING;
 		else
-			return _messageHandler->sendErrorWithUser(NUMERIC::DUP_NICK);
+			return _messageHandler->sendErrorWithNickAndTargetName(NUMERIC::DUP_NICK);
             //433 "<client> <nick> :Nickname is already in use" (ERR_NICKNAMEINUSE)  
     }
-	
+
     if(candidateNickname.length() > CONFIG::NICKLEN)
-        return _messageHandler->sendErrorWithUser(NUMERIC::INVALID_NICK);
+        return _messageHandler->sendErrorWithNickAndTargetName(NUMERIC::INVALID_NICK);
 	//:three!root@127.0.0.1 NICK :ebang
 
-	//send
 	_messageHandler->setParam(parameters);
 	if (_messageHandler->sendNickSuccess(_client->getSocketNumber()) == NUMERIC::SEND_ERR)
 		return NUMERIC::SEND_ERR;
+	
 
+	std::string originname = _client->getNickName();
 	_clientManager->eraseClientByNick(_client->getNickName());
 	_client->setNickName(candidateNickname);
 	_clientManager->insertClientByNick(candidateNickname, _client);
+	_channelManager->changeNickNameAllChannels(originname, _client);
 	
     return NUMERIC::SUCCESS;
 }
@@ -113,12 +115,14 @@ NUMERIC::CODE CommandHandler::join(std::vector<std::string>& parameters){
 		
         std::string channelName = channelList.front();
 		_messageHandler->setChannel(channelList.front());
+		_eventHandler->setRequestChannel(_channelManager->getChannelByName(channelName.substr(1, channelName.size() -1)));
 		NUMERIC::CODE code = checkValid(&channelName, NULL, NULL, false);
 		
 		if (code == NUMERIC::NO_SUCH_CHAN)
 		{	
 			if(channelName.find(7) != std::string::npos){//check invalid chann
-				_messageHandler->sendError(NUMERIC::BAD_CHAN_MASK);
+				_messageHandler->sendErrorWithChannel(NUMERIC::BAD_CHAN_MASK);
+				channelList.pop();
 				continue;
 			}
 			_channelManager->insertChannel(channelName, _client);
@@ -132,7 +136,8 @@ NUMERIC::CODE CommandHandler::join(std::vector<std::string>& parameters){
 			{
 				if(GET_PERMISSION_K(foundChannel->getPermissions())){ // key option
 					if(keyList.empty() == true || foundChannel->getPassword() != keyList.front()){
-						_messageHandler->sendError(NUMERIC::BAD_CHAN_KEY);
+						_messageHandler->sendErrorWithChannel(NUMERIC::BAD_CHAN_KEY);
+						channelList.pop();
 						continue;
 					}					
 					keyList.pop();
@@ -140,13 +145,15 @@ NUMERIC::CODE CommandHandler::join(std::vector<std::string>& parameters){
 				if(GET_PERMISSION_I(foundChannel->getPermissions())){ //i option
 					//invitedList 확인
 					if(!foundChannel->getInviteByNick(_client->getNickName())){
-						_messageHandler->sendError(NUMERIC::INVITE_ONLY_CHAN);
+						_messageHandler->sendErrorWithChannel(NUMERIC::INVITE_ONLY_CHAN);
+						channelList.pop();
 						continue;
 					}
 				}
 			}
             if(foundChannel->isFull()){ //user limit check
-				_messageHandler->sendError(NUMERIC::FULL_CHANNEL);
+				_messageHandler->sendErrorWithChannel(NUMERIC::FULL_CHANNEL);
+				channelList.pop();
 				continue;
 			}
 			foundChannel->insertClient(_client);
@@ -154,7 +161,8 @@ NUMERIC::CODE CommandHandler::join(std::vector<std::string>& parameters){
 		}
 		else
 		{
-			_messageHandler->sendError(code);
+			_messageHandler->sendErrorWithChannel(code);
+			channelList.pop();
 			continue;
 		}			
 		
@@ -166,7 +174,6 @@ NUMERIC::CODE CommandHandler::join(std::vector<std::string>& parameters){
 		
         channelList.pop();
     }
-
 	return NUMERIC::SUCCESS;
 }
 
@@ -249,30 +256,35 @@ NUMERIC::CODE CommandHandler::kick(std::vector<std::string>& parameters){
 	Client* target;
 	Channel *requestChannel;
 	
+	std::cout << "KICK execute\n";
 	if(parameters.size() < 2)
 		return NUMERIC::NOTHING;
 	
 	channelName = parameters[0];
 	targetName = parameters[1];
-
-	NUMERIC::CODE code = checkValid(&channelName, &targetName, &_client->getNickName(), true);
 	
+	_messageHandler->setChannel(channelName);
+	_messageHandler->setTargetName(targetName);
+	
+	NUMERIC::CODE code = checkValid(&channelName, &targetName, &_client->getNickName(), true);	
 	if (code != NUMERIC::SUCCESS)
-		return code;
-
+		return _messageHandler->sendErrorWithTargetUserAndChannel(code);
+	requestChannel = _eventHandler->getRequestChannel();
+	std::cout << "code : " << code << "\n";
 	// they're not on channel
 	target = requestChannel->getClientByNick(targetName);
 	if (target == NULL)
-		return NUMERIC::NOT_ON_CHAN;
+		return _messageHandler->sendErrorWithTargetUserAndChannel(NUMERIC::TARGET_NOT_ON_CHAN);
 
 	std::string reason = "";
-	if (!getReason(parameters, 2, reason))
-		return NUMERIC::NO_PARAM;
+	if (!getReason(parameters, 2, reason)){
+		return _messageHandler->sendErrorNoParam(NUMERIC::NO_PARAM);
+	}
+	_messageHandler->setDescription(reason);
 
 	requestChannel->eraseClient(targetName);
 	requestChannel->eraseOperator(targetName);
-	// 채널의 모든 유저에게 메시지 보내기
-	// reason 같이보내기  (one!root@127.0.0.1 KICK #a two : msg)
+	_messageHandler->sendKickSuccess(_client->getSocketNumber());
 	
 	return code;
 }
@@ -305,19 +317,21 @@ NUMERIC::CODE CommandHandler::invite(std::vector<std::string>& parameters){
 	targetName = parameters[0];
 	channelName = parameters[1];
 
+	_eventHandler->setRequestChannel(_channelManager->getChannelByName(channelName.substr(1, channelName.size()-1)));;
+	_messageHandler->setTargetName(targetName);
+	_messageHandler->setChannel(channelName);
 	NUMERIC::CODE code = checkValid(&channelName, &targetName, &_client->getNickName(), true);
 	std::cout << code << "\n";
 	if (code != NUMERIC::SUCCESS)
-		return code;
+		return _messageHandler->sendErrorWithChannel(code);
 
 	// 이미 채널에 해당 사용자가 있는가?
 	if (_eventHandler->getRequestChannel()->getClientByNick(targetName))
 		return NUMERIC::ALREADY_ON_CHAN;
-	std::cout << "1\n";
 	// invite 된 사용자는 key를 입력하지 않아도 됨
 	_eventHandler->getRequestChannel()->insertInvite(_clientManager->getClientByNick(targetName));
-	std::cout << "2\n";
-	// 채널의 모든 유저에게 메시지 보내기
+	_messageHandler->sendInviteSuccess();
+	
 
 	return code;
 }
@@ -465,9 +479,9 @@ NUMERIC::CODE CommandHandler::user(std::vector<std::string>& parameters){
 }
 
 bool CommandHandler::getReason(std::vector<std::string>& parameters, int startIdx, std::string& result){
-	if (parameters.front().front() != ':')
+	std::cout << parameters[startIdx].front() << "\n";
+	if (parameters[startIdx].front() != ':')
 		return false;
-	
 	parameters.front().erase(0, 1);
 	for (int i = startIdx; i < parameters.size(); ++i){
 		result += parameters[i];
