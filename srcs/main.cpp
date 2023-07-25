@@ -5,6 +5,9 @@
 
 	KICK -> 자기 자신 kick 못하는 에러  (o)
 	NICK -> 속한 모든 채널의 channelList 에서 저장하는 nick 변경
+	
+	CAP namespace, user command message
+	ntoStr() : 만듬 / 001 ,002 도 만들 수 있게끔 구현
 
 	TODO
 	1. AUTH check - CAP LS, user 처리

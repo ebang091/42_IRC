@@ -70,6 +70,7 @@ private:
     void sendMessage();
     void setCallerInfo();
     void setServerInfo(NUMERIC::CODE code);
+    std::string ntoStr(int n);
 
 public:
 	static MessageHandler& getInstance();
@@ -90,6 +91,7 @@ public:
 
     void setBroadCastMsg();
 
+    NUMERIC::CODE sendUserMessage();
     NUMERIC::CODE sendErrorUnknownError(const std::string& reason);
     NUMERIC::CODE sendJoinSuccess();
     NUMERIC::CODE sendNickSuccess(int clientSocket);

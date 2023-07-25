@@ -136,10 +136,39 @@ namespace NUMERIC{
 		RPL_NAMREPLY = 353,
 		RPL_ENDOFNAMES = 366,
 		TOPIC = 332,
-		TOPIC_WHOTIME = 333
+		TOPIC_WHOTIME = 333,
+
+		// --- server message ---
+		WELCOME = 001,
+		INTRO = 002,
+		SERVERCREATE = 003,
+		CAPINFO = 005,
+		USERINFO = 251,
+		CLIENTINFO = 255,
+		MESSAGESTART = 375,
+		MESSAGEOFDAY = 372
 	};
 };
 
-
+namespace CAP{
+	struct Channel{	
+		char MODES[MODESIZE] = {'k', 'l', 'o', 'i', 'n', 't'};
+		char CHANNELTYPES = '#'; //('#' 모든 서버가 알고 있다는 의미.)
+		char PREFIX = '@'; //(채널 특권을 표현하는 문자. @: operator && creator)
+	};
+	enum SETTING {
+		MODESIZE=6,
+		CHANNELLEN=64,//  (채널 이름의 최대 길이)
+		KEYLEN=32,//  	  (key 설정 시 최대 길이)
+		KICKLEN=255,//   (KICK 시에 보내는 msg 최대길이)
+		LINELEN=512,//   (buffer size)
+		TOPICLEN=307,//  (TOPIC 최대 길이)
+		MODES = 5, //(user가 /mode 명령어로 최대 설정할 수 있는 channel의 mode 수)
+		USERLEN=10,//	(사용자 아이디의  최대  길이 (옥텟), number 지정 시 제한 없음)
+		HOSTLEN=64, //   (client 의 host 이름 최대 길이. 너무 길게 되면 IP로 본다.)
+		MAXTARGETS = 1,//(PRIVMSG 보내는 대상 지정 시 그 길이)	
+		NICKLEN=30// (user nickname 길이)
+	};
+};
 
 #endif

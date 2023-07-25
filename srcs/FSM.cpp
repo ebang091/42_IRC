@@ -142,6 +142,8 @@ NUMERIC::CODE FSM::plusK(std::queue<std::string>& params, STATE::CODE& state){
         //error: 696 ERR_INCALIDMODEPARAM "<client> <target chan/user> <mode char> <parameter> :<description>"
     
     password = params.front();
+	if(password.size() > CAP::KEYLEN)
+		password = password.substr(0, CAP::KEYLEN);
     params.pop();
 
 	char permissions = _channel->getPermissions();

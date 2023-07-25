@@ -2,6 +2,9 @@
 #include "EventHandler.hpp"
 
 MessageHandler::MessageHandler(){
+	codeMap.insert(std::make_pair(NUMERIC::WELCOME, "Welcome to the Localnet IRC Network"));
+	codeMap.insert(std::make_pair(NUMERIC::INTRO, "Your host is irc.local, running version kwsongeban_ver0.0"));
+	codeMap.insert(std::make_pair(NUMERIC::SERVERCREATE, "This server was created"));
 	codeMap.insert(std::make_pair(NUMERIC::NO_PARAM, "You must specify a parameter for the mode. Syntax: <nick or key>"));
 	codeMap.insert(std::make_pair(NUMERIC::NEED_MORE_PARAM, "Not enough parameters"));
 	codeMap.insert(std::make_pair(NUMERIC::ALREADY_REGISTERED, "You may not reregister"));
@@ -103,42 +106,29 @@ void MessageHandler::serializeChannelClientList(){
 	Channel *channel = EventHandler::getInstance().getRequestChannel();
 	std::vector<std::string> list;
 	std::stringstream ss;
-	ss << NUMERIC::RPL_NAMREPLY;
 
-	/*
-	:irc.local 332 two #ch :topic
-	:irc.local 333 two #ch one!root@127.0.0.1 :1690181082
-	*/
 	Channel::Topic topic = channel->getTopic();
 	if (!topic.__content.empty()){
-		std::stringstream ss2;		
-		ss2 << NUMERIC::TOPIC;
-		_replyMsg += ":irc.local " + ss2.str() + " " + _nickName + " " + _channel +  " :" + topic.__content + "\n";
-		ss2.clear();
-
-		ss2 << NUMERIC::TOPIC_WHOTIME;
-		_replyMsg += ":irc.local " + ss2.str() + " ";
-		ss2.clear();
-		ss2 << topic.__creationTime;
-		_replyMsg += _nickName + " " + _channel +  " " + topic.__setUser + " :" + ss.str() + "\n";
-		// :irc.local 332 two #wwwwwww :hi
+		_replyMsg += ":irc.local " + ntoStr(NUMERIC::TOPIC) + " " + _nickName + " " + _channel +  " :" + topic.__content + "\n";
+		
+		_replyMsg += ":irc.local " +  ntoStr(NUMERIC::TOPIC_WHOTIME) + " ";
+		
+		_replyMsg += _nickName + " " + _channel +  " " + topic.__setUser + " :" + ntoStr(topic.__creationTime) + "\n";
+		
 	}
-	_replyMsg += ":irc.local " + ss.str() + " " + _nickName + " = " + _channel +  " :";
+	_replyMsg += ":irc.local " + ntoStr(NUMERIC::RPL_NAMREPLY) + " " + _nickName + " = " + _channel +  " :";
 
 	channel->getClientList(list);	
 	for (int i = 0; i < list.size(); ++i)
 		_replyMsg += list[i] + " ";
 	_replyMsg += "\n";
-	//:irc.local 353 user = #ch :@hei ...
 }
 
 void MessageHandler::setServerInfo(NUMERIC::CODE code){
-	std::stringstream ss;
 	
 	setRplCode(code);
-	ss << _rplCode;
 
-	_replyMsg += ":irc.local " + ss.str() + " ";
+	_replyMsg += ":irc.local " + ntoStr(_rplCode) + " ";
 }
 
 void MessageHandler::setCallerInfo(){
@@ -258,4 +248,60 @@ void MessageHandler::sendMessage(){
 void MessageHandler::flushOutput(){
 	_replyMsg.clear();
 	_broadcastMsg.clear();
+}
+
+std::string ntoStr(int n){
+	std::stringstream ss;
+	std::string ret;
+	ss << n;
+	ret = ss.str();
+	while(ret.size() < 3)
+		ret.insert(0, "0");
+	return ret;
+}
+
+NUMERIC::CODE MessageHandler::sendUserMessage(){
+	flushOutput();
+
+	setServerInfo(NUMERIC::WELCOME);
+	_replyMsg += _nickName + ":" + _reason + " ";
+	setCallerInfo();
+	
+	_replyMsg += "MODESIZE=" + ntoStr(CAP::MODESIZE) + " CHANNELLEN=" + ntoStr(CAP::CHANNELLEN) + " KEYLEN=" + ntoStr(CAP::KEYLEN) \
+		+ " KICKLEN=" + ntoStr(CAP::KICKLEN) + " LINELEN=" +ntoStr(CAP::LINELEN) + " TOPICLEN=" + ntoStr(CAP::TOPICLEN) + " MODES=" + ntoStr(CAP::MODES) \
+		+ " USERLEN=" + ntoStr(CAP::USERLEN) + " HOSTLEN=" + ntoStr(CAP::HOSTLEN) + " MAXTARGETS=" + ntoStr(CAP::MAXTARGETS) + " NICKLEN=" + ntoStr(CAP::NICKLEN) + "\n";
+	
+
+/*
+
+:irc.local 001 three :Welcome to the Localnet IRC Network three!root@127.0.0.1
+:irc.local 002 three :Your host is irc.local, running version InspIRCd-3
+:irc.local 003 three :This server was created 03:59:44 Jul 17 2023
+:irc.local 004 three irc.local InspIRCd-3 iosw biklmnopstv :bklov
+:irc.local 005 three AWAYLEN=200 CASEMAPPING=rfc1459 CHANLIMIT=#:20 CHANMODES=b,k,l,imnpst CHANNELLEN=64 CHANTYPES=# ELIST=CMNTU HOSTLEN=64 KEYLEN=32 KICKLEN=255 LINELEN=512 MAXLIST=b:100 :are supported by this server
+:irc.local 005 three MAXTARGETS=20 MODES=20 NAMELEN=128 NETWORK=Localnet NICKLEN=30 PREFIX=(ov)@+ SAFELIST STATUSMSG=@+ TOPICLEN=307 USERLEN=10 USERMODES=,,s,iow WHOX :are supported by this server
+:irc.local 251 three :There are 0 users and 2 invisible on 1 servers
+:irc.local 253 three 1 :unknown connections
+:irc.local 254 three 3 :channels formed
+:irc.local 255 three :I have 2 clients and 0 servers
+:irc.local 265 three :Current local users: 2  Max: 2
+:irc.local 266 three :Current global users: 2  Max: 2
+:irc.local 375 three :irc.local message of the day
+:irc.local 372 three : **************************************************
+:irc.local 372 three : *             H    E    L    L    O              *
+:irc.local 372 three : *  This is a private irc server. Please contact  *
+:irc.local 372 three : *  the admin of the server for any questions or  *
+:irc.local 372 three : *  issues.                                       *
+:irc.local 372 three : **************************************************
+:irc.local 372 three : *  The software was provided as a package of     *
+:irc.local 372 three : *  Debian GNU/Linux <https://www.debian.org/>.   *
+:irc.local 372 three : *  However, Debian has no control over this      *
+:irc.local 372 three : *  server.                                       *
+:irc.local 372 three : **************************************************
+:irc.local 372 three : (The sysadmin possibly wants to edit </etc/inspircd/inspircd.motd>)
+:irc.local 376 three :End of message of the day.
+
+*/
+
+
 }

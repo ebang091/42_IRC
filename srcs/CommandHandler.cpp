@@ -78,6 +78,8 @@ NUMERIC::CODE CommandHandler::nick(std::vector<std::string>& parameters){
         return NUMERIC::NOTHING;
 
 	candidateNickname = parameters[0];
+	if(candidateNickname.size() > CAP::NICKLEN)
+		candidateNickname = candidateNickname.substr(0, CAP::NICKLEN);
 
 	_messageHandler->setTargetName(candidateNickname);
     if(candidateNickname.front() == '#' || candidateNickname.front() == ':')
@@ -125,6 +127,8 @@ NUMERIC::CODE CommandHandler::join(std::vector<std::string>& parameters){
 	
     while (channelList.empty() == false){
         std::string channelName = channelList.front();
+		if(channelName.size() > CAP::CHANNELLEN)
+			channelName = channelName.substr(0, CAP::CHANNELLEN);
 		_messageHandler->setChannel(channelList.front());
 		_eventHandler->setRequestChannel(_channelManager->getChannelByName(channelName.substr(1, channelName.size() -1)));
 		NUMERIC::CODE code = checkValid(&channelName, NULL, NULL, false);
@@ -288,6 +292,8 @@ NUMERIC::CODE CommandHandler::kick(std::vector<std::string>& parameters){
 	if (!getReason(parameters, 2, reason)){
 		return _messageHandler->sendErrorNoParam(NUMERIC::NO_PARAM);
 	}
+	if(reason.size() > CAP::KICKLEN)
+		reason = reason.substr(0, CAP::KICKLEN);
 	_messageHandler->setDescription(reason);
 
 	_messageHandler->sendKickSuccess(_client->getSocketNumber());
@@ -371,6 +377,8 @@ NUMERIC::CODE CommandHandler::topic(std::vector<std::string>& parameters){
 	if (!getReason(parameters, 1, topic))
 		return _messageHandler->sendErrorWithChannel(NUMERIC::NO_PARAM);
 
+	if(topic.size() > CAP::TOPICLEN)
+		topic = topic.substr(0, CAP::TOPICLEN);
 	if (topic == requestChannel->getTopic().__content)
 		return NUMERIC::NOTHING;
 
@@ -416,6 +424,8 @@ NUMERIC::CODE CommandHandler::cap(std::vector<std::string>& parameters){
 	// if(_client->isAuth())
 		return NUMERIC::NOTHING;
 
+	
+	
 	if (parameters.size() != 1 || parameters[0] != "LS")
 		return NUMERIC::NOTHING;
 	
@@ -430,7 +440,7 @@ NUMERIC::CODE CommandHandler::privmsg(std::vector<std::string>& parameters){
 	std::string msg;
 	
 	if (parameters.size() < 2)
-		return NUMERIC::NOTHING;
+		return NUMERIC::NOTHING;//no param
 
 	target = parameters[0];
 
@@ -491,6 +501,8 @@ NUMERIC::CODE CommandHandler::user(std::vector<std::string>& parameters){
 	if(!getReason(parameters, 3, realName))
 		return _messageHandler->sendErrorUnknownError("needs colon(:)");
 
+	if(parameters[2].size() > CAP::HOSTLEN)
+		parameters[2] = parameters[2].substr(CAP::HOSTLEN);
 	_client->setUserName(parameters[0]);
 	_client->setHost(parameters[2]);
 	_client->setRealName(realName);

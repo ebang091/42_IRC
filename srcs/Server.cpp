@@ -3,16 +3,17 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ebang <ebang@student.42.fr>                +#+  +:+       +#+        */
+/*   By: eunjungbang <eunjungbang@student.42.fr>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/14 12:28:31 by ebang             #+#    #+#             */
-/*   Updated: 2023/07/25 19:12:17 by ebang            ###   ########.fr       */
+/*   Updated: 2023/07/25 23:53:28 by eunjungbang      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
 
 Server::Server(){
+    time(&_creationTime);
 }
 
 Server& Server::getInstance(){
