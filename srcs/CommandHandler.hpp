@@ -10,7 +10,6 @@
 #include "ChannelManager.hpp"
 #include "Enums.hpp"
 #include "FSM.hpp"
-#include "MessageHandler.hpp"
 
 class MessageHandler;
 class EventHandler;

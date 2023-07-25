@@ -31,18 +31,16 @@ void CommandHandler::executeCommand(CMD::CODE cmdCode, std::vector<std::string>&
 	
     if(cmdCode == CMD::NONE)
         return ;
-
 	_eventHandler = &EventHandler::getInstance();
-	_client = _eventHandler->getRequestClient();
 	_channelManager = &ChannelManager::getInstance();
 	_clientManager = &ClientManager::getInstance();
 	_parser = &Parser::getInstance();
+	_client = _eventHandler->getRequestClient();
 	_messageHandler->setRequestClientInfo(_client);
 	_messageHandler->setEventHandler(_eventHandler);
 	_messageHandler->setRequestClientSocket(_client->getSocketNumber());
-
+	
 	//nickname!hostname@ip 먼저 저장
-
     typedef NUMERIC::CODE (CommandHandler::*FP)(std::vector<std::string>&);
     FP funcs[CMD::SIZE] = {&CommandHandler::cap, &CommandHandler::quit, &CommandHandler::nick, 
 			&CommandHandler::join, &CommandHandler::kick, &CommandHandler::invite,
@@ -85,6 +83,8 @@ NUMERIC::CODE CommandHandler::nick(std::vector<std::string>& parameters){
     if(candidateNickname.length() > CONFIG::NICKLEN)
         return _messageHandler->sendErrorWithUser(NUMERIC::INVALID_NICK);
 	//:three!root@127.0.0.1 NICK :ebang
+
+	//send
 	_messageHandler->setParam(parameters);
 	if (_messageHandler->sendNickSuccess(_client->getSocketNumber()) == NUMERIC::SEND_ERR)
 		return NUMERIC::SEND_ERR;
@@ -146,7 +146,7 @@ NUMERIC::CODE CommandHandler::join(std::vector<std::string>& parameters){
 				}
 			}
             if(foundChannel->isFull()){ //user limit check
-				_messageHandler->sendError(NUMERIC::INVITE_ONLY_CHAN);
+				_messageHandler->sendError(NUMERIC::FULL_CHANNEL);
 				continue;
 			}
 			foundChannel->insertClient(_client);
@@ -154,15 +154,16 @@ NUMERIC::CODE CommandHandler::join(std::vector<std::string>& parameters){
 		}
 		else
 		{
-			_messageHandler->sendError(NUMERIC::BAD_CHAN_KEY);
+			_messageHandler->sendError(code);
 			continue;
 		}			
 		
 		//send to request client
+		//try catch
 		if (_messageHandler->sendJoinSuccess() == NUMERIC::SEND_ERR)
 			return NUMERIC::SEND_ERR;
 		//send to channel users (broadcast msg)
-		_eventHandler->getRequestChannel()->sendToClients();
+		
         channelList.pop();
     }
 

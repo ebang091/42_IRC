@@ -4,10 +4,8 @@
 	3. MemberVariables : lowerCamelCase && use _
 	4. use Exception
 */
-
 /*
 	TODO
-	
 	1. Send Error to Exception
 	2. command message 처리
 	3. PING, CAP LS
@@ -43,7 +41,6 @@
 	NAMELEN=128 (user name 길이)
 	NICKLEN=30 (user nickname 길이)
 	PREFIX=@ (채널 특권을 표현하는 문자. @: operator && creator)
-
 	*/
 
 #include <iostream>

@@ -159,6 +159,7 @@ NUMERIC::CODE MessageHandler::sendJoinSuccess(){
 	sendError(NUMERIC::RPL_ENDOFNAMES);
 	if(_eventHandler->getRequestClient() != NULL)
 		_eventHandler->getRequestChannel()->sendToClients();
+	_eventHandler->getRequestChannel()->sendToClients();
 	return NUMERIC::SUCCESS;
 }
 
@@ -178,6 +179,7 @@ NUMERIC::CODE MessageHandler::sendNickSuccess(int clientSocket){
 		_eventHandler->getRequestChannel()->sendToClients(isSet);
 	return NUMERIC::SUCCESS;
 }
+
 
 void MessageHandler::flushOutput(){
 	_replyMsg.clear();
