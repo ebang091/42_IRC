@@ -56,6 +56,7 @@ void ClientManager::insertClientByNick(const std::string& nickName, Client* clie
 }
 
 void ClientManager::insertClientByFD(int fd){
+	Client* 
 	_clientByFD.insert(std::make_pair(fd, new Client(fd)));
 }
 
