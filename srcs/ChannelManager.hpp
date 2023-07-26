@@ -6,7 +6,7 @@
 /*   By: ebang <ebang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/14 12:48:26 by ebang             #+#    #+#             */
-/*   Updated: 2023/07/25 20:12:56 by ebang            ###   ########.fr       */
+/*   Updated: 2023/07/26 14:04:40 by ebang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,6 +66,7 @@ private:
     
     public:
         void printChannels();
+        void sendClientAllChannels(const std::string& targetName);
         void eraseClientAllChannels(const std::string& targetName);
         void changeNickNameAllChannels(const std::string& originname, Client *clientNewNick);
 };

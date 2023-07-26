@@ -19,8 +19,7 @@ void EventHandler::changeEvents(std::vector<struct kevent>& changeList, uintptr_
     changeList.push_back(temp_event);
 }
 
-void test()
-{
+void test(){
     std::cout << "---- TEST -----\n";
     ClientManager& clm = ClientManager::getInstance();
     ChannelManager& chm = ChannelManager::getInstance();
@@ -30,16 +29,11 @@ void test()
     std::cout << "\n";
 }
 
-void EventHandler::init()
-{
+void EventHandler::init(){
 	_serverSocket = SocketHandler::getInstance().getServerSocket();
     _kq = kqueue();
     if (_kq == -1)
-        throw ErrorHandler::KqueueException();
-	
-	int option = 1;
-	if (setsockopt(_serverSocket, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option)) == -1)
-		throw ErrorHandler::SocketException();
+		throw ErrorHandler::KqueueException();
 
     changeEvents(_changeList, _serverSocket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
 }
@@ -120,7 +114,6 @@ void EventHandler::listenToClients(){
 						disconnectCurClient(_curEvent);
                     }
                     test();
-                    std::cout << "Event\n";
                 }
 			}
         }

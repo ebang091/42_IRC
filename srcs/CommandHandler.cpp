@@ -10,13 +10,11 @@ CommandHandler& CommandHandler::getInstance(){
 	static CommandHandler instance;
 	return instance;
 }
-
 CMD::CODE CommandHandler::identifyCommand(const std::string& cmd){
     const std::string title[CMD::SIZE] = {"QUIT", "NICK", "JOIN", "KICK", "INVITE", "TOPIC", "MODE", "PART", "PRIVMSG", "USER", "PASS"};
 
     for(int i = 0; i < CMD::SIZE; i++){
-        if(cmd == title[i])
-		{
+        if (strcasecmp(cmd.c_str(), title[i].c_str()) == 0){
 			// push message
 			_messageHandler = &MessageHandler::getInstance();
 			_messageHandler->setCommand(cmd);
@@ -44,12 +42,12 @@ void CommandHandler::executeCommand(CMD::CODE cmdCode, std::vector<std::string>&
     FP funcs[CMD::SIZE] = {&CommandHandler::quit, &CommandHandler::nick, 
 			&CommandHandler::join, &CommandHandler::kick, &CommandHandler::invite,
 			&CommandHandler::topic, &CommandHandler::mode , &CommandHandler::part,
-			&CommandHandler::privmsg, &CommandHandler::user};
+			&CommandHandler::privmsg, &CommandHandler::user, &CommandHandler::pass};
 
 	FP authFuncs[CMD::SIZE] = {NULL, &CommandHandler::nick, 
 			NULL, NULL, NULL,
 			NULL, NULL , NULL,
-			NULL, &CommandHandler::user};
+			NULL, &CommandHandler::user, &CommandHandler::pass};
 
 	if (GET_SENT_AUTH(_client->getAuth()))
 		(this->*funcs[static_cast<int>(cmdCode)])(parameters); // //내부에서 명령어 별 메시지 작성
@@ -61,12 +59,11 @@ void CommandHandler::executeCommand(CMD::CODE cmdCode, std::vector<std::string>&
 
 void CommandHandler::nick(std::vector<std::string>& parameters){
     std::string candidateNickname;
-    bool isValid = true;
 
 	std::cout << "NICK execute\n";
 
-    if(parameters.empty())
-        return;
+	if(parameters.empty() || !(GET_PASS_AUTH(_client->getAuth())) || !(GET_USER_AUTH(_client->getAuth())))
+		return;
 	
 	if(!(GET_NICK_AUTH(_client->getAuth())))
 		_client->setAuth(SET_NICK_AUTH(_client->getAuth()));
@@ -94,8 +91,7 @@ void CommandHandler::nick(std::vector<std::string>& parameters){
     if(candidateNickname.length() > CONFIG::NICKLEN)
         return _messageHandler->sendErrorWithNickAndTargetName(NUMERIC::INVALID_NICK);
 
-	_messageHandler->setParam(parameters);
-	_messageHandler->sendNickSuccess(_client->getSocketNumber());
+	_messageHandler->sendNickSuccess();
 	
 	std::string originname = _client->getNickName();
 	_clientManager->eraseClientByNick(_client->getNickName());
@@ -112,7 +108,6 @@ void CommandHandler::join(std::vector<std::string>& parameters){
 	if(parameters.empty())
 		return ;
 	
-    //#chnannel, #chanel#,chanel key,key,key
 	_parser->parseByDelimeter(',', parameters[0], channelList);
 	
 	if (parameters.size() >= 2)
@@ -128,7 +123,7 @@ void CommandHandler::join(std::vector<std::string>& parameters){
 		_eventHandler->setRequestChannel(_channelManager->getChannelByName(channelName.substr(1, channelName.size() -1)));
 		NUMERIC::CODE code = checkValid(&channelName, NULL, NULL, false);
 		
-		if (code == NUMERIC::NO_SUCH_CHAN){	
+		if (code == NUMERIC::NO_SUCH_CHAN){
 			if(channelName.find(7) != std::string::npos){//check invalid chann
 				_messageHandler->sendErrorWithChannel(NUMERIC::BAD_CHAN_MASK);
 				continue;
@@ -165,33 +160,29 @@ void CommandHandler::join(std::vector<std::string>& parameters){
 		else{
 			_messageHandler->sendErrorWithChannel(code);
 			continue;
-		}			
-		
-		//send to request client
-		//send to channel users (broadcast msg)
+		}
 		_messageHandler->sendJoinSuccess();
     }
 }
 
 void CommandHandler::mode(std::vector<std::string>& parameters){
-	
 	//input: MODE +inopt -kft user password
     //params:+inopt -kft user password
 
     //parameters[0]    #channel
     //parameters[1]     + options
     //parametrs[2]      - options
-    
+
     //keys              이후
     std::string channelName;
     std::string options;
     std::queue<std::string> params;
     FSM& fsm = FSM::getInstance();
 	fsm.setMessageHandler(_messageHandler);
-    std::cout << "MODE \n";
-    
+    std::cout << "MODE executed\n";
+
 	if (parameters.size() < 2)
-		return _messageHandler->sendErrorNoParam(NUMERIC::NO_PARAM);
+		return _messageHandler->sendErrorNoParam(NUMERIC::NEED_MORE_PARAM);
 
 	channelName = parameters[0];
 	options = parameters[1];
@@ -222,11 +213,11 @@ void CommandHandler::part(std::vector<std::string>& parameters){
     //#chnannel,#chanel,#channle
 	_parser->parseByDelimeter(',', parameters[0], channelList);
 	
-	std::string reason = "";
-	if (!getReason(parameters, 1, reason))
-		return _messageHandler->sendErrorNoParam(NUMERIC::NO_PARAM);
+	std::string description = "";
+	if (!getDescription(parameters, 1, description))
+		return _messageHandler->sendErrorNoParam(NUMERIC::NEED_MORE_PARAM);
 
-	_messageHandler->setReason(reason);
+	_messageHandler->setDescription(description);
 
     while (channelList.empty() == false){
         channelName = channelList.front();
@@ -273,15 +264,15 @@ void CommandHandler::kick(std::vector<std::string>& parameters){
 	if (target == NULL)
 		return _messageHandler->sendErrorWithTargetUserAndChannel(NUMERIC::TARGET_NOT_ON_CHAN);
 
-	std::string reason = "";
-	if (!getReason(parameters, 2, reason)){
-		return _messageHandler->sendErrorNoParam(NUMERIC::NO_PARAM);
-	}
-	if(reason.size() > CAP::KICKLEN)
-		reason = reason.substr(0, CAP::KICKLEN);
-	_messageHandler->setDescription(reason);
+	std::string description = "";
+	if (!getDescription(parameters, 2, description))
+		return _messageHandler->sendErrorNoParam(NUMERIC::NEED_MORE_PARAM);
+	
+	if(description.size() > CAP::KICKLEN)
+		description = description.substr(0, CAP::KICKLEN);
+	_messageHandler->setDescription(description);
 
-	_messageHandler->sendKickSuccess(_client->getSocketNumber());
+	_messageHandler->sendKickSuccess();
 	requestChannel->eraseOperator(targetName);
 	if (requestChannel->eraseClient(targetName) == 0)
 		_channelManager->eraseChannel(requestChannel->getName());
@@ -343,8 +334,8 @@ void CommandHandler::topic(std::vector<std::string>& parameters){
 		//482 two #a :You do not have access to change the topic on this channel
 
 	std::string topic = "";
-	if (!getReason(parameters, 1, topic))
-		return _messageHandler->sendErrorWithChannel(NUMERIC::NO_PARAM);
+	if (!getDescription(parameters, 1, topic))
+		return _messageHandler->sendErrorWithChannel(NUMERIC::NEED_MORE_PARAM);
 
 	if(topic.size() > CAP::TOPICLEN)
 		topic = topic.substr(0, CAP::TOPICLEN);
@@ -355,18 +346,18 @@ void CommandHandler::topic(std::vector<std::string>& parameters){
 	_messageHandler->setDescription(topic);
 	// 채널의 모든 유저에게 메시지 보내기
 	_messageHandler->sendTopicSuccess();
-	//:one!root@127.0.0.1 TOPIC #a :topic
 }
 
 void CommandHandler::quit(std::vector<std::string>& parameters){
-	std::string msg = "leaving";
+	std::string description = "leaving";
 
-	if (!getReason(parameters, 0, msg))
+	if (!getDescription(parameters, 0, description))
 		return;
-		
-	_channelManager->eraseClientAllChannels(_client->getNickName());
-	// _clientManager->eraseClientByNick(_client->getNickName());
-	// _clientManager->eraseClientByFD(_client->getSocketNumber());
+
+	_messageHandler->setDescription(description);
+	_messageHandler->sendQuitSuccess();
+
+	throw ErrorHandler::QuitException();
 }
 
 void CommandHandler::pass(std::vector<std::string>& parameters){
@@ -374,6 +365,7 @@ void CommandHandler::pass(std::vector<std::string>& parameters){
 	if(!(GET_PASS_AUTH(_client->getAuth())))
 		return _messageHandler->sendErrorNoParam(NUMERIC::ALREADY_REGISTERED);
 
+	std::cout << "!!!!! " << Server::getInstance().getPassword() << ", " << parameters[0] << "\n";
 	if(parameters.empty() || Server::getInstance().getPassword() != parameters[0])
 		return _messageHandler->sendErrorWithCmdAndReason(NUMERIC::PASS_MISMATCH);
 
@@ -382,7 +374,7 @@ void CommandHandler::pass(std::vector<std::string>& parameters){
 
 void CommandHandler::privmsg(std::vector<std::string>& parameters){
 	std::string target;
-	std::string msg;
+	std::string description;
 	
 	if (parameters.size() < 2)
 		return;//no param
@@ -391,35 +383,34 @@ void CommandHandler::privmsg(std::vector<std::string>& parameters){
 
 	NUMERIC::CODE code = checkValid(&target, NULL, NULL, false);
 
-	if (!getReason(parameters, 1, msg))
-		return _messageHandler->sendErrorNoParam(NUMERIC::NO_PARAM);
+	description = "";
+	if (!getDescription(parameters, 1, description))
+		return _messageHandler->sendErrorNoParam(NUMERIC::NEED_MORE_PARAM);
+	_messageHandler->setDescription(description);
 
 	if (code == NUMERIC::NO_SUCH_CHAN)
-		return NUMERIC::NO_SUCH_CHAN;
-	else if (code != NUMERIC::BAD_CHAN_MASK)
+		return _messageHandler->sendErrorWithChannel(NUMERIC::NO_SUCH_CHAN);
+	else if (code == NUMERIC::BAD_CHAN_MASK)
 	{
-		// to channel clients
-		// send msg
-	}
-	else
-	{
-		// user bubble
+		_messageHandler->setTargetName(target);
 		if (!_clientManager->getClientByNick(target))
-			return NUMERIC::NO_SUCH_NICK;
-		// send msg
+			return _messageHandler->sendErrorWithNickAndTargetName(NUMERIC::NO_SUCH_NICK);
+		
+		_messageHandler->setRequestClientSocket(_clientManager->getClientByNick(target)->getSocketNumber());	
+		_messageHandler->sendPrivMsgToUser();
+	}
+	else 
+	{
+		_messageHandler->setChannel(target);
+		if (!_eventHandler->getRequestChannel()->getClientByNick(_client->getNickName()))
+			return _messageHandler->sendErrorWithChannel(NUMERIC::CANNOTSENDTOCHAN);
+		
+		_messageHandler->sendPrivMsgToChannel();
 	}
 }
 
 //input 형식 USER <username> <username> <host> :<real name>
 //사용 형식 :one!song@127.0.0.1  (nick!user@host)
-/*
-- <real name> 은 마지막 파라미터여야 하는데, 그 이유는 스페이스바를 포함할 수 있기 때문임.
-- <username>의 최대 길이는 USERLEN RPL_ISUPPORT 파라미터에 명시되어야 하고, 만약에 이것보다 길면 그냥 잘라서 저장
- 최소 길이는 1이고 비어있으면 안된다. 만약 없으면 ERR_NEEDMOREPARAMS 를 보내야 한다. 
-
- - 이렇게  저장하고 난 후 USER 가 다시 들어온다면, ERR_ALREADYREGISTERED 을 제출한다. 
-*/
-// USER root root 127.0.0.1 :root
 void CommandHandler::user(std::vector<std::string>& parameters){
 	if(parameters.empty())
 		return;
@@ -432,7 +423,7 @@ void CommandHandler::user(std::vector<std::string>& parameters){
 		_messageHandler->sendConnectionSuccess();
 	
 	if (parameters.size() < 4)
-		return _messageHandler->sendErrorNoParam(NUMERIC::NO_PARAM);
+		return _messageHandler->sendErrorNoParam(NUMERIC::NEED_MORE_PARAM);
 	// irc.local 461 two USER :Not enough parameters.
 	
 	// irc.local 462 two :You may not reregister
@@ -448,7 +439,7 @@ void CommandHandler::user(std::vector<std::string>& parameters){
 		return _messageHandler->sendErrorUnknownError("invalid host");
 	
 	std::string realName = "";
-	if(!getReason(parameters, 3, realName))
+	if(!getDescription(parameters, 3, realName))
 		return _messageHandler->sendErrorUnknownError("needs colon(:)");
 
 	if(parameters[2].size() > CAP::HOSTLEN)
@@ -458,7 +449,7 @@ void CommandHandler::user(std::vector<std::string>& parameters){
 	_client->setRealName(realName);
 }
 
-bool CommandHandler::getReason(std::vector<std::string>& parameters, int startIdx, std::string& result){
+bool CommandHandler::getDescription(std::vector<std::string>& parameters, int startIdx, std::string& result){
 	//std::cout << parameters[startIdx].front() << "\n";
 	if (parameters.size() <= startIdx || parameters[startIdx].front() != ':')
 		return false;
@@ -494,4 +485,5 @@ NUMERIC::CODE CommandHandler::checkValid(std::string* channelName, const std::st
 		if (checkOper && !requestChannel->getOperatorByNick(*callerName))
 			return NUMERIC::NOT_OPER;
 	}
+	return NUMERIC::SUCCESS;
 }

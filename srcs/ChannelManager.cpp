@@ -6,14 +6,13 @@
 /*   By: ebang <ebang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/14 12:28:31 by ebang             #+#    #+#             */
-/*   Updated: 2023/07/25 20:12:52 by ebang            ###   ########.fr       */
+/*   Updated: 2023/07/26 14:11:42 by ebang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ChannelManager.hpp"
 
-ChannelManager::~ChannelManager()
-{
+ChannelManager::~ChannelManager(){
 	std::map<std::string, Channel*>::iterator it;
     
     it = _channels.begin();
@@ -33,17 +32,13 @@ void ChannelManager::insertChannel(const std::string& channelName, Client *clien
 		  _channels.insert(std::make_pair(channelName, new Channel(channelName, client)));
     }
     else{
-        // 방이 +i 권한이면 못들어옴
-        // 방이 +k이면 패스워드 입력해야함
-        // 방에 l 옵션과 함께 limit 이 있다면, limit을 확인한다.
         _channels[channelName]->insertClient(client);
     }
     int per;
     GET_PERMISSION_I(per);
 }
 
-void ChannelManager::eraseChannel(const std::string &channelName)
-{
+void ChannelManager::eraseChannel(const std::string &channelName){
 	std::map<std::string, Channel*>::iterator target = _channels.find(channelName);
 
 	if (target != _channels.end())
@@ -54,8 +49,7 @@ void ChannelManager::eraseChannel(const std::string &channelName)
 	}
 }
 
-Channel* ChannelManager::getChannelByName(const std::string& channelName) const
-{
+Channel* ChannelManager::getChannelByName(const std::string& channelName) const{
 	try
 	{
 		Channel* tmp = _channels.at(channelName);
@@ -67,8 +61,19 @@ Channel* ChannelManager::getChannelByName(const std::string& channelName) const
 	}
 }
 
-void ChannelManager::eraseClientAllChannels(const std::string& targetName)
-{
+// void ChannelManager::sendClientAllChannels(const std::string& targetName){
+// 	std::set<int> isSent;
+
+// 	for (std::map<std::string, Channel*>::iterator iter = _channels.begin(); iter != _channels.end(); ++iter)
+// 	{
+// 		if (!iter->second->getClientByNick(targetName))
+// 			continue;
+		
+// 		//iter->second->sendToClients(isSent);
+// 	}
+// }
+
+void ChannelManager::eraseClientAllChannels(const std::string& targetName){
 	std::set<int> isSent;
 	std::vector<Channel*> eraseList;
 
@@ -78,7 +83,7 @@ void ChannelManager::eraseClientAllChannels(const std::string& targetName)
 		if (!iter->second->getClientByNick(targetName))
 			continue;
 		
-		//iter->second->sendToClients(isSent);
+		iter->second->sendToClients(isSent);
 		iter->second->eraseOperator(targetName);
 		if (iter->second->eraseClient(targetName) == 0)
 			eraseList.push_back(iter->second);
@@ -91,26 +96,9 @@ void ChannelManager::eraseClientAllChannels(const std::string& targetName)
 	}
 }
 
-#include <bitset>
-void ChannelManager::printChannels()
-{
-	std::cout << "\n** channel list\n";
-	for (std::map<std::string, Channel*>::iterator iter = _channels.begin(); iter != _channels.end(); ++iter)
-	{
-		std::cout << "channel name [" << iter->second->getName() << "]\n";
-		std::cout << "topic	        :" << iter->second->getTopic().__content << "\n";
-		std::cout << "creationTime  :" << iter->second->getCreationTime() << "\n";
-		std::cout << "limit	        :" << iter->second->getLimit() << "\n";
-		std::cout << "permission    :" << std::bitset<8>(iter->second->getPermissions()) << "\n";
-		std::cout << "password      :" << iter->second->getPassword() << "\n";
-
-		
-		iter->second->printClients();
-	}
-}
-
-void ChannelManager::changeNickNameAllChannels(const std::string& originname, Client *clientNewNick)
-{
+void ChannelManager::changeNickNameAllChannels(const std::string& originname, Client *clientNewNick){
+	std::set<int> isSent;
+	
 	for (std::map<std::string, Channel*>::iterator iter = _channels.begin(); iter != _channels.end(); ++iter)
 	{
 		if (!iter->second->getClientByNick(originname))
@@ -123,7 +111,25 @@ void ChannelManager::changeNickNameAllChannels(const std::string& originname, Cl
 		if(iter->second->getOperatorByNick(originname) != NULL){
 			iter->second->eraseOperator(originname);
 			iter->second->insertOperator(clientNewNick);
-		}		
+		}
+		iter->second->sendToClients(isSent);
 		iter->second->insertClient(clientNewNick);
+	}
+}
+
+#include <bitset>
+void ChannelManager::printChannels(){
+	std::cout << "\n** channel list\n";
+	for (std::map<std::string, Channel*>::iterator iter = _channels.begin(); iter != _channels.end(); ++iter)
+	{
+		std::cout << "channel name [" << iter->second->getName() << "]\n";
+		std::cout << "topic	        :" << iter->second->getTopic().__content << "\n";
+		std::cout << "creationTime  :" << iter->second->getCreationTime() << "\n";
+		std::cout << "limit	        :" << iter->second->getLimit() << "\n";
+		std::cout << "permission    :" << std::bitset<8>(iter->second->getPermissions()) << "\n";
+		std::cout << "password      :" << iter->second->getPassword() << "\n";
+
+		
+		iter->second->printClients();
 	}
 }

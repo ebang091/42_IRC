@@ -35,4 +35,18 @@ re :
 	$(MAKE) fclean
 	$(MAKE) all
 
-.PHONY : all, clean, fclean, re
+n1		:
+	nc 127.0.0.1 6667
+
+n2		:
+	nc 127.0.0.1 6667
+
+n3		:
+	nc 127.0.0.1 6667
+
+debug :
+	make re -j8
+	./ircserv 4242 1234
+	irssi -c 127.0.0.1 -p 4242
+
+.PHONY : all, clean, fclean, re, debug, n1, n2, n3

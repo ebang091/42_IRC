@@ -129,6 +129,7 @@ namespace NUMERIC{
 		NEED_MORE_PARAM = 461,
 		ALREADY_REGISTERED = 462,
 		PASS_MISMATCH = 464,
+		CANNOTSENDTOCHAN = 404,
 
 		NO_SUCH_NICK = 401,
 		INVALID_NICK = 432,
@@ -172,7 +173,6 @@ namespace NUMERIC{
 };
 
 namespace CAP{
-
 	enum  CODE{
 		MODESIZE=6,
 		CHANNELLEN=64,//  (채널 이름의 최대 길이)

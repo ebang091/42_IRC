@@ -10,10 +10,10 @@ MessageHandler::MessageHandler(){
 	codeMap.insert(std::make_pair(NUMERIC::CAPINFO, " :are supported by this server")); // 앞에 AWAYLEN=200 CASEMAPPING=rfc1459 CHANLIMIT=#:20 CHANMODES=b,k,l,imnpst CHANNELLEN=64 CHANTYPES=# ELIST=CMNTU HOSTLEN=64 KEYLEN=32 KICKLEN=255 LINELEN=512 MAXLIST=b:100
 	codeMap.insert(std::make_pair(NUMERIC::MESSAGESTART, " :irc.local message of the day"));
 	codeMap.insert(std::make_pair(NUMERIC::MESSAGEEND, " :End of message of the day."));
-	// --0
+	// --
+	codeMap.insert(std::make_pair(NUMERIC::NO_PARAM, ""));
 	codeMap.insert(std::make_pair(NUMERIC::UNKNOWN_CMD, "Unknown command"));
-	codeMap.insert(std::make_pair(NUMERIC::NO_PARAM, "You must specify a parameter for the mode. Syntax: <nick or key>"));
-	codeMap.insert(std::make_pair(NUMERIC::NEED_MORE_PARAM, "Not enough parameters"));
+	codeMap.insert(std::make_pair(NUMERIC::NEED_MORE_PARAM, "Not enough parameters."));
 	codeMap.insert(std::make_pair(NUMERIC::ALREADY_REGISTERED, "You may not reregister"));
 	codeMap.insert(std::make_pair(NUMERIC::PASS_MISMATCH, "Password incorrect"));
 	codeMap.insert(std::make_pair(NUMERIC::NO_SUCH_NICK, "No such nick"));
@@ -32,6 +32,7 @@ MessageHandler::MessageHandler(){
 	codeMap.insert(std::make_pair(NUMERIC::BAD_CHAN_MASK, "Invalid channel name"));
 	codeMap.insert(std::make_pair(NUMERIC::RPL_NAMREPLY, ""));
 	codeMap.insert(std::make_pair(NUMERIC::RPL_ENDOFNAMES, "End of /NAMES list."));
+	codeMap.insert(std::make_pair(NUMERIC::CANNOTSENDTOCHAN, "You cannot send external messages to this channel whilst the +n (noextmsg) mode is set."));
 }
 
 MessageHandler& MessageHandler::getInstance(){
@@ -58,13 +59,16 @@ void MessageHandler::setCommand(const std::string& command){
 	_command = command;
 }
 
-const std::string& MessageHandler::getBroadcastMsg()
-{
+const std::string& MessageHandler::getBroadcastMsg(){
 	return _broadcastMsg;
 }
 
-void MessageHandler::setOption(const char option){
+void MessageHandler::setOption(char option){
 	_option = option;
+}
+
+void MessageHandler::setState(STATE::CODE code){
+	_state = code == STATE::PLUS ? '+' : '-';
 }
 
 void MessageHandler::setParam(const std::vector<std::string>& params){
@@ -99,8 +103,7 @@ void MessageHandler::setTargetName(const std::string& targetName){
 	_targetName = targetName;
 }
 
-void MessageHandler::setBroadCastMsg()
-{
+void MessageHandler::setBroadCastMsg(){
 	_broadcastMsg = _replyMsg;
 }
 
@@ -116,7 +119,6 @@ void MessageHandler::serializeChannelClientList(){
 		_replyMsg += ":irc.local " +  ntoStr(NUMERIC::TOPIC_WHOTIME) + " ";
 		
 		_replyMsg += _nickName + " " + _channel +  " " + topic.__setUser + " :" + ntoStr(topic.__creationTime) + "\n";
-		
 	}
 	_replyMsg += ":irc.local " + ntoStr(NUMERIC::RPL_NAMREPLY) + " " + _nickName + " = " + _channel +  " :";
 
@@ -136,6 +138,7 @@ void MessageHandler::setCallerInfo(){
 	_replyMsg += ":" +  _nickName + "!" + _userName + "@" + _host + " ";
 }
 
+
 void MessageHandler::sendErrorWithTargetUserAndChannel(NUMERIC::CODE code){
 	setServerInfo(code);
 	_replyMsg += _targetName + " " + _channel + " :" + _reason + "\n";
@@ -150,9 +153,9 @@ void MessageHandler::sendErrorWithNickAndTargetUserAndChannel(){
 	sendMessage();
 }
 
-void MessageHandler::sendErrorWithNickAndTargetUserAndChannel(){
-	setCallerInfo();
-	_replyMsg += _targetName + " " + _channel + " :" + _reason + "\n";
+void MessageHandler::sendInviteWithNickAndTargetUserAndChannel(){
+	setServerInfo(NUMERIC::INVITE);
+	_replyMsg += _nickName + " " + _targetName + " :" + _channel + "\n";
 	
 	sendMessage();
 }
@@ -166,19 +169,23 @@ void MessageHandler::sendErrorWithNickAndTargetName(NUMERIC::CODE code){
 
 void MessageHandler::sendErrorNoParam(NUMERIC::CODE code){
 	setServerInfo(code);
-	_replyMsg += _nickName + " " + _reason + "\n";
+	_replyMsg += _nickName + " :" + _reason + "\n";
 
 	sendMessage();
 }
 
 void MessageHandler::sendErrorWithCommand(NUMERIC::CODE code){
 	setServerInfo(code);
-	_replyMsg += _nickName + " " + _command + "\n";
+	_replyMsg += _nickName + " :" + _command + "\n";
+
+	sendMessage();
 }
 
 void MessageHandler::sendErrorWithCmdAndReason(NUMERIC::CODE code){
 	setServerInfo(code);
-	_replyMsg += _command + " " + _reason + "\n";
+	_replyMsg += _command + " :" + _reason + "\n";
+
+	sendMessage();
 }
 
 void MessageHandler::sendErrorUnknownError(const std::string& reason){
@@ -194,21 +201,21 @@ void MessageHandler::sendErrorWithChannel(NUMERIC::CODE code){
 
 	sendMessage();
 }
-//:irc.local NOTICE #ch :*** one invited two into the channel
 
 void MessageHandler::sendInviteSuccess(){
-	setServerInfo(NUMERIC::INVITE);
-	// :irc.local 341 one two :#a
-	
-	
-	_replyMsg += ":irc.local NOTICE " + _channel + " :*** " + _nickName + " invited " + _targetName + " into the channel";
+	sendInviteWithNickAndTargetUserAndChannel();
+
+	_replyMsg += ":irc.local NOTICE " + _channel + " :*** " + _nickName + " invited " + _targetName + " into the channel\n";
 	setBroadCastMsg();
 	
-
 	std::set<int> isSent;
 	isSent.insert(_clientSocket);
 	if(_eventHandler->getRequestClient() != NULL)
 		_eventHandler->getRequestChannel()->sendToClients(isSent);
+	
+	setCallerInfo();
+	_replyMsg +=  _command + " " + _targetName + " :" + _channel + "\n";
+	sendMessage();
 }
 
 void MessageHandler::sendJoinSuccess(){
@@ -220,25 +227,22 @@ void MessageHandler::sendJoinSuccess(){
 	if(_eventHandler->getRequestClient() != NULL)
 		_eventHandler->getRequestChannel()->sendToClients();
 }
-
-void MessageHandler::sendNickSuccess(int clientSocket){
+	// q!root@127.0.0.1 QUIT :Quit: byt bye
+void MessageHandler::sendQuitSuccess(){
 	setCallerInfo();
-	_replyMsg += _command + " : ";
-
-	for (int i = 0; i < _params.size(); ++i)
-		_replyMsg += _params[i] + " ";
-	_replyMsg += "\n";
+	_replyMsg += _command + " :" + _command + ": " + _description + "\n";
 
 	setBroadCastMsg();
-	sendMessage();	
-	
-	std::set<int> isSet;
-	isSet.insert(clientSocket);
-	if(_eventHandler->getRequestChannel() != NULL)
-		_eventHandler->getRequestChannel()->sendToClients(isSet);
 }
 
-void MessageHandler::sendKickSuccess(int clientSocket){
+void MessageHandler::sendNickSuccess(){
+	setCallerInfo();
+	_replyMsg += _command + " : " + _targetName + "\n";
+
+	setBroadCastMsg();
+}
+
+void MessageHandler::sendKickSuccess(){
 	setCallerInfo();
 	_replyMsg += _command + " " + _channel + " " +  _targetName + " "  + _description + "\n";
 
@@ -246,7 +250,7 @@ void MessageHandler::sendKickSuccess(int clientSocket){
 	sendMessage();
 
 	std::set<int> isSet;
-	isSet.insert(clientSocket);
+	isSet.insert(_clientSocket);
 	if(_eventHandler->getRequestChannel() != NULL)
 		_eventHandler->getRequestChannel()->sendToClients(isSet);
 }
@@ -262,11 +266,77 @@ void MessageHandler::sendTopicSuccess(){
 		_eventHandler->getRequestChannel()->sendToClients(isSet);
 }
 
+void MessageHandler::sendModeSuccess(){
+	// :one!root@127.0.0.1 MODE #a +l :10
+	setCallerInfo();
+	_replyMsg += _command + " " + _channel;
+	
+	if (_description.empty())
+		_replyMsg += " :" + _state + _option + "\n";
+	else
+		_replyMsg += " " + _state + _option + " :" + _description + "\n";
+	setBroadCastMsg();
+	if(_eventHandler->getRequestChannel() != NULL)
+		_eventHandler->getRequestChannel()->sendToClients();
+}
+
 void MessageHandler::sendInvalidModeError(NUMERIC::CODE code){
 	//:irc.local 472 one x :is not a recognised channel mode.
 	setServerInfo(code);
 	_replyMsg += _nickName + " " + _option +" :" + _reason + "\n";
+
 	sendMessage();
+}
+
+std::string MessageHandler::atoOption(){
+	if (_option == "k")
+		return "key";
+	else if (_option == "l")
+		return "limit";
+	else if (_option == "o")
+		return "op";
+	else
+		return "error";
+}
+
+std::string MessageHandler::atoParam(){
+	if (_option == "k")
+		return "key";
+	else if (_option == "l")
+		return "limit";
+	else if (_option == "o")
+		return "nick";
+	else
+		return "error";	
+}
+
+void MessageHandler::sendErrorNoModeParam(){
+	//:irc.local 696 qd #f k * :You must specify a parameter for the key mode. Syntax: <key>.
+	setServerInfo(NUMERIC::NO_PARAM);
+	_replyMsg += _nickName + " " + _channel + " " + _option +" * :";
+	_replyMsg += "You must specify a parameter for the " + atoOption() + " mode.";
+	_replyMsg += " Syntax: <" + atoParam() + ">.\n";
+
+	sendMessage();
+}
+
+// qd!root@127.0.0.1 PRIVMSG two :ads
+void MessageHandler::sendPrivMsgToUser(){
+	setCallerInfo();
+	_replyMsg += _command + " " + _nickName + " :" + _description;
+	
+	sendMessage();
+}
+
+// two!root@127.0.0.1 PRIVMSG #f :hi
+void MessageHandler::sendPrivMsgToChannel(){
+	setCallerInfo();
+	_replyMsg += _command + " " + _channel + " :" + _description;
+	
+	setBroadCastMsg();
+	std::set<int> isSent;
+	isSent.insert(_clientSocket);
+	_eventHandler->getRequestChannel()->sendToClients(isSent);
 }
 
 void MessageHandler::sendMessage(){
@@ -292,10 +362,10 @@ std::string MessageHandler::ntoStr(int n){
 
 void MessageHandler::sendPartSuccess(){
 	setCallerInfo();
-	if (_reason.empty())
+	if (_description.empty())
 		_replyMsg += _command + " :" + _channel;
 	else
-		_replyMsg += _command + " " + _channel + " " + _reason;
+		_replyMsg += _command + " " + _channel + " " + _description;
 	
 	setBroadCastMsg();
 	if(_eventHandler->getRequestClient() != NULL)

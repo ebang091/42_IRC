@@ -20,25 +20,23 @@ private:
 
 private:
 	INPUT::CODE getInput(char c) const;
-	NUMERIC::CODE executeAndChangeState(STATE::CODE &state, std::queue<std::string>& params, char c);
+	void executeAndChangeState(STATE::CODE &state, std::queue<std::string>& params, char c);
 	
-	NUMERIC::CODE plusN(std::queue<std::string>& params, STATE::CODE& state);
-	NUMERIC::CODE plusT(std::queue<std::string>& params, STATE::CODE& state);
-	NUMERIC::CODE plusI(std::queue<std::string>& params, STATE::CODE& state);
-	NUMERIC::CODE plusK(std::queue<std::string>& params, STATE::CODE& state);
-	NUMERIC::CODE plusO(std::queue<std::string>& params, STATE::CODE& state);
-	NUMERIC::CODE plusL(std::queue<std::string>& params, STATE::CODE& state);
-
-	NUMERIC::CODE minusN(std::queue<std::string>& params, STATE::CODE& state);
-	NUMERIC::CODE minusT(std::queue<std::string>& params, STATE::CODE& state);
-	NUMERIC::CODE minusI(std::queue<std::string>& params, STATE::CODE& state);
-	NUMERIC::CODE minusK(std::queue<std::string>& params, STATE::CODE& state);
-	NUMERIC::CODE minusO(std::queue<std::string>& params, STATE::CODE& state);
-	NUMERIC::CODE minusL(std::queue<std::string>& params, STATE::CODE& state);
+	void plusN(std::queue<std::string>& params, STATE::CODE& state);
+	void plusT(std::queue<std::string>& params, STATE::CODE& state);
+	void plusI(std::queue<std::string>& params, STATE::CODE& state);
+	void plusK(std::queue<std::string>& params, STATE::CODE& state);
+	void plusO(std::queue<std::string>& params, STATE::CODE& state);
+	void plusL(std::queue<std::string>& params, STATE::CODE& state);	
+	void minusN(std::queue<std::string>& params, STATE::CODE& state);
+	void minusT(std::queue<std::string>& params, STATE::CODE& state);
+	void minusI(std::queue<std::string>& params, STATE::CODE& state);
+	void minusK(std::queue<std::string>& params, STATE::CODE& state);
+	void minusO(std::queue<std::string>& params, STATE::CODE& state);
+	void minusL(std::queue<std::string>& params, STATE::CODE& state);
+	void toPlus(std::queue<std::string>& params, STATE::CODE& state);
+	void toMinus(std::queue<std::string>& params, STATE::CODE& state);
 	
-	NUMERIC::CODE toPlus(std::queue<std::string>& params, STATE::CODE& state);
-	NUMERIC::CODE toMinus(std::queue<std::string>& params, STATE::CODE& state);
-
 public:
 	FSM();
 	void setMessageHandler(MessageHandler *messagehandler);

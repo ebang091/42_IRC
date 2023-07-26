@@ -152,17 +152,21 @@ void Channel::printClients()
 }
 
 void Channel::sendToClients(){
-	std::string msg = MessageHandler::getInstance().getBroadcastMsg();
+	MessageHandler& messageHandler = MessageHandler::getInstance();
+	std::string msg = messageHandler.getBroadcastMsg();
+	
 	for (std::map<std::string, Client*>::iterator iter = _clientList.begin(); iter != _clientList.end(); ++iter)
 	{
 		if (send(iter->second->getSocketNumber(), msg.c_str(), msg.length(), MSG_DONTWAIT) == -1)
 			throw ErrorHandler::SendException();
 	}
+	messageHandler.flushOutput();
 }
 
 void Channel::sendToClients(std::set<int>& isSent){
-	std::string msg = MessageHandler::getInstance().getBroadcastMsg();
-	//std::cout << "clientList addr in sendToCLient : " << &_clientList << "\n";
+	MessageHandler& messageHandler = MessageHandler::getInstance();
+	std::string msg = messageHandler.getBroadcastMsg();
+
 	if(_clientList.size() != 0) {
 		for (std::map<std::string, Client*>::iterator iter = _clientList.begin(); iter != _clientList.end(); ++iter)
 		{
@@ -175,6 +179,7 @@ void Channel::sendToClients(std::set<int>& isSent){
 				throw ErrorHandler::SendException();
 		}
 	}
+	messageHandler.flushOutput();
 }
 
 void Channel::getClientList(std::vector<std::string>& list)

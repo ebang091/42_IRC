@@ -44,3 +44,8 @@ const char* ErrorHandler::SendException::what() const throw()
 {
 	return "Error : failed send()";
 }
+
+const char* ErrorHandler::QuitException::what() const throw()
+{
+	return "Quit User";
+}

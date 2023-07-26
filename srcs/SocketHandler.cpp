@@ -20,6 +20,10 @@ void SocketHandler::makeSocketAndListen(int portNumber){
     server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
     server_addr.sin_port = htons(portNumber);
 
+    int option = 1;
+	if (setsockopt(_serverSocket, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option)) == -1)
+		throw ErrorHandler::SocketException();
+
     if (bind(_serverSocket, (struct sockaddr*)&server_addr, sizeof(server_addr)) == -1)
         throw ErrorHandler::BindException();
 
