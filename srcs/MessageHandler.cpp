@@ -245,7 +245,7 @@ NUMERIC::CODE MessageHandler::sendTopicSuccess(){
 NUMERIC::CODE MessageHandler::sendInvalidModeError(NUMERIC::CODE code){
 	//:irc.local 472 one x :is not a recognised channel mode.
 	setServerInfo(code);
-	_replyMsg += _nick + " " + _option +" :" + _reason + "\n";
+	_replyMsg += _nickName + " " + _option +" :" + _reason + "\n";
 	sendMessage();
 
 }
@@ -253,6 +253,7 @@ NUMERIC::CODE MessageHandler::sendInvalidModeError(NUMERIC::CODE code){
 void MessageHandler::sendMessage(){
 	if (send(_clientSocket, _replyMsg.c_str(), _replyMsg.length(), MSG_DONTWAIT) == -1)
 		throw ErrorHandler::SendException();
+	flushOutput();
 }
 
 void MessageHandler::flushOutput(){
@@ -276,29 +277,24 @@ void MessageHandler::sendConnectionSuccess(){
 	char MODES[CAP::MODESIZE] = {'k', 'l', 'o', 'i', 'n', 't'};
 	char CHANNELTYPES = '#'; //('#' 모든 서버가 알고 있다는 의미.)
 	char PREFIX = '@'; //(채널 특권을 표현하는 문자. @: operator && creator)
-	flushOutput();
 	setServerInfo(NUMERIC::WELCOME);
 	_replyMsg += _nickName + ":" + _reason + "\n";
-	sendMessage();
 	
-	flushOutput();
+	
 	setServerInfo(NUMERIC::INTRO);
 	_replyMsg += _nickName + ":" + _reason + "\n";
 	sendMessage();
 
-	flushOutput();	
 	setServerInfo(NUMERIC::SERVERCREATE);
 	_replyMsg += _nickName + ":" + _reason + "\n";
 	sendMessage();
 
-	flushOutput();
 	setServerInfo(NUMERIC::CAPINFO);
 	_replyMsg += _nickName;
 	_replyMsg += " MODESIZE=" + ntoStr(CAP::MODESIZE) + " CHANNELLEN=" + ntoStr(CAP::CHANNELLEN) + " KEYLEN=" + ntoStr(CAP::KEYLEN) \
 		+ " KICKLEN=" + ntoStr(CAP::KICKLEN) + " LINELEN=" +ntoStr(CAP::LINELEN) + " TOPICLEN=" + ntoStr(CAP::TOPICLEN) + " MODES=" + ntoStr(CAP::MODES) \
 		+" :are supported by this server\n";
 	
-	flushOutput();
 	setServerInfo(NUMERIC::CAPINFO);
 	_replyMsg += _nickName;
 	_replyMsg += " USERLEN=" + ntoStr(CAP::USERLEN) + " HOSTLEN=" + ntoStr(CAP::HOSTLEN) + " MAXTARGETS=" + ntoStr(CAP::MAXTARGETS) + " NICKLEN=" + ntoStr(CAP::NICKLEN) \
@@ -307,42 +303,35 @@ void MessageHandler::sendConnectionSuccess(){
 		_replyMsg += MODES[i];
 	_replyMsg += "  :are supported by this server\n";
 
-
-	flushOutput();
 	setServerInfo(NUMERIC::USERINFO);
 	int user = _clientManager->getClientNum();
-	_replyMsg += _nickName + " :There are " + user + " users and 1 invisible on 1 servers\n";
+	_replyMsg += _nickName + " :There are " + ntoStr(user) + " users and 1 invisible on 1 servers\n";
 
-	flushOutput();
-	serServerInfo(NUMERIC::MESSAGESTART);
-	_replyMsg += _reason;
+	setServerInfo(NUMERIC::MESSAGESTART);
+	_replyMsg += _reason + "\n";
 
-	flushOutput();
-	serServerInfo(NUMERIC::MESSAGEOFDAY);
+	setServerInfo(NUMERIC::MESSAGEOFDAY);
 	_replyMsg += _nickName + MESSAGELINE1;
 
-	flushOutput();
-	serServerInfo(NUMERIC::MESSAGEOFDAY);
+	setServerInfo(NUMERIC::MESSAGEOFDAY);
 	_replyMsg += _nickName + MESSAGELINE2;
 
-	flushOutput();
-	serServerInfo(NUMERIC::MESSAGEOFDAY);
+	setServerInfo(NUMERIC::MESSAGEOFDAY);
 	_replyMsg += _nickName + MESSAGELINE3;
 
-	flushOutput();
-	serServerInfo(NUMERIC::MESSAGEOFDAY);
+	setServerInfo(NUMERIC::MESSAGEOFDAY);
 	_replyMsg += _nickName + MESSAGELINE4;
 	
-	flushOutput();
-	serServerInfo(NUMERIC::MESSAGEOFDAY);
+	setServerInfo(NUMERIC::MESSAGEOFDAY); 
 	_replyMsg += _nickName + MESSAGELINE1;
 
-	flushOutput();
-	serServerInfo(NUMERIC::MESSAGEEND);
-	_replyMsg += _reason;
+	setServerInfo(NUMERIC::MESSAGEEND);
+	_replyMsg += _reason + "\n";
 
+	sendMessage();
+	Client *client = _eventHandler->getRequestClient();
+	client->setAuth(SET_SENT_AUTH(client->getAuth()));
 }
-
 /*
 
 :irc.local 001 three :Welcome to the Localnet IRC Network three!root@127.0.0.1

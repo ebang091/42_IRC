@@ -63,7 +63,7 @@ bool Client::checkHost(int clientSocket, const std::string& newHost){
 }
 
 bool Client::isAuth(){
-    if(GET_USER_AUTH(this->_auth) && GET_NICK_AUTH(this->_auth))
+    if(GET_USER_AUTH(this->_auth) && GET_NICK_AUTH(this->_auth) && !GET_SENT_AUTH(this->_auth))
         return true;
     return false;
 }

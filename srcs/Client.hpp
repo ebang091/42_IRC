@@ -6,6 +6,7 @@
 #include <string>
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include "Enums.hpp"
 
 
 class Client{

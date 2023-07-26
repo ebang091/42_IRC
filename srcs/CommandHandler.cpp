@@ -12,14 +12,13 @@ CommandHandler& CommandHandler::getInstance(){
 }
 
 CMD::CODE CommandHandler::identifyCommand(const std::string& cmd){
-    const std::string title[CMD::SIZE] = {"CAP", "QUIT", "NICK", "JOIN", "KICK", "INVITE", "TOPIC", "MODE", "PART", "PRIVMSG", "USER", "PASS"};
+    const std::string title[CMD::SIZE] = {"QUIT", "NICK", "JOIN", "KICK", "INVITE", "TOPIC", "MODE", "PART", "PRIVMSG", "USER", "PASS"};
 
     for(int i = 0; i < CMD::SIZE; i++){
         if(cmd == title[i])
 		{
 			// push message
 			_messageHandler = &MessageHandler::getInstance();
-			_messageHandler->flushOutput();
 			_messageHandler->setCommand(cmd);
         	return static_cast<CMD::CODE>(i);
 		}
@@ -57,8 +56,7 @@ void CommandHandler::executeCommand(CMD::CODE cmdCode, std::vector<std::string>&
 	
 	if (_client->isAuth())
 		status = (this->*funcs[static_cast<int>(cmdCode)])(parameters);// //내부에서 명령어 별 메시지 작성
-	else if (authFuncs[static_cast<int>(cmdCode)] != NULL)
-	{
+	else if (authFuncs[static_cast<int>(cmdCode)] != NULL){
 		status = (this->*authFuncs[static_cast<int>(cmdCode)])(parameters);
 		_client->setAuth(cmdCode);
 	}
@@ -72,15 +70,14 @@ NUMERIC::CODE CommandHandler::nick(std::vector<std::string>& parameters){
     bool isValid = true;
 
 	std::cout << "NICK execute\n";
-	//command에 NICK 저장
 
     if(parameters.empty())
         return NUMERIC::NOTHING;
 	
-	if(GET_NICK_AUTH(_client->getAuth()))
-		_client->setAuth(SWITCH_NICK_AUTH(_client->getAuth()));
+	if(!(GET_NICK_AUTH(_client->getAuth())))
+		_client->setAuth(SET_NICK_AUTH(_client->getAuth()));
 
-	if(_client->isAuth() && _client->isAuthenticated())
+	if(_client->isAuth())
 		_messageHander->sendConnectionSuccess();
 
 	candidateNickname = parameters[0];
@@ -426,23 +423,6 @@ NUMERIC::CODE CommandHandler::pass(std::vector<std::string>& parameters){
 	return NUMERIC::SUCCESS;	
 }
 
-//PING CAP LS
-
-NUMERIC::CODE CocommandHandler::cap(std::vector<std::string>& parameters){
-	// if(_client->isAuth())
-		return NUMERIC::NOTHING;
-
-	
-	
-	if (parameters.size() != 1 || parameters[0] != "LS")
-		return NUMERIC::NOTHING;
-	
-	
-
-    //출력 .. 쫘르륵 : Channel, Client 에서 불러와서 define 된 값. 
-	return NUMERIC::SUCCESS;
-}
-
 NUMERIC::CODE CommandHandler::privmsg(std::vector<std::string>& parameters){
 	std::string target;
 	std::string msg;
@@ -493,7 +473,7 @@ NUMERIC::CODE CommandHandler::user(std::vector<std::string>& parameters){
 		return _messageHandler->sendErrorNoParam(NUMERIC::ALREADY_REGISTERED); //"<client> :You may not reregister"
 	}
 	
-	_client->setAuth(SWITCH_USER_AUTH(_client->getAuth()));
+	_client->setAuth(SET_USER_AUTH(_client->getAuth()));
 	if(_client->isAuth()) //000 110 111
 		_messageHander->sendConnectionSuccess();
 	

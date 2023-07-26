@@ -16,7 +16,7 @@ class EventHandler;
 class MessageHandler{
 private:
     EventHandler *_eventHandler;  
-    ClientHandler *_clientHandler;  
+    ClientManager *_clientManager;  
     std::map<NUMERIC::CODE, std::string> codeMap;
     int           _clientSocket;
     NUMERIC::CODE _rplCode; //성공이거나 실패 시 저장
@@ -79,7 +79,7 @@ public:
 
     const std::string& getBroadcastMsg();
     void setEventHandler(EventHandler *eventHandler);
-    void setClientHandler(ClientHandler *clientHandler);
+    void setClientManager(ClientManager *ClientManager);
     void setRequestClientSocket(int socket);
     void setRequestClientInfo(const Client *client);
 	void setCommand(const std::string& command);
@@ -87,7 +87,7 @@ public:
 	void setChannel(const std::string& channel);
     void setRplCode(NUMERIC::CODE code);
     void setReason(const std::string& reason);
-    void setOption(const std::string& option);
+    void setOption(const char option);
     void setTargetName(const std::string& targetName);
     void setDescription(const std::string &description);
 

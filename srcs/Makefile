@@ -1,67 +1,38 @@
-# **************************************************************************** #
-#                                                                              #
-#                                                         :::      ::::::::    #
-#    Makefile                                           :+:      :+:    :+:    #
-#                                                     +:+ +:+         +:+      #
-#    By: ebang <ebang@student.42.fr>                +#+  +:+       +#+         #
-#                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2023/07/13 19:22:49 by kwsong            #+#    #+#              #
-#    Updated: 2023/07/25 21:44:54 by ebang            ###   ########.fr        #
-#                                                                              #
-# **************************************************************************** #
+CC = c++
+CXXFLAGS = -std=c++98 -fsanitize=address -g #-Wall -Wextra -Werror
+SRCS = main.cpp \
+		Server.cpp \
+		Parser.cpp \
+		SocketHandler.cpp \
+		ErrorHandler.cpp \
+		EventHandler.cpp \
+		CommandHandler.cpp \
+		MessageHandler.cpp \
+		ClientManager.cpp \
+		ChannelManager.cpp \
+		Client.cpp \
+		Channel.cpp \
+		FSM.cpp
+OBJS = $(SRCS:.cpp=.o)
+NAME = ircserv
 
-# make all - make debug - make client1, make client2 ... 
+all : $(NAME)
 
-all 		:
-	docker build . --tag irc:my
-	docker run --name irc --rm irc:my
+$(NAME) : $(OBJS)
+	$(CC) $(CXXFLAGS) -o $@ $^
 
-run		:
-	docker run --name irc --rm irc:my
+%.o : %.cpp
+	$(CC) $(CXXFLAGS) -o $@ -c $^
 
+clean :
+	rm  -rf $(OBJS)
 
-c1		:
-	docker exec -it irc irssi -c 127.0.0.1 -p 6667 -n one -w 1234
+fclean :
+	$(MAKE) clean
+	rm -rf $(NAME)
 
-c2		:
-	docker exec -it irc irssi -c 127.0.0.1 -p 6667 -n two
+re :
+	$(MAKE) fclean
+	$(MAKE) all
 
-c3		:
-	docker exec -it irc irssi -c 127.0.0.1 -p 6667 -n three
-
-c4		:
-	docker exec -it irc irssi -c 127.0.0.1 -p 6667 -n four
-
-c5		:
-	docker exec -it irc irssi -c 127.0.0.1 -p 6667 -n five
-
-n1		:
-	docker exec -it irc nc 127.0.0.1 6667
-
-n2		:
-	docker exec -it irc nc 127.0.0.1 6667
-
-n3		:
-	docker exec -it irc nc 127.0.0.1 -p 6667
-
-n4		:
-	docker exec -it irc nc 127.0.0.1 -p 6667
-
-n5		:
-	docker exec -it irc nc 127.0.0.1 -p 6667
-
-
-exec		:
-	docker exec -it irc bash
-
-down		:
-	docker stop irc
-
-clean		:
-	docker system prune -a
-
-re			:
-	make clean
-	make all
-
-.PHONY		: all run c1 c2 c3 c4 c5 exec down clean re
+.PHONY : all, clean, fclean, re

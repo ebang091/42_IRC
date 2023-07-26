@@ -30,8 +30,7 @@ NUMERIC::CODE FSM::executeAndChangeState(STATE::CODE &state, std::queue<std::str
 	return errCode;
 }
 
-void FSM::executeMode(std::queue<std::string>& params, const std::string& options)
-{
+void FSM::executeMode(std::queue<std::string>& params, const std::string& options){
 	_eventHandler = &EventHandler::getInstance();
 	_channel = _eventHandler->getRequestChannel();
     _client = _eventHandler->getRequestClient();
@@ -40,7 +39,6 @@ void FSM::executeMode(std::queue<std::string>& params, const std::string& option
 	// channelInfo message
 
     for(int i = 0; i < options.size(); i++){
-		_messageHandler->flushOutput();
         NUMERIC::CODE result = executeAndChangeState(state, params, options[i]); 
 		//발생할 수 있는 에러 : 
 		if(result == NUMERIC::INVALID_MODE)
