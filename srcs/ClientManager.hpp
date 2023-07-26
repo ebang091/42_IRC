@@ -45,6 +45,7 @@ public:
 
 public:
     void printClients();
+    int  getClientNum();
 };
 
 #endif

@@ -89,3 +89,7 @@ void ClientManager::printClients()
 		std::cout << "(" << iter->first << ", " << iter->second << ") - ";
 	std::cout << "\n";
 }
+
+int  ClientManager::getClientNum(){
+	return this->clientByNick.size();
+}

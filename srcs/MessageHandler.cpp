@@ -2,9 +2,11 @@
 #include "EventHandler.hpp"
 
 MessageHandler::MessageHandler(){
-	codeMap.insert(std::make_pair(NUMERIC::WELCOME, "Welcome to the Localnet IRC Network"));
-	codeMap.insert(std::make_pair(NUMERIC::INTRO, "Your host is irc.local, running version kwsongeban_ver0.0"));
-	codeMap.insert(std::make_pair(NUMERIC::SERVERCREATE, "This server was created"));
+	codeMap.insert(std::make_pair(NUMERIC::WELCOME, " :Welcome to the Localnet IRC Network"));
+	codeMap.insert(std::make_pair(NUMERIC::INTRO, " :Your host is irc.local, running version kwsongeban_ver0.0"));
+	codeMap.insert(std::make_pair(NUMERIC::SERVERCREATE, " :This server was created 10:59:44 Jul 18 2023"));
+	codeMap.insert(std::make_pair(NUMERIC::MESSAGEEND, " :irc.local message of the day"));
+	codeMap.insert(std::make_pair(NUMERIC::MESSAGEEND, " :End of message of the day."));
 	codeMap.insert(std::make_pair(NUMERIC::NO_PARAM, "You must specify a parameter for the mode. Syntax: <nick or key>"));
 	codeMap.insert(std::make_pair(NUMERIC::NEED_MORE_PARAM, "Not enough parameters"));
 	codeMap.insert(std::make_pair(NUMERIC::ALREADY_REGISTERED, "You may not reregister"));
@@ -20,7 +22,7 @@ MessageHandler::MessageHandler(){
 	codeMap.insert(std::make_pair(NUMERIC::BAD_CHAN_KEY, "Cannot join channel (incorrect channel key)"));
 	codeMap.insert(std::make_pair(NUMERIC::KEY_ALREADY_SET, "Channel key already set"));
 	codeMap.insert(std::make_pair(NUMERIC::FULL_CHANNEL, "Cannot join channel"));
-	codeMap.insert(std::make_pair(NUMERIC::INVALID_MODE, "is unknown mode char to me"));
+	codeMap.insert(std::make_pair(NUMERIC::INVALID_MODE, "is not a recognised channel mode."));
 	codeMap.insert(std::make_pair(NUMERIC::INVITE_ONLY_CHAN, "Cannot join channel (invite-only)"));
 	codeMap.insert(std::make_pair(NUMERIC::BAD_CHAN_MASK, "Invalid channel name"));
 	codeMap.insert(std::make_pair(NUMERIC::WELCOME, "Welcome to the Localnet IRC Network ")); // 뒤에 three!root@127.0.0.1
@@ -61,7 +63,7 @@ const std::string& MessageHandler::getBroadcastMsg()
 	return _broadcastMsg;
 }
 
-void MessageHandler::setOption(const std::string& option){
+void MessageHandler::setOption(const char option){
 	_option = option;
 }
 
@@ -240,6 +242,14 @@ NUMERIC::CODE MessageHandler::sendTopicSuccess(){
 	return NUMERIC::SUCCESS;
 }
 
+NUMERIC::CODE MessageHandler::sendInvalidModeError(NUMERIC::CODE code){
+	//:irc.local 472 one x :is not a recognised channel mode.
+	setServerInfo(code);
+	_replyMsg += _nick + " " + _option +" :" + _reason + "\n";
+	sendMessage();
+
+}
+
 void MessageHandler::sendMessage(){
 	if (send(_clientSocket, _replyMsg.c_str(), _replyMsg.length(), MSG_DONTWAIT) == -1)
 		throw ErrorHandler::SendException();
@@ -250,7 +260,7 @@ void MessageHandler::flushOutput(){
 	_broadcastMsg.clear();
 }
 
-std::string ntoStr(int n){
+std::string MessageHandler::ntoStr(int n){
 	std::stringstream ss;
 	std::string ret;
 	ss << n;
@@ -260,17 +270,78 @@ std::string ntoStr(int n){
 	return ret;
 }
 
-NUMERIC::CODE MessageHandler::sendUserMessage(){
-	flushOutput();
+void MessageHandler::sendConnectionSuccess(){
 
+	// _clientManager->getClientByFD(_clientSocket)->setAuthenticated();
+	char MODES[CAP::MODESIZE] = {'k', 'l', 'o', 'i', 'n', 't'};
+	char CHANNELTYPES = '#'; //('#' 모든 서버가 알고 있다는 의미.)
+	char PREFIX = '@'; //(채널 특권을 표현하는 문자. @: operator && creator)
+	flushOutput();
 	setServerInfo(NUMERIC::WELCOME);
-	_replyMsg += _nickName + ":" + _reason + " ";
-	setCallerInfo();
+	_replyMsg += _nickName + ":" + _reason + "\n";
+	sendMessage();
 	
-	_replyMsg += "MODESIZE=" + ntoStr(CAP::MODESIZE) + " CHANNELLEN=" + ntoStr(CAP::CHANNELLEN) + " KEYLEN=" + ntoStr(CAP::KEYLEN) \
+	flushOutput();
+	setServerInfo(NUMERIC::INTRO);
+	_replyMsg += _nickName + ":" + _reason + "\n";
+	sendMessage();
+
+	flushOutput();	
+	setServerInfo(NUMERIC::SERVERCREATE);
+	_replyMsg += _nickName + ":" + _reason + "\n";
+	sendMessage();
+
+	flushOutput();
+	setServerInfo(NUMERIC::CAPINFO);
+	_replyMsg += _nickName;
+	_replyMsg += " MODESIZE=" + ntoStr(CAP::MODESIZE) + " CHANNELLEN=" + ntoStr(CAP::CHANNELLEN) + " KEYLEN=" + ntoStr(CAP::KEYLEN) \
 		+ " KICKLEN=" + ntoStr(CAP::KICKLEN) + " LINELEN=" +ntoStr(CAP::LINELEN) + " TOPICLEN=" + ntoStr(CAP::TOPICLEN) + " MODES=" + ntoStr(CAP::MODES) \
-		+ " USERLEN=" + ntoStr(CAP::USERLEN) + " HOSTLEN=" + ntoStr(CAP::HOSTLEN) + " MAXTARGETS=" + ntoStr(CAP::MAXTARGETS) + " NICKLEN=" + ntoStr(CAP::NICKLEN) + "\n";
+		+" :are supported by this server\n";
 	
+	flushOutput();
+	setServerInfo(NUMERIC::CAPINFO);
+	_replyMsg += _nickName;
+	_replyMsg += " USERLEN=" + ntoStr(CAP::USERLEN) + " HOSTLEN=" + ntoStr(CAP::HOSTLEN) + " MAXTARGETS=" + ntoStr(CAP::MAXTARGETS) + " NICKLEN=" + ntoStr(CAP::NICKLEN) \
+	+ " CHANNELTYPES=" + CAP::CHANNELTYPES + " PREFIX=" + CAP::PREFIX + " MODES=";
+	for(int i = 0 ; i < CAP::MODESIZE; i++)
+		_replyMsg += MODES[i];
+	_replyMsg += "  :are supported by this server\n";
+
+
+	flushOutput();
+	setServerInfo(NUMERIC::USERINFO);
+	int user = _clientManager->getClientNum();
+	_replyMsg += _nickName + " :There are " + user + " users and 1 invisible on 1 servers\n";
+
+	flushOutput();
+	serServerInfo(NUMERIC::MESSAGESTART);
+	_replyMsg += _reason;
+
+	flushOutput();
+	serServerInfo(NUMERIC::MESSAGEOFDAY);
+	_replyMsg += _nickName + MESSAGELINE1;
+
+	flushOutput();
+	serServerInfo(NUMERIC::MESSAGEOFDAY);
+	_replyMsg += _nickName + MESSAGELINE2;
+
+	flushOutput();
+	serServerInfo(NUMERIC::MESSAGEOFDAY);
+	_replyMsg += _nickName + MESSAGELINE3;
+
+	flushOutput();
+	serServerInfo(NUMERIC::MESSAGEOFDAY);
+	_replyMsg += _nickName + MESSAGELINE4;
+	
+	flushOutput();
+	serServerInfo(NUMERIC::MESSAGEOFDAY);
+	_replyMsg += _nickName + MESSAGELINE1;
+
+	flushOutput();
+	serServerInfo(NUMERIC::MESSAGEEND);
+	_replyMsg += _reason;
+
+}
 
 /*
 
@@ -302,6 +373,3 @@ NUMERIC::CODE MessageHandler::sendUserMessage(){
 :irc.local 376 three :End of message of the day.
 
 */
-
-
-}

@@ -5,6 +5,7 @@
 #include "Parser.hpp"
 #include "MessageHandler.hpp"
 
+
 CommandHandler& CommandHandler::getInstance(){
 	static CommandHandler instance;
 	return instance;
@@ -20,7 +21,6 @@ CMD::CODE CommandHandler::identifyCommand(const std::string& cmd){
 			_messageHandler = &MessageHandler::getInstance();
 			_messageHandler->flushOutput();
 			_messageHandler->setCommand(cmd);
-			// _messageHandler->setCommandCode(static_cast<CMD::CODE>(i));
         	return static_cast<CMD::CODE>(i);
 		}
 	}
@@ -76,6 +76,12 @@ NUMERIC::CODE CommandHandler::nick(std::vector<std::string>& parameters){
 
     if(parameters.empty())
         return NUMERIC::NOTHING;
+	
+	if(GET_NICK_AUTH(_client->getAuth()))
+		_client->setAuth(SWITCH_NICK_AUTH(_client->getAuth()));
+
+	if(_client->isAuth() && _client->isAuthenticated())
+		_messageHander->sendConnectionSuccess();
 
 	candidateNickname = parameters[0];
 	if(candidateNickname.size() > CAP::NICKLEN)
@@ -208,18 +214,20 @@ NUMERIC::CODE CommandHandler::mode(std::vector<std::string>& parameters){
     std::cout << "MODE \n";
     
 	if (parameters.size() < 2)
-		return NUMERIC::NO_PARAM;
+		return _messageHaner->sendErrorNoParam(NUMERIC::NOPARAM);
 
 	channelName = parameters[0];
 	options = parameters[1];
     
-    for(int i = 2; i < parameters.size(); i++)
+	_messageHandler->setChannel(channelName);
+    
+	for(int i = 2; i < parameters.size(); i++)
         params.push(parameters[i]);
 
    	NUMERIC::CODE code = checkValid(&channelName, NULL, &_client->getNickName(), true);
 
 	if (code != NUMERIC::SUCCESS)
-		return code;
+		return _messageHandler->sendErrorWichChannel(code);
 
     fsm.executeMode(params, options);
 	// 반환된 에러 처리
@@ -420,7 +428,7 @@ NUMERIC::CODE CommandHandler::pass(std::vector<std::string>& parameters){
 
 //PING CAP LS
 
-NUMERIC::CODE CommandHandler::cap(std::vector<std::string>& parameters){
+NUMERIC::CODE CocommandHandler::cap(std::vector<std::string>& parameters){
 	// if(_client->isAuth())
 		return NUMERIC::NOTHING;
 
@@ -478,9 +486,17 @@ NUMERIC::CODE CommandHandler::privmsg(std::vector<std::string>& parameters){
 */
 // USER root root 127.0.0.1 :root
 NUMERIC::CODE CommandHandler::user(std::vector<std::string>& parameters){
-	// if(_client->isAuth())
+	if(_client->isAuth())
 		return NUMERIC::NOTHING;
-
+	// get User check
+	if(GET_USER_AUTH(_client->getAuth())){
+		return _messageHandler->sendErrorNoParam(NUMERIC::ALREADY_REGISTERED); //"<client> :You may not reregister"
+	}
+	
+	_client->setAuth(SWITCH_USER_AUTH(_client->getAuth()));
+	if(_client->isAuth()) //000 110 111
+		_messageHander->sendConnectionSuccess();
+	
 	if (parameters.size() < 4)
 		return _messageHandler->sendErrorNoParam(NUMERIC::NO_PARAM);
 	// irc.local 461 two USER :Not enough parameters.

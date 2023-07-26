@@ -14,7 +14,7 @@ FSM& FSM::getInstance(){
 
 NUMERIC::CODE FSM::executeAndChangeState(STATE::CODE &state, std::queue<std::string>& params, char c) {
     INPUT::CODE inputCode = getInput(c);
-	
+	_messageHandler->setOption(c);
     if (inputCode == INPUT::NONE)
         return NUMERIC::INVALID_MODE;
         //"<client> <modechar> :is unknown mode char to me" ERR_UNKNOWNMODE (472) 
@@ -40,10 +40,17 @@ void FSM::executeMode(std::queue<std::string>& params, const std::string& option
 	// channelInfo message
 
     for(int i = 0; i < options.size(); i++){
+		_messageHandler->flushOutput();
         NUMERIC::CODE result = executeAndChangeState(state, params, options[i]); 
+		//발생할 수 있는 에러 : 
+		if(result == NUMERIC::INVALID_MODE)
+			__messageHandler->sendInvalidModeError();
+		
+		//모드 변경시 메시지
 		// mode message
 		// broadcast
 	}
+
 }
 
 INPUT::CODE FSM::getInput(char c) const{

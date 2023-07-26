@@ -15,7 +15,8 @@ class EventHandler;
 
 class MessageHandler{
 private:
-    EventHandler *_eventHandler;    
+    EventHandler *_eventHandler;  
+    ClientHandler *_clientHandler;  
     std::map<NUMERIC::CODE, std::string> codeMap;
     int           _clientSocket;
     NUMERIC::CODE _rplCode; //성공이거나 실패 시 저장
@@ -27,7 +28,7 @@ private:
     std::string _channel;
     std::string _command;
     std::string _reason;
-    std::string _option;
+    char         _option;
     std::string _description;
     CMD::CODE _cmdCode;
     std::vector<std::string> _params;
@@ -78,6 +79,7 @@ public:
 
     const std::string& getBroadcastMsg();
     void setEventHandler(EventHandler *eventHandler);
+    void setClientHandler(ClientHandler *clientHandler);
     void setRequestClientSocket(int socket);
     void setRequestClientInfo(const Client *client);
 	void setCommand(const std::string& command);
@@ -91,7 +93,8 @@ public:
 
     void setBroadCastMsg();
 
-    NUMERIC::CODE sendUserMessage();
+    
+    void sendConnectionSuccess();
     NUMERIC::CODE sendErrorUnknownError(const std::string& reason);
     NUMERIC::CODE sendJoinSuccess();
     NUMERIC::CODE sendNickSuccess(int clientSocket);
@@ -102,5 +105,6 @@ public:
     NUMERIC::CODE sendErrorNoParam(NUMERIC::CODE code);
     NUMERIC::CODE sendErrorWithChannel(NUMERIC::CODE code);
     NUMERIC::CODE sendErrorWithNickAndTargetName(NUMERIC::CODE code);
+    NUMERIC::CODE sendInvalidModeError(NUMERIC::CODE code);
 };
 #endif

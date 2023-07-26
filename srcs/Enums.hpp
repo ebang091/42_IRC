@@ -26,6 +26,16 @@
 #define GET_PERMISSION_L(permissions) permissions & PERMISSION::L
 #define SWITCH_PERMISSION_L(permissions) permissions ^ PERMISSION::L
 #define VERIFY_SUCCESS(status) (status == NUMERIC::SUCCESS) || (status == NUMERIC::WELCOME) || (status == NUMERIC::YOURHOST) || (status == NUMERIC::CREATED) || (status == NUMERIC::MYINFO) || (status == NUMERIC::ISUPPORT)
+#define MESSAGELINE1 " : **************************************************\n"
+#define MESSAGELINE2 " : *             H    E    L    L    O              *\n"
+#define MESSAGELINE3 " : *  This is a private irc server. Please contact  *\n"
+#define MESSAGELINE4 " : *  the admin of the server for any questions or  *\n"
+#define MESSAGELINE5 " : *  issues.                                       *\n"
+
+#define SWITCH_USER_AUTH(auth) auth ^ AUTH::USER
+#define SWITCH_NICK_AUTH (auth) auth ^ AUTH::NICK
+#define GET_USER_AUTH(auth) auth & AUTH::USER
+#define GET_NICK_AUTH (auth) auth & AUTH::NICK
 
 namespace PERMISSION
 {
@@ -40,6 +50,12 @@ namespace PERMISSION
 	};	
 };
 
+namespace AUTH{
+	enum CODE{
+		USER = 1,
+		NICK = 2
+	}
+}
 namespace STATE{
 	enum CODE {
 		PLUS,
@@ -139,24 +155,26 @@ namespace NUMERIC{
 		TOPIC_WHOTIME = 333,
 
 		// --- server message ---
-		WELCOME = 001,
-		INTRO = 002,
-		SERVERCREATE = 003,
-		CAPINFO = 005,
+		WELCOME = 1,
+		INTRO = 2,
+		SERVERCREATE = 3,
+
+		CAPINFO = 5,
 		USERINFO = 251,
 		CLIENTINFO = 255,
 		MESSAGESTART = 375,
-		MESSAGEOFDAY = 372
+		MESSAGEOFDAY = 372,
+		MESSAGEEND = 376
 	};
 };
 
 namespace CAP{
-	struct Channel{	
-		char MODES[MODESIZE] = {'k', 'l', 'o', 'i', 'n', 't'};
-		char CHANNELTYPES = '#'; //('#' 모든 서버가 알고 있다는 의미.)
-		char PREFIX = '@'; //(채널 특권을 표현하는 문자. @: operator && creator)
-	};
-	enum SETTING {
+
+	char MODES[MODESIZE] = {'k', 'l', 'o', 'i', 'n', 't'};
+	char CHANNELTYPES = '#'; //('#' 모든 서버가 알고 있다는 의미.)
+	char PREFIX = '@'; //(채널 특권을 표현하는 문자. @: operator && creator)
+
+	enum  CODE{
 		MODESIZE=6,
 		CHANNELLEN=64,//  (채널 이름의 최대 길이)
 		KEYLEN=32,//  	  (key 설정 시 최대 길이)
