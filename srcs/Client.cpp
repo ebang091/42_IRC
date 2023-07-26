@@ -56,30 +56,22 @@ bool Client::checkHost(int clientSocket, const std::string& newHost){
     getsockname(clientSocket, &(struct sockaddr& )clnt_addr, &size);
     std::string host = inet_ntoa(clnt_addr.sin_addr);
     
-    std::cout << host << ", " << newHost << "\n";
+    std::cout << "check host : " << host << ", " << newHost << "\n";
     if(host != newHost)
         return false;
     return true;
 }
 
-bool Client::isAuth(){
-    if(GET_USER_AUTH(this->_auth) && GET_NICK_AUTH(this->_auth) && !GET_SENT_AUTH(this->_auth))
+bool Client::isAuth() const{
+    if((GET_PASS_AUTH(this->_auth)) && (GET_USER_AUTH(this->_auth)) && (GET_NICK_AUTH(this->_auth)) && !(GET_SENT_AUTH(this->_auth)))
         return true;
     return false;
 }
 
-char Client::getAuth(){
+bool Client::getAuth() const{
     return this->_auth;
 }
 
-char Client::setAuth(char auth){
+void Client::setAuth(char auth){
     this->_auth = auth;
-}
-
-bool Client::isAuthenticated(){
-    return this->_isAuthenticated;
-}
-
-void Client::setAuthenticated(){
-    this->_isAuthenticated = true;
 }

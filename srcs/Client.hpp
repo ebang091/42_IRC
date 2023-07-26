@@ -19,15 +19,13 @@ private:
     std::string _realname;
     std::string _host;
     char _auth;
-    bool isAuthenticated;
     int _socketNumber;
 
 public:
-    bool isAuth();
-    char getAuth();
-    char setAuth(char auth);
-    bool isAuthenticated();
-    void setAuthenticated();
+    bool isAuth() const;
+    bool getAuth() const;
+    void setAuth(char auth);
+
 
     const std::string& getNickName() const;
 	const std::string& getUserName() const;

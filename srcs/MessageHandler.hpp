@@ -93,18 +93,21 @@ public:
 
     void setBroadCastMsg();
 
-    
+    void sendPartSuccess();
     void sendConnectionSuccess();
-    NUMERIC::CODE sendErrorUnknownError(const std::string& reason);
-    NUMERIC::CODE sendJoinSuccess();
-    NUMERIC::CODE sendNickSuccess(int clientSocket);
-    NUMERIC::CODE sendInviteSuccess();
-    NUMERIC::CODE sendKickSuccess(int clientSocket);
-    NUMERIC::CODE sendTopicSuccess();
-    NUMERIC::CODE sendErrorWithTargetUserAndChannel(NUMERIC::CODE code);
-    NUMERIC::CODE sendErrorNoParam(NUMERIC::CODE code);
-    NUMERIC::CODE sendErrorWithChannel(NUMERIC::CODE code);
-    NUMERIC::CODE sendErrorWithNickAndTargetName(NUMERIC::CODE code);
-    NUMERIC::CODE sendInvalidModeError(NUMERIC::CODE code);
+    void sendErrorUnknownError(const std::string& reason);
+    void sendErrorWithCommand(NUMERIC::CODE code);
+    void sendJoinSuccess();
+    void sendNickSuccess(int clientSocket);
+    void sendInviteSuccess();
+    void sendKickSuccess(int clientSocket);
+    void sendTopicSuccess();
+    void sendErrorWithTargetUserAndChannel(NUMERIC::CODE code);
+    void sendErrorWithNickAndTargetUserAndChannel();
+    void sendErrorNoParam(NUMERIC::CODE code);
+    void sendErrorWithChannel(NUMERIC::CODE code);
+    void sendErrorWithNickAndTargetName(NUMERIC::CODE code);
+    void sendInvalidModeError(NUMERIC::CODE code);
+    void sendErrorWithCmdAndReason(NUMERIC::CODE code);
 };
 #endif

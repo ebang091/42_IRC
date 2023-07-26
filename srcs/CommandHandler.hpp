@@ -30,17 +30,17 @@ private:
 	bool getReason(std::vector<std::string>& parameters, int startIdx, std::string& result);
 	NUMERIC::CODE checkValid(std::string* channelName, const std::string* targetName, const std::string* callerName, bool checkOper);
 	
-	NUMERIC::CODE quit(std::vector<std::string>& parameters);
-	NUMERIC::CODE nick(std::vector<std::string>& parameters);
-	NUMERIC::CODE join(std::vector<std::string>& parameters);
-	NUMERIC::CODE kick(std::vector<std::string>& parameters);
-	NUMERIC::CODE invite(std::vector<std::string>& parameters);
-	NUMERIC::CODE topic(std::vector<std::string>& parameters);
-	NUMERIC::CODE mode(std::vector<std::string>& parameters);
-	NUMERIC::CODE part(std::vector<std::string>& parameters);
-	NUMERIC::CODE privmsg(std::vector<std::string>& parameters);
-	NUMERIC::CODE user(std::vector<std::string>& parameters);
-	NUMERIC::CODE pass(std::vector<std::string>& parameters);
+	void quit(std::vector<std::string>& parameters);
+	void nick(std::vector<std::string>& parameters);
+	void join(std::vector<std::string>& parameters);
+	void kick(std::vector<std::string>& parameters);
+	void invite(std::vector<std::string>& parameters);
+	void topic(std::vector<std::string>& parameters);
+	void mode(std::vector<std::string>& parameters);
+	void part(std::vector<std::string>& parameters);
+	void privmsg(std::vector<std::string>& parameters);
+	void user(std::vector<std::string>& parameters);
+	void pass(std::vector<std::string>& parameters);
 
 public:
 	static CommandHandler& getInstance();

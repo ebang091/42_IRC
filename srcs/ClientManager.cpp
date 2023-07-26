@@ -91,5 +91,5 @@ void ClientManager::printClients()
 }
 
 int  ClientManager::getClientNum(){
-	return this->clientByNick.size();
+	return this->_clientByNick.size();
 }

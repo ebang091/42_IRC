@@ -2,11 +2,16 @@
 #include "EventHandler.hpp"
 
 MessageHandler::MessageHandler(){
-	codeMap.insert(std::make_pair(NUMERIC::WELCOME, " :Welcome to the Localnet IRC Network"));
+	// -- welcome
+	codeMap.insert(std::make_pair(NUMERIC::WELCOME, " :Welcome to the Localnet IRC Network"));  // 뒤에 three!root@127.0.0.1
 	codeMap.insert(std::make_pair(NUMERIC::INTRO, " :Your host is irc.local, running version kwsongeban_ver0.0"));
-	codeMap.insert(std::make_pair(NUMERIC::SERVERCREATE, " :This server was created 10:59:44 Jul 18 2023"));
-	codeMap.insert(std::make_pair(NUMERIC::MESSAGEEND, " :irc.local message of the day"));
+	codeMap.insert(std::make_pair(NUMERIC::SERVERCREATE, " :This server was created ")); // 뒤에 01:23:10 Jul 24 2023
+	codeMap.insert(std::make_pair(NUMERIC::MYINFO, " :irc.local ft_irc iosw biklmnopstv :bklov"));
+	codeMap.insert(std::make_pair(NUMERIC::CAPINFO, " :are supported by this server")); // 앞에 AWAYLEN=200 CASEMAPPING=rfc1459 CHANLIMIT=#:20 CHANMODES=b,k,l,imnpst CHANNELLEN=64 CHANTYPES=# ELIST=CMNTU HOSTLEN=64 KEYLEN=32 KICKLEN=255 LINELEN=512 MAXLIST=b:100
+	codeMap.insert(std::make_pair(NUMERIC::MESSAGESTART, " :irc.local message of the day"));
 	codeMap.insert(std::make_pair(NUMERIC::MESSAGEEND, " :End of message of the day."));
+	// --0
+	codeMap.insert(std::make_pair(NUMERIC::UNKNOWN_CMD, "Unknown command"));
 	codeMap.insert(std::make_pair(NUMERIC::NO_PARAM, "You must specify a parameter for the mode. Syntax: <nick or key>"));
 	codeMap.insert(std::make_pair(NUMERIC::NEED_MORE_PARAM, "Not enough parameters"));
 	codeMap.insert(std::make_pair(NUMERIC::ALREADY_REGISTERED, "You may not reregister"));
@@ -25,11 +30,6 @@ MessageHandler::MessageHandler(){
 	codeMap.insert(std::make_pair(NUMERIC::INVALID_MODE, "is not a recognised channel mode."));
 	codeMap.insert(std::make_pair(NUMERIC::INVITE_ONLY_CHAN, "Cannot join channel (invite-only)"));
 	codeMap.insert(std::make_pair(NUMERIC::BAD_CHAN_MASK, "Invalid channel name"));
-	codeMap.insert(std::make_pair(NUMERIC::WELCOME, "Welcome to the Localnet IRC Network ")); // 뒤에 three!root@127.0.0.1
-	codeMap.insert(std::make_pair(NUMERIC::YOURHOST, "Your host is irc.local, running ft_irc"));
-	codeMap.insert(std::make_pair(NUMERIC::CREATED, "This server was created ")); // 뒤에 01:23:10 Jul 24 2023
-	codeMap.insert(std::make_pair(NUMERIC::MYINFO, "irc.local ft_irc iosw biklmnopstv :bklov"));
-	codeMap.insert(std::make_pair(NUMERIC::ISUPPORT, ":are supported by this server")); // 앞에 AWAYLEN=200 CASEMAPPING=rfc1459 CHANLIMIT=#:20 CHANMODES=b,k,l,imnpst CHANNELLEN=64 CHANTYPES=# ELIST=CMNTU HOSTLEN=64 KEYLEN=32 KICKLEN=255 LINELEN=512 MAXLIST=b:100
 	codeMap.insert(std::make_pair(NUMERIC::RPL_NAMREPLY, ""));
 	codeMap.insert(std::make_pair(NUMERIC::RPL_ENDOFNAMES, "End of /NAMES list."));
 }
@@ -127,7 +127,6 @@ void MessageHandler::serializeChannelClientList(){
 }
 
 void MessageHandler::setServerInfo(NUMERIC::CODE code){
-	
 	setRplCode(code);
 
 	_replyMsg += ":irc.local " + ntoStr(_rplCode) + " ";
@@ -137,57 +136,82 @@ void MessageHandler::setCallerInfo(){
 	_replyMsg += ":" +  _nickName + "!" + _userName + "@" + _host + " ";
 }
 
-NUMERIC::CODE MessageHandler::sendErrorWithTargetUserAndChannel(NUMERIC::CODE code){
+void MessageHandler::sendErrorWithTargetUserAndChannel(NUMERIC::CODE code){
 	setServerInfo(code);
 	_replyMsg += _targetName + " " + _channel + " :" + _reason + "\n";
 
 	sendMessage();
-	return code;
 }
 
-NUMERIC::CODE MessageHandler::sendErrorWithNickAndTargetName(NUMERIC::CODE code){
+void MessageHandler::sendErrorWithNickAndTargetUserAndChannel(){
+	setCallerInfo();
+	_replyMsg += _targetName + " " + _channel + " :" + _reason + "\n";
+
+	sendMessage();
+}
+
+void MessageHandler::sendErrorWithNickAndTargetUserAndChannel(){
+	setCallerInfo();
+	_replyMsg += _targetName + " " + _channel + " :" + _reason + "\n";
+	
+	sendMessage();
+}
+
+void MessageHandler::sendErrorWithNickAndTargetName(NUMERIC::CODE code){
 	setServerInfo(code);
 	_replyMsg += _nickName + " " + _targetName + " :" + _reason + "\n";
 
 	sendMessage();
-	return code;
 }
 
-NUMERIC::CODE MessageHandler::sendErrorNoParam(NUMERIC::CODE code){
+void MessageHandler::sendErrorNoParam(NUMERIC::CODE code){
 	setServerInfo(code);
 	_replyMsg += _nickName + " " + _reason + "\n";
 
 	sendMessage();
-	return code;
 }
 
-NUMERIC::CODE MessageHandler::sendErrorUnknownError(const std::string& reason){
+void MessageHandler::sendErrorWithCommand(NUMERIC::CODE code){
+	setServerInfo(code);
+	_replyMsg += _nickName + " " + _command + "\n";
+}
+
+void MessageHandler::sendErrorWithCmdAndReason(NUMERIC::CODE code){
+	setServerInfo(code);
+	_replyMsg += _command + " " + _reason + "\n";
+}
+
+void MessageHandler::sendErrorUnknownError(const std::string& reason){
 	setServerInfo(NUMERIC::UNKNOWN_ERR);
 	_replyMsg += reason + "\n";
 
 	sendMessage();
-	return NUMERIC::UNKNOWN_ERR;
 }
 
-NUMERIC::CODE MessageHandler::sendErrorWithChannel(NUMERIC::CODE code){
+void MessageHandler::sendErrorWithChannel(NUMERIC::CODE code){
 	setServerInfo(code);
 	_replyMsg += _nickName + " " +  _channel + " :" + _reason + "\n";
 
 	sendMessage();
-	return code;
 }
 //:irc.local NOTICE #ch :*** one invited two into the channel
 
-NUMERIC::CODE MessageHandler::sendInviteSuccess(){
-	_replyMsg += ":irc.local NOTICE " + _channel + " :*** " + _nickName + " invited " + _targetName + " into the channel";
+void MessageHandler::sendInviteSuccess(){
+	setServerInfo(NUMERIC::INVITE);
+	// :irc.local 341 one two :#a
 	
+	
+	_replyMsg += ":irc.local NOTICE " + _channel + " :*** " + _nickName + " invited " + _targetName + " into the channel";
 	setBroadCastMsg();
+	
+
+	std::set<int> isSent;
+	isSent.insert(_clientSocket);
 	if(_eventHandler->getRequestClient() != NULL)
-		_eventHandler->getRequestChannel()->sendToClients();
-	return NUMERIC::SUCCESS;
+		_eventHandler->getRequestChannel()->sendToClients(isSent);
 }
 
-NUMERIC::CODE MessageHandler::sendJoinSuccess(){
+void MessageHandler::sendJoinSuccess(){
 	setCallerInfo();
 	_replyMsg += _command + " : " + _channel + "\n";
 	
@@ -195,10 +219,9 @@ NUMERIC::CODE MessageHandler::sendJoinSuccess(){
 	sendErrorWithChannel(NUMERIC::RPL_ENDOFNAMES);
 	if(_eventHandler->getRequestClient() != NULL)
 		_eventHandler->getRequestChannel()->sendToClients();
-	return NUMERIC::SUCCESS;
 }
 
-NUMERIC::CODE MessageHandler::sendNickSuccess(int clientSocket){
+void MessageHandler::sendNickSuccess(int clientSocket){
 	setCallerInfo();
 	_replyMsg += _command + " : ";
 
@@ -213,10 +236,9 @@ NUMERIC::CODE MessageHandler::sendNickSuccess(int clientSocket){
 	isSet.insert(clientSocket);
 	if(_eventHandler->getRequestChannel() != NULL)
 		_eventHandler->getRequestChannel()->sendToClients(isSet);
-	return NUMERIC::SUCCESS;
 }
 
-NUMERIC::CODE MessageHandler::sendKickSuccess(int clientSocket){
+void MessageHandler::sendKickSuccess(int clientSocket){
 	setCallerInfo();
 	_replyMsg += _command + " " + _channel + " " +  _targetName + " "  + _description + "\n";
 
@@ -227,10 +249,9 @@ NUMERIC::CODE MessageHandler::sendKickSuccess(int clientSocket){
 	isSet.insert(clientSocket);
 	if(_eventHandler->getRequestChannel() != NULL)
 		_eventHandler->getRequestChannel()->sendToClients(isSet);
-	return NUMERIC::SUCCESS;
 }
 
-NUMERIC::CODE MessageHandler::sendTopicSuccess(){
+void MessageHandler::sendTopicSuccess(){
 	//:ebang!root@127.0.0.1 TOPIC #n :aa
 	setCallerInfo();
 	_replyMsg += _command + " " + _channel + " " + _description + "\n";
@@ -239,15 +260,13 @@ NUMERIC::CODE MessageHandler::sendTopicSuccess(){
 	std::set<int> isSet;
 	if(_eventHandler->getRequestChannel() != NULL)
 		_eventHandler->getRequestChannel()->sendToClients(isSet);
-	return NUMERIC::SUCCESS;
 }
 
-NUMERIC::CODE MessageHandler::sendInvalidModeError(NUMERIC::CODE code){
+void MessageHandler::sendInvalidModeError(NUMERIC::CODE code){
 	//:irc.local 472 one x :is not a recognised channel mode.
 	setServerInfo(code);
 	_replyMsg += _nickName + " " + _option +" :" + _reason + "\n";
 	sendMessage();
-
 }
 
 void MessageHandler::sendMessage(){
@@ -271,15 +290,25 @@ std::string MessageHandler::ntoStr(int n){
 	return ret;
 }
 
-void MessageHandler::sendConnectionSuccess(){
+void MessageHandler::sendPartSuccess(){
+	setCallerInfo();
+	if (_reason.empty())
+		_replyMsg += _command + " :" + _channel;
+	else
+		_replyMsg += _command + " " + _channel + " " + _reason;
+	
+	setBroadCastMsg();
+	if(_eventHandler->getRequestClient() != NULL)
+		_eventHandler->getRequestChannel()->sendToClients();
+}
 
-	// _clientManager->getClientByFD(_clientSocket)->setAuthenticated();
-	char MODES[CAP::MODESIZE] = {'k', 'l', 'o', 'i', 'n', 't'};
-	char CHANNELTYPES = '#'; //('#' 모든 서버가 알고 있다는 의미.)
-	char PREFIX = '@'; //(채널 특권을 표현하는 문자. @: operator && creator)
+void MessageHandler::sendConnectionSuccess(){
+	const char MODES[CAP::MODESIZE] = {'k', 'l', 'o', 'i', 'n', 't'};
+	const char CHANNELTYPES = '#';	// ('#' 모든 서버가 알고 있다는 의미.)
+	const char PREFIX = '@';		// (채널 특권을 표현하는 문자. @: operator && creator)
+
 	setServerInfo(NUMERIC::WELCOME);
 	_replyMsg += _nickName + ":" + _reason + "\n";
-	
 	
 	setServerInfo(NUMERIC::INTRO);
 	_replyMsg += _nickName + ":" + _reason + "\n";
@@ -293,15 +322,15 @@ void MessageHandler::sendConnectionSuccess(){
 	_replyMsg += _nickName;
 	_replyMsg += " MODESIZE=" + ntoStr(CAP::MODESIZE) + " CHANNELLEN=" + ntoStr(CAP::CHANNELLEN) + " KEYLEN=" + ntoStr(CAP::KEYLEN) \
 		+ " KICKLEN=" + ntoStr(CAP::KICKLEN) + " LINELEN=" +ntoStr(CAP::LINELEN) + " TOPICLEN=" + ntoStr(CAP::TOPICLEN) + " MODES=" + ntoStr(CAP::MODES) \
-		+" :are supported by this server\n";
+		+ " :are supported by this server\n";
 	
 	setServerInfo(NUMERIC::CAPINFO);
 	_replyMsg += _nickName;
 	_replyMsg += " USERLEN=" + ntoStr(CAP::USERLEN) + " HOSTLEN=" + ntoStr(CAP::HOSTLEN) + " MAXTARGETS=" + ntoStr(CAP::MAXTARGETS) + " NICKLEN=" + ntoStr(CAP::NICKLEN) \
-	+ " CHANNELTYPES=" + CAP::CHANNELTYPES + " PREFIX=" + CAP::PREFIX + " MODES=";
+	+ " CHANNELTYPES=" + CHANNELTYPES + " PREFIX=" + PREFIX + " MODES=";
 	for(int i = 0 ; i < CAP::MODESIZE; i++)
 		_replyMsg += MODES[i];
-	_replyMsg += "  :are supported by this server\n";
+	_replyMsg += " :are supported by this server\n";
 
 	setServerInfo(NUMERIC::USERINFO);
 	int user = _clientManager->getClientNum();

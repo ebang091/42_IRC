@@ -7,6 +7,7 @@
 #include <string>
 #include <cstring>
 #include <sstream>
+#include "MessageHandler.hpp"
 
 class EventHandler;
 
@@ -15,6 +16,7 @@ private:
     Channel *_channel;
     Client *_client;
 	EventHandler* _eventHandler;
+	MessageHandler* _messageHandler;
 
 private:
 	INPUT::CODE getInput(char c) const;
@@ -39,6 +41,7 @@ private:
 
 public:
 	FSM();
+	void setMessageHandler(MessageHandler *messagehandler);
     void executeMode(std::queue<std::string>& params, const std::string& options);
     static FSM& getInstance();
     

@@ -32,6 +32,8 @@
 #define MESSAGELINE4 " : *  the admin of the server for any questions or  *\n"
 #define MESSAGELINE5 " : *  issues.                                       *\n"
 
+#define SET_PASS_AUTH(auth) auth | AUTH::PASS
+#define GET_PASS_AUTH(auth) auth & AUTH::PASS
 #define SET_USER_AUTH(auth) auth | AUTH::USER
 #define GET_USER_AUTH(auth) auth & AUTH::USER
 #define SET_NICK_AUTH(auth) auth | AUTH::NICK
@@ -54,10 +56,11 @@ namespace PERMISSION
 
 namespace AUTH{
 	enum CODE{
-		USER = 1,
-		NICK = 2,
-		SENT = 4
-	}
+		PASS = 1,
+		USER = 2,
+		NICK = 4,
+		SENT = 8
+	};
 };
 
 namespace STATE{
@@ -121,6 +124,7 @@ namespace NUMERIC{
 	enum CODE	{
 		// --- ERROR ---
 		UNKNOWN_ERR = 400,
+		UNKNOWN_CMD = 421,
 		NO_PARAM = 696,
 		NEED_MORE_PARAM = 461,
 		ALREADY_REGISTERED = 462,
@@ -143,14 +147,10 @@ namespace NUMERIC{
 		BAD_CHAN_MASK = 476,
 	
 		NOTHING = -1,
-		
+
 		// --- SUCCESS ---
 		SUCCESS = 0,
-		WELCOME = 1,
-		YOURHOST = 2,
-		CREATED = 3,
-		MYINFO = 4,
-		ISUPPORT = 5,
+		INVITE = 341,
 
 		RPL_NAMREPLY = 353,
 		RPL_ENDOFNAMES = 366,
@@ -161,7 +161,7 @@ namespace NUMERIC{
 		WELCOME = 1,
 		INTRO = 2,
 		SERVERCREATE = 3,
-
+		MYINFO = 4,
 		CAPINFO = 5,
 		USERINFO = 251,
 		CLIENTINFO = 255,
@@ -172,10 +172,6 @@ namespace NUMERIC{
 };
 
 namespace CAP{
-
-	char MODES[MODESIZE] = {'k', 'l', 'o', 'i', 'n', 't'};
-	char CHANNELTYPES = '#'; //('#' 모든 서버가 알고 있다는 의미.)
-	char PREFIX = '@'; //(채널 특권을 표현하는 문자. @: operator && creator)
 
 	enum  CODE{
 		MODESIZE=6,

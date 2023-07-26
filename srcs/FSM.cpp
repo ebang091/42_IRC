@@ -12,6 +12,10 @@ FSM& FSM::getInstance(){
 	return instance;
 }
 
+void FSM::setMessageHandler(MessageHandler *messagehandler){
+	this->_messageHandler = messagehandler;
+}
+
 NUMERIC::CODE FSM::executeAndChangeState(STATE::CODE &state, std::queue<std::string>& params, char c) {
     INPUT::CODE inputCode = getInput(c);
 	_messageHandler->setOption(c);
@@ -42,7 +46,7 @@ void FSM::executeMode(std::queue<std::string>& params, const std::string& option
         NUMERIC::CODE result = executeAndChangeState(state, params, options[i]); 
 		//발생할 수 있는 에러 : 
 		if(result == NUMERIC::INVALID_MODE)
-			__messageHandler->sendInvalidModeError();
+			_messageHandler->sendInvalidModeError(result);
 		
 		//모드 변경시 메시지
 		// mode message
