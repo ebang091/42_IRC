@@ -123,7 +123,7 @@ void MessageHandler::serializeChannelClientList(){
 	_replyMsg += ":irc.local " + ntoStr(NUMERIC::RPL_NAMREPLY) + " " + _nickName + " = " + _channel +  " :";
 
 	channel->getClientList(list);	
-	for (int i = 0; i < list.size(); ++i)
+	for (size_t i = 0; i < list.size(); ++i)
 		_replyMsg += list[i] + " ";
 	_replyMsg += "\n";
 }
@@ -429,7 +429,7 @@ void MessageHandler::sendConnectionSuccess(){
 
 	sendMessage();
 	Client *client = _eventHandler->getRequestClient();
-	client->setAuth(SET_SENT_AUTH(client->getAuth()));
+	client->setAuth(SWITCH_SENT_AUTH(client->getAuth()));
 }
 /*
 

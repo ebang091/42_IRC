@@ -57,7 +57,7 @@ void EventHandler::listenToClients(){
              /* check error event return */
             if (_curEvent->flags & EV_ERROR)
             {
-                if (_curEvent->ident == _serverSocket){
+                if (static_cast<int>(_curEvent->ident) == _serverSocket){
 					throw ErrorHandler::KeventException();
                 }
                 else
@@ -69,7 +69,7 @@ void EventHandler::listenToClients(){
             }
 			else if (_curEvent->filter == EVFILT_READ)
 			{
-				if (_curEvent->ident == _serverSocket)
+				if (static_cast<int>(_curEvent->ident) == _serverSocket)
                 {
                     /* accept new client */
                     int clientSocket;

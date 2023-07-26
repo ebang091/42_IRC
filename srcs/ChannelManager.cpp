@@ -6,7 +6,7 @@
 /*   By: ebang <ebang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/14 12:28:31 by ebang             #+#    #+#             */
-/*   Updated: 2023/07/26 14:11:42 by ebang            ###   ########.fr       */
+/*   Updated: 2023/07/26 19:45:32 by ebang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,8 +34,6 @@ void ChannelManager::insertChannel(const std::string& channelName, Client *clien
     else{
         _channels[channelName]->insertClient(client);
     }
-    int per;
-    GET_PERMISSION_I(per);
 }
 
 void ChannelManager::eraseChannel(const std::string &channelName){
@@ -89,7 +87,7 @@ void ChannelManager::eraseClientAllChannels(const std::string& targetName){
 			eraseList.push_back(iter->second);
 	}
 
-	for (int i = 0; i < eraseList.size(); ++i)
+	for (size_t i = 0; i < eraseList.size(); ++i)
 	{
 		_channels.erase(eraseList[i]->getName());
 		delete eraseList[i];

@@ -28,7 +28,7 @@ private:
 
 private:
 	NUMERIC::CODE executeModeCommand(STATE::CODE &state, std::queue<std::string>& params, char c);
-	bool getDescription(std::vector<std::string>& parameters, int startIdx, std::string& result);
+	bool getDescription(std::vector<std::string>& parameters, size_t startIdx, std::string& result);
 	NUMERIC::CODE checkValid(std::string* channelName, const std::string* targetName, const std::string* callerName, bool checkOper);
 	
 	void quit(std::vector<std::string>& parameters);

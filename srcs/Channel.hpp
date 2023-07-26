@@ -24,7 +24,7 @@ private:
 	Topic		 _topic;
 	std::string _name;
 	std::string _password;
-	int 		_limit;
+	size_t 		_limit;
 	char _permissions;
     time_t _creationTime;
 	std::map<std::string, Client*> _clientList;
@@ -50,7 +50,7 @@ public:
 	void setTopic(const std::string& topic, Client *setUser);
 	void setPassword(const std::string& password);
 	void setPermission(char permission);
-	void setLimit(int n);
+	void setLimit(size_t n);
 
 	Client* getOperatorByNick(const std::string& nickName) const;
 	Client* getClientByNick(const std::string& nickName) const;

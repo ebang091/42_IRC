@@ -32,14 +32,17 @@
 #define MESSAGELINE4 " : *  the admin of the server for any questions or  *\n"
 #define MESSAGELINE5 " : *  issues.                                       *\n"
 
-#define SET_PASS_AUTH(auth) auth | AUTH::PASS
-#define GET_PASS_AUTH(auth) auth & AUTH::PASS
-#define SET_USER_AUTH(auth) auth | AUTH::USER
-#define GET_USER_AUTH(auth) auth & AUTH::USER
-#define SET_NICK_AUTH(auth) auth | AUTH::NICK
-#define GET_NICK_AUTH(auth) auth & AUTH::NICK
-#define SET_SENT_AUTH(auth) auth | AUTH::SENT
-#define GET_SENT_AUTH(auth) auth & AUTH::SENT
+#define GET_PASS_AUTH(auth) (auth) & AUTH::PASS
+#define SWITCH_PASS_AUTH(auth) (auth) ^ AUTH::PASS
+
+#define GET_USER_AUTH(auth) (auth) & AUTH::USER
+#define SWITCH_USER_AUTH(auth) (auth) ^ AUTH::USER
+
+#define GET_NICK_AUTH(auth) (auth) & AUTH::NICK
+#define SWITCH_NICK_AUTH(auth) (auth) ^ AUTH::NICK
+
+#define GET_SENT_AUTH(auth) (auth) & AUTH::SENT
+#define SWITCH_SENT_AUTH(auth) (auth) ^ AUTH::SENT
 
 namespace PERMISSION
 {
@@ -56,10 +59,12 @@ namespace PERMISSION
 
 namespace AUTH{
 	enum CODE{
-		PASS = 1,
-		USER = 2,
-		NICK = 4,
-		SENT = 8
+
+		USER = 1,
+		PASS = 2,
+		SENT = 4,
+		NICK = 8
+
 	};
 };
 

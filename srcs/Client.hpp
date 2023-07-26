@@ -24,9 +24,8 @@ private:
 public:
     bool isAuth() const;
     bool getAuth() const;
-    void setAuth(char auth);
-
-
+    void setAuth(const char auth);
+    
     const std::string& getNickName() const;
 	const std::string& getUserName() const;
 	const std::string& getRealName() const;

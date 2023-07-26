@@ -1,9 +1,9 @@
 #include "FSM.hpp"
 
 FSM::FSM()
-	: _eventHandler(NULL)
-	, _channel(NULL)
+	: _channel(NULL)
 	, _client(NULL)
+	, _eventHandler(NULL)
 {		
 }
 
@@ -42,7 +42,7 @@ void FSM::executeMode(std::queue<std::string>& params, const std::string& option
     _client = _eventHandler->getRequestClient();
 	STATE::CODE state = STATE::NONE;
 
-    for(int i = 0; i < options.size(); i++){
+    for(size_t i = 0; i < options.size(); i++){
 		executeAndChangeState(state, params, options[i]);
 
 		// 인자 있으면 포함해서 send  :one!root@127.0.0.1 MODE #a +l :10
@@ -77,12 +77,15 @@ INPUT::CODE FSM::getInput(char c) const{
 #include <iostream>
 void FSM::plusN(std::queue<std::string>& params, STATE::CODE& state){
 	std::cout << "+N called\n";
+	(void)state;
+	(void)params;
 	return;
 }
 
 void FSM::plusT(std::queue<std::string>& params, STATE::CODE& state){
 	std::cout << "+T called\n";
-
+	(void)state;
+	(void)params;
 	std::string broadcast;
     char permissions = _channel->getPermissions();
 	if (GET_PERMISSION_T(permissions))
@@ -96,7 +99,8 @@ void FSM::plusT(std::queue<std::string>& params, STATE::CODE& state){
 
 void FSM::plusI(std::queue<std::string>& params, STATE::CODE& state){
 	std::cout << "+I called\n";
-
+	(void)state;
+	(void)params;
 	std::string broadcast;
     char permissions = _channel->getPermissions();
 	if (GET_PERMISSION_I(permissions))
@@ -113,7 +117,7 @@ void FSM::plusK(std::queue<std::string>& params, STATE::CODE& state){
     std::cout << "+K called\n";
     std::string password;
     std::string broadcast;
-    
+	(void)state;
     if(params.empty())
 		return _messageHandler->sendErrorNoModeParam();
         //:irc.local 696 qd #f k * :You must specify a parameter for the key mode. Syntax: <key>
@@ -136,7 +140,7 @@ void FSM::plusO(std::queue<std::string>& params, STATE::CODE& state){
 	std::cout << "+O called\n";
 	std::string targetName;
 	std::string broadcast;
-
+	(void)state;
 	//param이 없으면 696
 	if(params.size() == 0)
 		return _messageHandler->sendErrorNoModeParam();
@@ -161,9 +165,9 @@ void FSM::plusO(std::queue<std::string>& params, STATE::CODE& state){
 
 void FSM::plusL(std::queue<std::string>& params, STATE::CODE& state){
 	std::cout << "+L called\n";
-	
 	std::string limitStr;
     std::string broadcast;
+	(void)state;
 	
 	long limitNum;
     
@@ -196,12 +200,16 @@ void FSM::plusL(std::queue<std::string>& params, STATE::CODE& state){
 
 void FSM::minusN(std::queue<std::string>& params, STATE::CODE& state){
 	std::cout << "-N called\n";
+	(void)state;
+	(void)params;
+
 	return _messageHandler->sendErrorUnknownError(" :You cannot unset option n");
 }
 
 void FSM::minusT(std::queue<std::string>& params, STATE::CODE& state){
 	std::cout << "-T called\n";
-
+	(void)state;
+	(void)params;
 	std::string broadcast;
     char permissions = _channel->getPermissions();
 	if (!(GET_PERMISSION_T(permissions)))
@@ -214,6 +222,8 @@ void FSM::minusT(std::queue<std::string>& params, STATE::CODE& state){
 
 void FSM::minusI(std::queue<std::string>& params, STATE::CODE& state){
 	std::string broadcast;
+	(void)state;
+	(void)params;
     char permissions = _channel->getPermissions();
 	if (!(GET_PERMISSION_I(permissions)))
 		return;
@@ -227,6 +237,7 @@ void FSM::minusK(std::queue<std::string>& params, STATE::CODE& state){
 	std::cout << "-K called\n";
 	std::string password;
     std::string broadcast;
+	(void)state;
 
 	char permissions = _channel->getPermissions();
 	if (!(GET_PERMISSION_K(permissions)))
@@ -250,7 +261,7 @@ void FSM::minusK(std::queue<std::string>& params, STATE::CODE& state){
 
 void FSM::minusO(std::queue<std::string>& params, STATE::CODE& state){
 	std::cout << "-O called\n";
-
+	(void)state;
 	std::string targetName;
 	std::string broadcast;
 
@@ -278,6 +289,8 @@ void FSM::minusO(std::queue<std::string>& params, STATE::CODE& state){
 
 void FSM::minusL(std::queue<std::string>& params, STATE::CODE& state){
 	std::cout << "-L called\n";
+	(void)state;
+	(void)params;
 	std::string broadcast;
 
 	char permissions = _channel->getPermissions();
@@ -291,11 +304,13 @@ void FSM::minusL(std::queue<std::string>& params, STATE::CODE& state){
 }
 
 void FSM::toPlus(std::queue<std::string>& params, STATE::CODE& state){
+	(void)params;
 	std::cout << "++ called\n";
     state = STATE::PLUS;
 }
 
 void FSM::toMinus(std::queue<std::string>& params, STATE::CODE& state){
+	(void)params;
 	std::cout << "-- called\n";
     state = STATE::MINUS;
 }

@@ -1,10 +1,12 @@
 #include "Client.hpp"
 
 Client::Client(int socketNumber)
-	: _socketNumber(socketNumber),
-    _nickname("default"),
-    _auth(0)
-
+	: _nickname("default")
+    , _username("")
+    , _realname("")
+    , _host("")
+    , _auth(0)
+    , _socketNumber(socketNumber)
 {
 }
 
@@ -72,6 +74,8 @@ bool Client::getAuth() const{
     return this->_auth;
 }
 
-void Client::setAuth(char auth){
-    this->_auth = auth;
+void Client::setAuth(const char s){
+    std::cout << "set value in SetAuth()" << s <<"\n";
+    std::cout << "auth value in client: " << _auth <<"\n";
+    this->_auth = s;
 }

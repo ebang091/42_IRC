@@ -109,7 +109,7 @@ void Channel::setPermission(char permission){
 	this->_permissions = permission;
 }
 
-void Channel::setLimit(int n){
+void Channel::setLimit(size_t n){
 	_limit = n;
 }
 

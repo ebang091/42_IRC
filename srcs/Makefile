@@ -1,5 +1,5 @@
 CC = c++
-CXXFLAGS = -std=c++98 -fsanitize=address -g #-Wall -Wextra -Werror
+CXXFLAGS = -std=c++98  -Wall -Wextra -Werror #-fsanitize=address -g
 SRCS = main.cpp \
 		Server.cpp \
 		Parser.cpp \
@@ -36,13 +36,13 @@ re :
 	$(MAKE) all
 
 n1		:
-	nc 127.0.0.1 6667
+	nc 127.0.0.1 4242
 
 n2		:
-	nc 127.0.0.1 6667
+	nc 127.0.0.1 4242
 
 n3		:
-	nc 127.0.0.1 6667
+	nc 127.0.0.1 4242
 
 debug :
 	make re -j8

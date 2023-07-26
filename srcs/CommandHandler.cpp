@@ -4,6 +4,7 @@
 #include "Server.hpp"
 #include "Parser.hpp"
 #include "MessageHandler.hpp"
+#include <bitset>
 
 
 CommandHandler& CommandHandler::getInstance(){
@@ -11,7 +12,9 @@ CommandHandler& CommandHandler::getInstance(){
 	return instance;
 }
 CMD::CODE CommandHandler::identifyCommand(const std::string& cmd){
-    const std::string title[CMD::SIZE] = {"QUIT", "NICK", "JOIN", "KICK", "INVITE", "TOPIC", "MODE", "PART", "PRIVMSG", "USER", "PASS"};
+    const std::string title[CMD::SIZE] = {"QUIT", "NICK", "JOIN", "KICK", 
+										"INVITE", "TOPIC", "MODE", "PART", 
+										"PRIVMSG", "USER", "PASS"};
 
     for(int i = 0; i < CMD::SIZE; i++){
         if (strcasecmp(cmd.c_str(), title[i].c_str()) == 0){
@@ -51,25 +54,20 @@ void CommandHandler::executeCommand(CMD::CODE cmdCode, std::vector<std::string>&
 
 	if (GET_SENT_AUTH(_client->getAuth()))
 		(this->*funcs[static_cast<int>(cmdCode)])(parameters); // //내부에서 명령어 별 메시지 작성
-	else if (cmdCode != CMD::NONE && authFuncs[static_cast<int>(cmdCode)] != NULL){
+	else if (cmdCode != CMD::NONE && authFuncs[static_cast<int>(cmdCode)] != NULL)
 		(this->*authFuncs[static_cast<int>(cmdCode)])(parameters);
-		_client->setAuth(cmdCode);
-	}
 }
 
 void CommandHandler::nick(std::vector<std::string>& parameters){
     std::string candidateNickname;
 
 	std::cout << "NICK execute\n";
-
-	if(parameters.empty() || !(GET_PASS_AUTH(_client->getAuth())) || !(GET_USER_AUTH(_client->getAuth())))
+	char auth = _client->getAuth();
+	std::cout <<  std::bitset<8>(_client->getAuth()) << "NICK execute\n";
+	if(parameters.empty() || (!(GET_PASS_AUTH(auth))) || (!(GET_USER_AUTH(auth))))
+	{
 		return;
-	
-	if(!(GET_NICK_AUTH(_client->getAuth())))
-		_client->setAuth(SET_NICK_AUTH(_client->getAuth()));
-
-	if(_client->isAuth())
-		_messageHandler->sendConnectionSuccess();
+	}
 
 	candidateNickname = parameters[0];
 	if(candidateNickname.size() > CAP::NICKLEN)
@@ -98,6 +96,15 @@ void CommandHandler::nick(std::vector<std::string>& parameters){
 	_client->setNickName(candidateNickname);
 	_clientManager->insertClientByNick(candidateNickname, _client);
 	_channelManager->changeNickNameAllChannels(originname, _client);
+	if(!(GET_NICK_AUTH(auth)))
+		_client->setAuth(SWITCH_NICK_AUTH(auth));
+	std::cout <<  std::bitset<8>(_client->getAuth()) << "after NICK execute\n";
+
+	if(_client->isAuth())
+	{
+		std::cout << "--- 3\n";
+		_messageHandler->sendConnectionSuccess();
+	}
 }
 
 void CommandHandler::join(std::vector<std::string>& parameters){
@@ -189,7 +196,7 @@ void CommandHandler::mode(std::vector<std::string>& parameters){
     
 	_messageHandler->setChannel(channelName);
     
-	for(int i = 2; i < parameters.size(); i++)
+	for(unsigned int i = 2; i < parameters.size(); i++)
         params.push(parameters[i]);
 
    	NUMERIC::CODE code = checkValid(&channelName, NULL, &_client->getNickName(), true);
@@ -362,14 +369,20 @@ void CommandHandler::quit(std::vector<std::string>& parameters){
 
 void CommandHandler::pass(std::vector<std::string>& parameters){
 	//USER setting 되어있으면 return 
-	if(!(GET_PASS_AUTH(_client->getAuth())))
+	std::cout <<  std::bitset<8>(_client->getAuth()) <<" PASS Execute in pass\n";
+
+	char auth = _client->getAuth();
+	if(GET_PASS_AUTH(auth))
 		return _messageHandler->sendErrorNoParam(NUMERIC::ALREADY_REGISTERED);
 
-	std::cout << "!!!!! " << Server::getInstance().getPassword() << ", " << parameters[0] << "\n";
 	if(parameters.empty() || Server::getInstance().getPassword() != parameters[0])
 		return _messageHandler->sendErrorWithCmdAndReason(NUMERIC::PASS_MISMATCH);
-
-	_client->setAuth(SET_PASS_AUTH(_client->getAuth()));
+	
+	std::cout << std::bitset<8>(_client->getAuth()) << " " << std::bitset<8>(2) << "\n";
+	std::cout << std::bitset<8>(_client->getAuth() | 2) << "\n";
+	_client->setAuth(_client->getAuth() | 2);
+	std::cout <<  std::bitset<8>(_client->getAuth()) <<" after PASS Execute\n";
+	std::cout << "auth check in pass : " << _client->getAuth() << "\n";
 }
 
 void CommandHandler::privmsg(std::vector<std::string>& parameters){
@@ -412,15 +425,14 @@ void CommandHandler::privmsg(std::vector<std::string>& parameters){
 //input 형식 USER <username> <username> <host> :<real name>
 //사용 형식 :one!song@127.0.0.1  (nick!user@host)
 void CommandHandler::user(std::vector<std::string>& parameters){
+	std::cout <<  std::bitset<8>(_client->getAuth()) << "in user (before set)" << "\n";
 	if(parameters.empty())
 		return;
-
-	if(GET_USER_AUTH(_client->getAuth()))
+	
+	char auth = _client->getAuth();
+	if(GET_USER_AUTH(auth))
 		return _messageHandler->sendErrorNoParam(NUMERIC::ALREADY_REGISTERED); //"<client> :You may not reregister"
 	
-	_client->setAuth(SET_USER_AUTH(_client->getAuth()));
-	if(_client->isAuth()) //000 110 111
-		_messageHandler->sendConnectionSuccess();
 	
 	if (parameters.size() < 4)
 		return _messageHandler->sendErrorNoParam(NUMERIC::NEED_MORE_PARAM);
@@ -447,14 +459,23 @@ void CommandHandler::user(std::vector<std::string>& parameters){
 	_client->setUserName(parameters[0]);
 	_client->setHost(parameters[2]);
 	_client->setRealName(realName);
+	
+	if (!(GET_USER_AUTH(auth)))
+		_client->setAuth(SWITCH_USER_AUTH(auth));
+	std::cout <<  std::bitset<8>(_client->getAuth()) << "in user (after set)" << "\n";
+	if(_client->isAuth()) {		//000 110 111
+		std::cout << "auth check in user\n";
+		_messageHandler->sendConnectionSuccess();
+	}
+	std::cout <<" success!\n";
 }
 
-bool CommandHandler::getDescription(std::vector<std::string>& parameters, int startIdx, std::string& result){
+bool CommandHandler::getDescription(std::vector<std::string>& parameters, size_t startIdx, std::string& result){
 	//std::cout << parameters[startIdx].front() << "\n";
 	if (parameters.size() <= startIdx || parameters[startIdx].front() != ':')
 		return false;
 	
-	for (int i = startIdx; i < parameters.size(); ++i){
+	for (size_t i = startIdx; i < parameters.size(); ++i){
 		result += parameters[i];
 		if (i != parameters.size() - 1)
 			result += " ";
