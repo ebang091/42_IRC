@@ -59,6 +59,7 @@ void Client::clearBuffer(){
     this->_recvBuffer.clear();
 }
 
+#include <iostream>
 bool Client::checkHost(int clientSocket, const std::string& newHost){
     struct sockaddr_in clnt_addr;
     socklen_t size = sizeof(clnt_addr);
@@ -66,6 +67,7 @@ bool Client::checkHost(int clientSocket, const std::string& newHost){
     getsockname(clientSocket, &(struct sockaddr& )clnt_addr, &size);
     std::string host = inet_ntoa(clnt_addr.sin_addr);
     
+    std::cout << "check host : " << host << ", " << newHost << "\n";
     if(host != newHost)
         return false;
     return true;
@@ -88,5 +90,7 @@ char Client::getAuth() const{
 }
 
 void Client::setAuth(const char s){
+    std::cout << "set value in SetAuth()" << s <<"\n";
+    std::cout << "auth value in client: " << _auth <<"\n";
     this->_auth = s;
 }

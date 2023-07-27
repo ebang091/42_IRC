@@ -140,6 +140,7 @@ void CommandHandler::join(std::vector<std::string>& parameters){
 	if (parameters.size() >= 2)
 		_parser->parseByDelimeter(',', parameters[1], keyList);
 
+	std::cout << "*** " << channelList.size() << "\n";
     while (channelList.empty() == false){
         channelName = channelList.front();
 		channelList.pop();
@@ -440,6 +441,7 @@ void CommandHandler::privmsg(std::vector<std::string>& parameters){
 		_messageHandler->setChannel(target);
 		if (!_eventHandler->getRequestChannel()->getClientByNick(_client->getNickName()))
 			return _messageHandler->sendErrorWithChannel(NUMERIC::CANNOTSENDTOCHAN);
+		std::cout << "message send! in privmsg\n";
 		_messageHandler->sendPrivMsgToChannel();
 	}
 	std::cout << "NICK success\n";
@@ -491,6 +493,7 @@ void CommandHandler::user(std::vector<std::string>& parameters){
 }
 
 bool CommandHandler::getDescription(std::vector<std::string>& parameters, size_t startIdx, std::string& result){
+	//std::cout << parameters[startIdx].front() << "\n";
 	if (parameters.size() <= startIdx || parameters[startIdx].front() != ':')
 		return false;
 	
