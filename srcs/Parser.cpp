@@ -43,19 +43,31 @@ int Parser::parsePortNumber(std::string portnumber){
     return value;
 }
 
-bool Parser::parseByDelimeter(char delimeter, std::string& parsingLine, std::queue<std::string> &buffer){
-    std::stringstream ssLine(parsingLine);
+bool Parser::getCmdQ(std::string& parsingLine, std::queue<std::string> &buffer){
+    Client* requestClient = EventHandler::getInstance().getRequestClient();
     std::string word;
-	bool isExist = false;
 
-    while (std::getline(ssLine, word, delimeter))
+    if (parsingLine.size() < 2 || (parsingLine[parsingLine.size() - 2] != 13 && parsingLine[parsingLine.size() - 1] != 10))
+        return false;
+
+    parsingLine = requestClient->getBuffer() + parsingLine;
+    std::stringstream ssLine(parsingLine);
+
+    while (std::getline(ssLine, word, '\n'))
     {
         if (word.back() == 13)
             word.pop_back();
-		isExist = true;
         buffer.push(word);
     }
-	return isExist;
+	return true;
+}
+
+void Parser::parseByDelimeter(char delimeter, std::string& parsingLine, std::queue<std::string> &buffer){
+    std::string word;
+    std::stringstream ssLine(parsingLine);
+
+    while (std::getline(ssLine, word, delimeter))
+        buffer.push(word);
 }
 
 void Parser::parseCommandsAndExecute(std::string command){
@@ -65,13 +77,11 @@ void Parser::parseCommandsAndExecute(std::string command){
     std::string word;
     std::vector<std::string> parameters;
 
-
     std::cout << "input command in parseCommandsAndExecute() : " << command << "\n";
     CommandHandler& commandHandler = CommandHandler::getInstance();
 	Client* requestClient = EventHandler::getInstance().getRequestClient();
 
-    //crlf 를  단위로 parse ByDeli -> CRLF  -> 
-    if (!parseByDelimeter('\n', command, commandsQ))
+    if (!getCmdQ(command, commandsQ))
 		return requestClient->addBuffer(command);
 
 	while(!commandsQ.empty()){

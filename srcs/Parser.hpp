@@ -25,9 +25,10 @@
 class Parser{
 public:
 	static Parser& getInstance();
+	bool getCmdQ(std::string& parsingLine, std::queue<std::string> &buffer);
 	int parsePortNumber(std::string portnumber);
 	void parseCommandsAndExecute(std::string command);
-	bool parseByDelimeter(char delimeter, std::string& parsingLine, std::queue<std::string> &buffer);
+	void parseByDelimeter(char delimeter, std::string& parsingLine, std::queue<std::string> &buffer);
 };
 
 #endif

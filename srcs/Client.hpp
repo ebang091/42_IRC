@@ -29,6 +29,7 @@ public:
     void setAuth(const char auth);
 
     void addBuffer(const std::string& str);
+    const std::string& getBuffer();
     void clearBuffer();
     
     const std::string& getNickName() const;

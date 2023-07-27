@@ -59,6 +59,10 @@ void Client::clearBuffer(){
     this->_recvBuffer.clear();
 }
 
+const std::string& Client::getBuffer(){
+    return this->_recvBuffer;
+}
+
 #include <iostream>
 bool Client::checkHost(int clientSocket, const std::string& newHost){
     struct sockaddr_in clnt_addr;

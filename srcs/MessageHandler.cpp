@@ -275,6 +275,7 @@ void MessageHandler::sendNickSuccess(){
 	_replyMsg += _command + " :" + _targetName + "\n";
 
 	setBroadCastMsg();
+	sendMessage();
 }
 
 void MessageHandler::sendKickSuccess(){
@@ -373,9 +374,10 @@ void MessageHandler::sendPrivMsgToChannel(){
 }
 
 void MessageHandler::sendMessage(){
+	std::cout << "sendMessage() message: " << _replyMsg << "\n";
 	if (send(_clientSocket, _replyMsg.c_str(), _replyMsg.length(), MSG_DONTWAIT) == -1)
 		throw ErrorHandler::SendException();
-	std::cout << "sendMessage() message: " << _replyMsg << "\n";
+		std::cout << "after sendMessage() message: " << _replyMsg << "\n";
 	flushOutput();
 }
 

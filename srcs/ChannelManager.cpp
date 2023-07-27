@@ -97,6 +97,7 @@ void ChannelManager::eraseClientAllChannels(const std::string& targetName){
 void ChannelManager::changeNickNameAllChannels(const std::string& originname, Client *clientNewNick){
 	std::set<int> isSent;
 	
+	isSent.insert(clientNewNick->getSocketNumber());
 	for (std::map<std::string, Channel*>::iterator iter = _channels.begin(); iter != _channels.end(); ++iter)
 	{
 		if (!iter->second->getClientByNick(originname))
@@ -104,14 +105,14 @@ void ChannelManager::changeNickNameAllChannels(const std::string& originname, Cl
 		iter->second->eraseClient(originname);
 		if(iter->second->getInviteByNick(originname) != NULL){
 			iter->second->eraseInvite(originname);
-			iter->second->insertClient(clientNewNick);
+			iter->second->insertInvite(clientNewNick);
 		}		
 		if(iter->second->getOperatorByNick(originname) != NULL){
 			iter->second->eraseOperator(originname);
 			iter->second->insertOperator(clientNewNick);
 		}
-		iter->second->sendToClients(isSent);
 		iter->second->insertClient(clientNewNick);
+		iter->second->sendToClients(isSent);
 	}
 }
 
