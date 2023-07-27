@@ -437,7 +437,6 @@ void MessageHandler::sendConnectionSuccess(){
 
 	setServerInfo(NUMERIC::USERINFO);
 	int user = _clientManager->getClientNum();
-	std::cout << "num : " << user <<"\n";
 	_replyMsg += _nickName + " :There are " + ntoStr(user) + " users and 001 invisible on 001 servers\n";
 
 	setServerInfo(NUMERIC::MESSAGESTART);
