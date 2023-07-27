@@ -18,6 +18,7 @@ private:
     std::string _username;
     std::string _realname;
     std::string _host;
+    std::string _recvBuffer;
     char _auth;
     int _socketNumber;
 
@@ -26,6 +27,9 @@ public:
     bool isAuthenticated() const;
     char getAuth() const;
     void setAuth(const char auth);
+
+    void addBuffer(const std::string& str);
+    void clearBuffer();
     
     const std::string& getNickName() const;
 	const std::string& getUserName() const;

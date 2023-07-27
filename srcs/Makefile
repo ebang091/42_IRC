@@ -1,5 +1,5 @@
 CC = c++
-CXXFLAGS = -std=c++98  -Wall -Wextra -Werror #-fsanitize=address -g
+CXXFLAGS = -std=c++98  -Wall -Wextra -Werror -fsanitize=address -g
 SRCS = main.cpp \
 		Server.cpp \
 		Parser.cpp \
@@ -44,9 +44,14 @@ n2		:
 n3		:
 	nc 127.0.0.1 4242
 
-debug :
-	make re -j8
-	./ircserv 4242 1234
-	irssi -c 127.0.0.1 -p 4242
+c1		:
+	irssi -c 127.0.0.1 -p 4242 -n one -w 1234
+
+c2		:
+	irssi -c 127.0.0.1 -p 4242 -n two -w 1234
+
+c3		:
+	irssi -c 127.0.0.1 -p 4242 -n three -w 1234
+
 
 .PHONY : all, clean, fclean, re, debug, n1, n2, n3

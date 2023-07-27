@@ -14,7 +14,7 @@ MessageHandler::MessageHandler()
 , _description("")
 , _replyMsg("")
 , _broadcastMsg("")
-{
+{ // PRIVMSG #a :asd
 	// -- welcome
 	codeMap.insert(std::make_pair(NUMERIC::WELCOME, " :Welcome to the Localnet IRC Network"));  // 뒤에 three!root@127.0.0.1
 	codeMap.insert(std::make_pair(NUMERIC::INTRO, " :Your host is irc.local, running version kwsongeban_ver0.0"));
@@ -57,7 +57,6 @@ MessageHandler& MessageHandler::getInstance(){
 }
 	
 void MessageHandler::setRequestClientInfo(const Client *client){
-	std::cout << "CLient addr in setREquestClientINfo : " << client << "\n";
 	_userName = client->getUserName();
 	_nickName = client->getNickName();
 	_host = client->getHost();
@@ -117,7 +116,10 @@ void MessageHandler::setReason(const std::string& reason){
 }
 
 void MessageHandler::setDescription(const std::string& description){
-	_description = description;
+	if (description == "LS" || (!description.empty() && description.front() == DESCRIPT_PREFIX))
+		_description = description;
+	else
+		_description = ":" + description;
 }
 
 void MessageHandler::setTargetName(const std::string& targetName){
@@ -197,8 +199,7 @@ void MessageHandler::sendErrorNoParam(NUMERIC::CODE code){
 
 void MessageHandler::sendErrorWithCommand(NUMERIC::CODE code){
 	setServerInfo(code);
-	_replyMsg += _nickName + " :" + _command + "\n";
-
+	_replyMsg += _nickName + " " + _command + " :" +  _reason + "\n";
 	sendMessage();
 }
 
@@ -239,39 +240,51 @@ void MessageHandler::sendInviteSuccess(){
 	sendMessage();
 }
 
+/*
+one!root@127.0.0.1 JOIN :#b
+:irc.local 353 one = #b :@one
+:irc.local 366 one #b :End of /NAMES list.
+*/
 void MessageHandler::sendJoinSuccess(){
-	setCallerInfo();
-	_replyMsg += _command + " : " + _channel + "\n";
+	// sendMessage();
+	// one!root@127.0.0.1 JOIN :#b
 	
+	setCallerInfo();
+	_replyMsg += _command + " :" + _channel + "\n";
+	setBroadCastMsg();
+
 	serializeChannelClientList();
 	sendErrorWithChannel(NUMERIC::RPL_ENDOFNAMES);
+
+	std::set<int> isSent;
+	isSent.insert(_clientSocket);
 	if(_eventHandler->getRequestClient() != NULL)
-		_eventHandler->getRequestChannel()->sendToClients();
+		_eventHandler->getRequestChannel()->sendToClients(isSent);
 }
+
 	// q!root@127.0.0.1 QUIT :Quit: byt bye
 void MessageHandler::sendQuitSuccess(){
 	setCallerInfo();
-	_replyMsg += _command + " :" + _command + ": " + _description + "\n";
+	_replyMsg += _command + " " + _description + "\n";
 
 	setBroadCastMsg();
 }
 
 void MessageHandler::sendNickSuccess(){
 	setCallerInfo();
-	_replyMsg += _command + " : " + _targetName + "\n";
+	_replyMsg += _command + " :" + _targetName + "\n";
 
 	setBroadCastMsg();
 }
 
 void MessageHandler::sendKickSuccess(){
 	setCallerInfo();
-	_replyMsg += _command + " " + _channel + " " +  _targetName + " "  + _description + "\n";
+	_replyMsg += _command + " " + _channel + " " +  _targetName + " " + _description + "\n";
 
 	setBroadCastMsg();
 
-	std::set<int> isSet;
 	if(_eventHandler->getRequestChannel() != NULL)
-		_eventHandler->getRequestChannel()->sendToClients(isSet);
+		_eventHandler->getRequestChannel()->sendToClients();
 }
 
 void MessageHandler::sendTopicSuccess(){
@@ -293,7 +306,7 @@ void MessageHandler::sendModeSuccess(){
 	if (_description.empty())
 		_replyMsg += " :" + _state + _option + "\n";
 	else
-		_replyMsg += " " + _state + _option + " :" + _description + "\n";
+		_replyMsg += " " + _state + _option + " " + _description + "\n";
 	setBroadCastMsg();
 	if(_eventHandler->getRequestChannel() != NULL)
 		_eventHandler->getRequestChannel()->sendToClients();
@@ -342,7 +355,8 @@ void MessageHandler::sendErrorNoModeParam(){
 // qd!root@127.0.0.1 PRIVMSG two :ads
 void MessageHandler::sendPrivMsgToUser(){
 	setCallerInfo();
-	_replyMsg += _command + " " + _nickName + " :" + _description;
+	//
+	_replyMsg += _command + " " + _nickName + " " + _description + "\n";
 	
 	sendMessage();
 }
@@ -350,9 +364,9 @@ void MessageHandler::sendPrivMsgToUser(){
 // two!root@127.0.0.1 PRIVMSG #f :hi
 void MessageHandler::sendPrivMsgToChannel(){
 	setCallerInfo();
-	_replyMsg += _command + " " + _channel + " :" + _description;
-	
+	_replyMsg += _command + " " + _channel + " " + _description + "\n";
 	setBroadCastMsg();
+	
 	std::set<int> isSent;
 	isSent.insert(_clientSocket);
 	_eventHandler->getRequestChannel()->sendToClients(isSent);
@@ -361,12 +375,12 @@ void MessageHandler::sendPrivMsgToChannel(){
 void MessageHandler::sendMessage(){
 	if (send(_clientSocket, _replyMsg.c_str(), _replyMsg.length(), MSG_DONTWAIT) == -1)
 		throw ErrorHandler::SendException();
+	std::cout << "sendMessage() message: " << _replyMsg << "\n";
 	flushOutput();
 }
 
 void MessageHandler::flushOutput(){
 	_replyMsg.clear();
-	_broadcastMsg.clear();
 }
 
 std::string MessageHandler::ntoStr(int n){
@@ -382,9 +396,9 @@ std::string MessageHandler::ntoStr(int n){
 void MessageHandler::sendPartSuccess(){
 	setCallerInfo();
 	if (_description.empty())
-		_replyMsg += _command + " :" + _channel;
+		_replyMsg += _command + " :" + _channel + "\n";
 	else
-		_replyMsg += _command + " " + _channel + " " + _description;
+		_replyMsg += _command + " " + _channel + " " + _description + "\n";
 	
 	setBroadCastMsg();
 	if(_eventHandler->getRequestClient() != NULL)
@@ -427,7 +441,7 @@ void MessageHandler::sendConnectionSuccess(){
 	_replyMsg += _nickName + " :There are " + ntoStr(user) + " users and 001 invisible on 001 servers\n";
 
 	setServerInfo(NUMERIC::MESSAGESTART);
-	_replyMsg += _reason + "\n";
+	_replyMsg += _nickName + " " + _reason + "\n";
 
 	setServerInfo(NUMERIC::MESSAGEOFDAY);
 	_replyMsg += _nickName + MESSAGELINE1;
@@ -451,33 +465,13 @@ void MessageHandler::sendConnectionSuccess(){
 	Client *client = _eventHandler->getRequestClient();
 	client->setAuth(SWITCH_SENT_AUTH(client->getAuth()));
 }
-/*
 
-:irc.local 001 three :Welcome to the Localnet IRC Network three!root@127.0.0.1
-:irc.local 002 three :Your host is irc.local, running version InspIRCd-3
-:irc.local 003 three :This server was created 03:59:44 Jul 17 2023
-:irc.local 004 three irc.local InspIRCd-3 iosw biklmnopstv :bklov
-:irc.local 005 three AWAYLEN=200 CASEMAPPING=rfc1459 CHANLIMIT=#:20 CHANMODES=b,k,l,imnpst CHANNELLEN=64 CHANTYPES=# ELIST=CMNTU HOSTLEN=64 KEYLEN=32 KICKLEN=255 LINELEN=512 MAXLIST=b:100 :are supported by this server
-:irc.local 005 three MAXTARGETS=20 MODES=20 NAMELEN=128 NETWORK=Localnet NICKLEN=30 PREFIX=(ov)@+ SAFELIST STATUSMSG=@+ TOPICLEN=307 USERLEN=10 USERMODES=,,s,iow WHOX :are supported by this server
-:irc.local 251 three :There are 0 users and 2 invisible on 1 servers
-:irc.local 253 three 1 :unknown connections
-:irc.local 254 three 3 :channels formed
-:irc.local 255 three :I have 2 clients and 0 servers
-:irc.local 265 three :Current local users: 2  Max: 2
-:irc.local 266 three :Current global users: 2  Max: 2
-:irc.local 375 three :irc.local message of the day
-:irc.local 372 three : **************************************************
-:irc.local 372 three : *             H    E    L    L    O              *
-:irc.local 372 three : *  This is a private irc server. Please contact  *
-:irc.local 372 three : *  the admin of the server for any questions or  *
-:irc.local 372 three : *  issues.                                       *
-:irc.local 372 three : **************************************************
-:irc.local 372 three : *  The software was provided as a package of     *
-:irc.local 372 three : *  Debian GNU/Linux <https://www.debian.org/>.   *
-:irc.local 372 three : *  However, Debian has no control over this      *
-:irc.local 372 three : *  server.                                       *
-:irc.local 372 three : **************************************************
-:irc.local 372 three : (The sysadmin possibly wants to edit </etc/inspircd/inspircd.motd>)
-:irc.local 376 three :End of message of the day.
+void MessageHandler::sendPongMessage(){
+	_replyMsg += ":irc.local PONG irc.local " + _description + "\n";
+	sendMessage();
+}
 
-*/
+void MessageHandler::sendCapMessage(){
+	_replyMsg += _command + " * " + _description + "\n";
+	sendMessage();
+}

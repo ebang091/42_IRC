@@ -157,6 +157,7 @@ void Channel::sendToClients(){
 	
 	for (std::map<std::string, Client*>::iterator iter = _clientList.begin(); iter != _clientList.end(); ++iter)
 	{
+		std::cout << "sendToClients() message: " << iter->second->getNickName() << ": " << msg << "\n";
 		if (send(iter->second->getSocketNumber(), msg.c_str(), msg.length(), MSG_DONTWAIT) == -1)
 			throw ErrorHandler::SendException();
 	}
@@ -173,6 +174,7 @@ void Channel::sendToClients(std::set<int>& isSent){
 			int curFd = iter->second->getSocketNumber();
 			if (isSent.find(curFd) != isSent.end())
 				continue;
+			std::cout << "sendToClients() message: " << iter->second->getNickName() << ": " << msg << "\n";
 			isSent.insert(curFd);
 			//std::cout << "msg: " << msg << "\n";
 			if (send(iter->second->getSocketNumber(), msg.c_str(), msg.length(), MSG_DONTWAIT) == -1)

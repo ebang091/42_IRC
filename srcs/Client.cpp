@@ -5,6 +5,7 @@ Client::Client(int socketNumber)
     , _username("")
     , _realname("")
     , _host("")
+    , _recvBuffer("")
     , _auth(0)
     , _socketNumber(socketNumber)
 {
@@ -48,6 +49,14 @@ void Client::setRealName(const std::string& newRealName){
 
 void Client::setHost(const std::string& newHost){
     this->_host = newHost;
+}
+
+void Client::addBuffer(const std::string& str){
+    this->_recvBuffer += str;
+}
+
+void Client::clearBuffer(){
+    this->_recvBuffer.clear();
 }
 
 #include <iostream>

@@ -111,6 +111,8 @@ public:
     void sendQuitSuccess();
     void sendTopicSuccess();
     void sendModeSuccess();
+    void sendPongMessage();
+    void sendCapMessage();
     void sendErrorWithTargetUserAndChannel(NUMERIC::CODE code);
     void sendErrorWithNickAndTargetUserAndChannel();
     void sendErrorNoParam(NUMERIC::CODE code);

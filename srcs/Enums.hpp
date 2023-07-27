@@ -12,6 +12,7 @@
 #define LISTEN_QUEUE_SIZE 15
 
 #define CHANNEL_PREFIX '#'
+#define DESCRIPT_PREFIX ':'
 
 #define GET_PERMISSION_N(permissions) permissions & PERMISSION::N
 #define SWITCH_PERMISSION_N(permissions) permissions ^ PERMISSION::N
@@ -110,6 +111,8 @@ namespace CONFIG{
 namespace CMD{
 	enum CODE	{
 		NONE = -1,
+		PING,
+		CAP,
 		QUIT,
 		NICK,
 		JOIN,

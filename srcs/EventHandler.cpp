@@ -55,7 +55,7 @@ void EventHandler::listenToClients(){
             _curEvent = &_event_list[i];
 
              /* check error event return */
-            if (_curEvent->flags & EV_ERROR)
+            if (_curEvent->flags & EV_ERROR || _curEvent->flags & EV_EOF)
             {
                 if (static_cast<int>(_curEvent->ident) == _serverSocket){
 					throw ErrorHandler::KeventException();
@@ -91,28 +91,30 @@ void EventHandler::listenToClients(){
                     char buf[READ_BUFFER_SIZE];
 					int n = recv(_curEvent->ident, buf, READ_BUFFER_SIZE, MSG_DONTWAIT);
                     this->_requestClient = clientManager.getClientByFD(_curEvent->ident); 
-
-                    std::cout << "recv len : " << n << "\n";
+                    
+                    std::cout << "recv len : " << n << + ", " + std::string(buf) + "\n";
 					if (n == -1){
                         disconnectCurClient(_curEvent);
 						continue;
-					}
+					} 
 
                 	if (n > READ_MAX){
-                	    //안된다고 출력하고 아무 반응도 안함.   
+                	    //안된다고 출력하고 아무 반응도 안함.  버퍼에 저저장장
                         continue;                 	
                 	}
 
                     buf[n] = '\0';
                     try
                     {
-                    	parser.parseCommandsAndExecute(buf);//파싱하고 실행
+                    	parser.parseCommandsAndExecute(buf);//client->clearbuffer 파싱하고 실행
                     }
                     catch(const std::exception& e)
                     {
                         std::cerr << e.what() << '\n';
+
 						disconnectCurClient(_curEvent);
                     }
+                    
                     test();
                 }
 			}

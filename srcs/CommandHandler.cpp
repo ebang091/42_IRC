@@ -1,4 +1,3 @@
-
 #include "CommandHandler.hpp"
 #include "EventHandler.hpp"
 #include "Server.hpp"
@@ -6,23 +5,20 @@
 #include "MessageHandler.hpp"
 #include <bitset>
 
-
 CommandHandler& CommandHandler::getInstance(){
 	static CommandHandler instance;
 	return instance;
 }
 CMD::CODE CommandHandler::identifyCommand(const std::string& cmd){
-    const std::string title[CMD::SIZE] = {"QUIT", "NICK", "JOIN", "KICK", 
+    const std::string title[CMD::SIZE] = {"PING", "CAP", "QUIT", "NICK", "JOIN", "KICK", 
 										"INVITE", "TOPIC", "MODE", "PART", 
 										"PRIVMSG", "USER", "PASS"};
 
+	_messageHandler = &MessageHandler::getInstance();
+	_messageHandler->setCommand(cmd);
     for(int i = 0; i < CMD::SIZE; i++){
-        if (strcasecmp(cmd.c_str(), title[i].c_str()) == 0){
-			// push message
-			_messageHandler = &MessageHandler::getInstance();
-			_messageHandler->setCommand(cmd);
+        if (strcasecmp(cmd.c_str(), title[i].c_str()) == 0)
         	return static_cast<CMD::CODE>(i);
-		}
 	}
     return CMD::NONE;
 }
@@ -43,12 +39,12 @@ void CommandHandler::executeCommand(CMD::CODE cmdCode, std::vector<std::string>&
 
 	//nickname!hostname@ip 먼저 저장
     typedef void (CommandHandler::*FP)(std::vector<std::string>&);
-    FP funcs[CMD::SIZE] = {&CommandHandler::quit, &CommandHandler::nick, 
+    FP funcs[CMD::SIZE] = {&CommandHandler::ping, &CommandHandler::cap, &CommandHandler::quit, &CommandHandler::nick, 
 			&CommandHandler::join, &CommandHandler::kick, &CommandHandler::invite,
 			&CommandHandler::topic, &CommandHandler::mode , &CommandHandler::part,
 			&CommandHandler::privmsg, &CommandHandler::user, &CommandHandler::pass};
 
-	FP authFuncs[CMD::SIZE] = {NULL, &CommandHandler::nick, 
+	FP authFuncs[CMD::SIZE] = {NULL, &CommandHandler::cap, NULL, &CommandHandler::nick, 
 			NULL, NULL, NULL,
 			NULL, NULL , NULL,
 			NULL, &CommandHandler::user, &CommandHandler::pass};
@@ -59,22 +55,47 @@ void CommandHandler::executeCommand(CMD::CODE cmdCode, std::vector<std::string>&
 		(this->*authFuncs[static_cast<int>(cmdCode)])(parameters);
 }
 
+void CommandHandler::ping(std::vector<std::string>& parameters){
+	if (parameters.empty())
+		return;
+
+	std::string description = "";
+	for (size_t i = 0; i < parameters.size(); ++i){
+		description += parameters[i];
+		if (i != parameters.size() - 1)
+			description += " ";
+	}
+	_messageHandler->setDescription(description);
+	_messageHandler->sendPongMessage();
+}
+
+void CommandHandler::cap(std::vector<std::string>& parameters){
+	if (parameters.empty())
+		return;
+
+	if(_client->isAuthenticated())
+		return _messageHandler->sendErrorWithCommand(NUMERIC::UNKNOWN_CMD);
+
+	if(parameters[0] == "END")
+		return;
+	_messageHandler->setDescription(parameters[0]);
+	_messageHandler->sendCapMessage();
+}
+
 void CommandHandler::nick(std::vector<std::string>& parameters){
     std::string candidateNickname;
 
 	std::cout << "NICK execute\n";
 	char auth = _client->getAuth();
-	if(parameters.empty() || (!(GET_PASS_AUTH(auth))) || (!(GET_USER_AUTH(auth))))
-	{
+	if(parameters.empty() || (!(GET_PASS_AUTH(auth))))
 		return;
-	}
 
 	candidateNickname = parameters[0];
 	if(candidateNickname.size() > CAP::NICKLEN)
 		candidateNickname = candidateNickname.substr(0, CAP::NICKLEN);
 
 	_messageHandler->setTargetName(candidateNickname);
-    if(candidateNickname.front() == '#' || candidateNickname.front() == ':')
+    if(candidateNickname.front() == CHANNEL_PREFIX || candidateNickname.front() == DESCRIPT_PREFIX)
 		return _messageHandler->sendErrorWithNickAndTargetName(NUMERIC::INVALID_NICK);
 	
     Client *foundDuplicate = _clientManager->getClientByNick(candidateNickname);
@@ -110,7 +131,7 @@ void CommandHandler::join(std::vector<std::string>& parameters){
     std::queue<std::string> channelList;
     std::queue<std::string> keyList;
 	std::string channelName;
-
+	
 	if(parameters.empty())
 		return ;
 	
@@ -118,7 +139,8 @@ void CommandHandler::join(std::vector<std::string>& parameters){
 	
 	if (parameters.size() >= 2)
 		_parser->parseByDelimeter(',', parameters[1], keyList);
-	
+
+	std::cout << "*** " << channelList.size() << "\n";
     while (channelList.empty() == false){
         channelName = channelList.front();
 		channelList.pop();
@@ -127,7 +149,8 @@ void CommandHandler::join(std::vector<std::string>& parameters){
 			channelName = channelName.substr(0, CAP::CHANNELLEN);
 		_messageHandler->setChannel(channelName);
 		_eventHandler->setRequestChannel(_channelManager->getChannelByName(channelName.substr(1, channelName.size() -1)));
-		NUMERIC::CODE code = checkValid(&channelName, NULL, NULL, false);
+		const std::string& callerName = _client->getNickName();
+		NUMERIC::CODE code = checkValid(&channelName, NULL, &callerName, false);
 		
 		if (code == NUMERIC::NO_SUCH_CHAN){
 			if(channelName.find(7) != std::string::npos){//check invalid chann
@@ -137,12 +160,15 @@ void CommandHandler::join(std::vector<std::string>& parameters){
 			_channelManager->insertChannel(channelName, _client);
 			_eventHandler->setRequestChannel(_channelManager->getChannelByName(channelName));
 		}
-		else if (code == NUMERIC::SUCCESS){  //channel already exists
+		else if (code == NUMERIC::NOT_ON_CHAN){  //channel already exists
 			Channel* foundChannel = _eventHandler->getRequestChannel();
-
-			if (!foundChannel->getInviteByNick(_client->getNickName())){
+			
+			if (!foundChannel->getInviteByNick(callerName)){
 				if(GET_PERMISSION_K(foundChannel->getPermissions())){ // key option
+					while (!keyList.empty() && keyList.front() == "x")
+						keyList.pop();
 					if(keyList.empty() == true || foundChannel->getPassword() != keyList.front()){
+						keyList.pop();
 						_messageHandler->sendErrorWithChannel(NUMERIC::BAD_CHAN_KEY);
 						continue;
 					}					
@@ -150,7 +176,7 @@ void CommandHandler::join(std::vector<std::string>& parameters){
 				}
 				if(GET_PERMISSION_I(foundChannel->getPermissions())){ //i option
 					//invitedList 확인
-					if(!foundChannel->getInviteByNick(_client->getNickName())){
+					if(!foundChannel->getInviteByNick(callerName)){
 						_messageHandler->sendErrorWithChannel(NUMERIC::INVITE_ONLY_CHAN);
 						continue;
 					}
@@ -161,8 +187,10 @@ void CommandHandler::join(std::vector<std::string>& parameters){
 				continue;
 			}
 			foundChannel->insertClient(_client);
-			foundChannel->eraseInvite(_client->getNickName());
+			foundChannel->eraseInvite(callerName);
 		}
+		else if (code == NUMERIC::SUCCESS)
+			continue;
 		else{
 			_messageHandler->sendErrorWithChannel(code);
 			continue;
@@ -220,8 +248,9 @@ void CommandHandler::part(std::vector<std::string>& parameters){
 	_parser->parseByDelimeter(',', parameters[0], channelList);
 	
 	std::string description = "";
-	if (!getDescription(parameters, 1, description))
-		return _messageHandler->sendErrorNoParam(NUMERIC::NEED_MORE_PARAM);
+	getDescription(parameters, 1, description);
+	// if (!getDescription(parameters, 1, description))
+		// return _messageHandler->sendErrorNoParam(NUMERIC::NEED_MORE_PARAM);
 
 	_messageHandler->setDescription(description);
 
@@ -355,10 +384,9 @@ void CommandHandler::topic(std::vector<std::string>& parameters){
 }
 
 void CommandHandler::quit(std::vector<std::string>& parameters){
-	std::string description = "leaving";
+	std::string description = "Client exited";
 
-	if (!getDescription(parameters, 0, description))
-		return;
+	getDescription(parameters, 0, description);
 
 	_messageHandler->setDescription(description);
 	_messageHandler->sendQuitSuccess();
@@ -368,7 +396,7 @@ void CommandHandler::quit(std::vector<std::string>& parameters){
 
 void CommandHandler::pass(std::vector<std::string>& parameters){
 	//USER setting 되어있으면 return 
-	std::cout <<  std::bitset<8>(_client->getAuth()) <<" PASS Execute in pass\n";
+	std::cout << parameters[0] + ", " + Server::getInstance().getPassword() + " PASS Execute in pass\n";
 
 	char auth = _client->getAuth();
 	if(GET_PASS_AUTH(auth))
@@ -377,11 +405,8 @@ void CommandHandler::pass(std::vector<std::string>& parameters){
 	if(parameters.empty() || Server::getInstance().getPassword() != parameters[0])
 		return _messageHandler->sendErrorWithCmdAndReason(NUMERIC::PASS_MISMATCH);
 	
-	std::cout << std::bitset<8>(_client->getAuth()) << " " << std::bitset<8>(2) << "\n";
-	std::cout << std::bitset<8>(_client->getAuth() | 2) << "\n";
 	_client->setAuth(_client->getAuth() | 2);
-	std::cout <<  std::bitset<8>(_client->getAuth()) <<" after PASS Execute\n";
-	std::cout << "auth check in pass : " << _client->getAuth() << "\n";
+	std::cout << "PASS success\n";
 }
 
 void CommandHandler::privmsg(std::vector<std::string>& parameters){
@@ -416,57 +441,55 @@ void CommandHandler::privmsg(std::vector<std::string>& parameters){
 		_messageHandler->setChannel(target);
 		if (!_eventHandler->getRequestChannel()->getClientByNick(_client->getNickName()))
 			return _messageHandler->sendErrorWithChannel(NUMERIC::CANNOTSENDTOCHAN);
-		
+		std::cout << "message send! in privmsg\n";
 		_messageHandler->sendPrivMsgToChannel();
 	}
+	std::cout << "NICK success\n";
 }
 
 //input 형식 USER <username> <username> <host> :<real name>
 //사용 형식 :one!song@127.0.0.1  (nick!user@host)
 void CommandHandler::user(std::vector<std::string>& parameters){
-	std::cout <<  std::bitset<8>(_client->getAuth()) << "in user (before set)" << "\n";
+	std::string userName;
+	std::string host;
+	
 	if(parameters.empty())
 		return;
 	
 	char auth = _client->getAuth();
 	if(GET_USER_AUTH(auth))
-		return _messageHandler->sendErrorNoParam(NUMERIC::ALREADY_REGISTERED); //"<client> :You may not reregister"
-	
+		return _messageHandler->sendErrorNoParam(NUMERIC::ALREADY_REGISTERED);
 	
 	if (parameters.size() < 4)
 		return _messageHandler->sendErrorNoParam(NUMERIC::NEED_MORE_PARAM);
-	// irc.local 461 two USER :Not enough parameters.
 	
-	// irc.local 462 two :You may not reregister
-	if (!_client->getUserName().empty())
-		return _messageHandler->sendErrorNoParam(NUMERIC::ALREADY_REGISTERED); //"<client> :You may not reregister"
-	if (parameters[0] != parameters[1])
+	userName = parameters[0];
+	host = parameters[2];
+
+	if (userName != parameters[1])
 		return _messageHandler->sendErrorUnknownError("user name not same");
 	
-	if (parameters[0].size() > CONFIG::USERLEN)
-		parameters[0] = parameters[0].substr(0, CONFIG::USERLEN);
+	if (userName.size() > CONFIG::USERLEN)
+		userName = userName.substr(0, CONFIG::USERLEN);
 	
-	if (!_client->checkHost(_client->getSocketNumber(), parameters[2]))
+	if (!_client->checkHost(_client->getSocketNumber(), host))
 		return _messageHandler->sendErrorUnknownError("invalid host");
 	
 	std::string realName = "";
-	if(!getDescription(parameters, 3, realName))
-		return _messageHandler->sendErrorUnknownError("needs colon(:)");
+	getDescription(parameters, 3, realName);
 
-	if(parameters[2].size() > CAP::HOSTLEN)
-		parameters[2] = parameters[2].substr(CAP::HOSTLEN);
-	_client->setUserName(parameters[0]);
-	_client->setHost(parameters[2]);
+	if(host.size() > CAP::HOSTLEN)
+		host = host.substr(CAP::HOSTLEN);
+	_client->setUserName(userName);
+	_client->setHost(host);
 	_client->setRealName(realName);
 	
 	if (!(GET_USER_AUTH(auth)))
 		_client->setAuth(SWITCH_USER_AUTH(auth));
-	std::cout <<  std::bitset<8>(_client->getAuth()) << "in user (after set)" << "\n";
-	if(_client->authNoSent()) {		//000 110 111
-		std::cout << "auth check in user\n";
+	if(_client->authNoSent()) {
 		_messageHandler->sendConnectionSuccess();
 	}
-	std::cout <<" success!\n";
+	std::cout << "USER success\n";
 }
 
 bool CommandHandler::getDescription(std::vector<std::string>& parameters, size_t startIdx, std::string& result){
@@ -474,6 +497,7 @@ bool CommandHandler::getDescription(std::vector<std::string>& parameters, size_t
 	if (parameters.size() <= startIdx || parameters[startIdx].front() != ':')
 		return false;
 	
+	result.clear();
 	for (size_t i = startIdx; i < parameters.size(); ++i){
 		result += parameters[i];
 		if (i != parameters.size() - 1)

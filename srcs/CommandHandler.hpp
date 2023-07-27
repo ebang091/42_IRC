@@ -31,6 +31,8 @@ private:
 	bool getDescription(std::vector<std::string>& parameters, size_t startIdx, std::string& result);
 	NUMERIC::CODE checkValid(std::string* channelName, const std::string* targetName, const std::string* callerName, bool checkOper);
 	
+	void ping(std::vector<std::string>& parameters);
+	void cap(std::vector<std::string>& parameters);
 	void quit(std::vector<std::string>& parameters);
 	void nick(std::vector<std::string>& parameters);
 	void join(std::vector<std::string>& parameters);

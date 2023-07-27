@@ -10,8 +10,9 @@
 	ntoStr() : 만듬 / 001 ,002 도 만들 수 있게끔 구현
 
 	TODO
-	1. AUTH check - CAP LS, user 처리
-	1. command message 처리 (privmsg)
+	0. PART 적용 안 됨, QUIT 메시지 
+	1. TEST
+		인증 안된 사용자에게 메시지 보내나?
 	2. PING
 	3. CRLF 받을 떄까지 EOF 받을 동안은 버퍼에 저장
 	4. 이벤트 핸들러 메인 함수 리팩토링 (모듈화 더

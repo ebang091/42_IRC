@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "Parser.hpp"
+#include "EventHandler.hpp"
 
 Parser& Parser::getInstance(){
 	static Parser instance;
@@ -42,12 +43,19 @@ int Parser::parsePortNumber(std::string portnumber){
     return value;
 }
 
-void Parser::parseByDelimeter(char delimeter, std::string& parsingLine, std::queue<std::string> &buffer){
+bool Parser::parseByDelimeter(char delimeter, std::string& parsingLine, std::queue<std::string> &buffer){
     std::stringstream ssLine(parsingLine);
     std::string word;
+	bool isExist = false;
 
     while (std::getline(ssLine, word, delimeter))
+    {
+        if (word.back() == 13)
+            word.pop_back();
+		isExist = true;
         buffer.push(word);
+    }
+	return isExist;
 }
 
 void Parser::parseCommandsAndExecute(std::string command){
@@ -57,24 +65,27 @@ void Parser::parseCommandsAndExecute(std::string command){
     std::string word;
     std::vector<std::string> parameters;
 
+
+    std::cout << "input command in parseCommandsAndExecute() : " << command << "\n";
     CommandHandler& commandHandler = CommandHandler::getInstance();
-    parseByDelimeter('\n', command, commandsQ);
-    int cnt = 0;
-    while(!commandsQ.empty()){
+	Client* requestClient = EventHandler::getInstance().getRequestClient();
+
+    //crlf 를  단위로 parse ByDeli -> CRLF  -> 
+    if (!parseByDelimeter('\n', command, commandsQ))
+		return requestClient->addBuffer(command);
+
+	while(!commandsQ.empty()){
         std::stringstream ss(commandsQ.front());
         ss >> cmd;
+
+        parameters.clear();
         while(ss >> word)
             parameters.push_back(word);
         CMD::CODE cmdCode = commandHandler.identifyCommand(cmd);//NONE 이면 무시? 에러?
         commandHandler.executeCommand(cmdCode, parameters); //실행 및 출력
-        std::cout << "cnt : " << ++cnt << "\n";
-        std::cout << "command : " << cmdCode << "\n";
         commandsQ.pop();
     }
-    
-   //첫 접속
 
-   //CAP LS -> 갖고 있는 MAX_LEN 들, 가용 용량 send
-   //NICK nickname
+	requestClient->clearBuffer();
 }
 
