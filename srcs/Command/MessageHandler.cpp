@@ -180,7 +180,7 @@ void MessageHandler::sendInviteWithNickAndTargetUserAndChannel(){
 	setServerInfo(NUMERIC::INVITE);
 	_replyMsg += _nickName + " " + _targetName + " :" + _channel + "\n";
 	
-	sendMessage();
+	sendMessage();	
 }
 
 void MessageHandler::sendErrorWithNickAndTargetName(NUMERIC::CODE code){
@@ -232,9 +232,10 @@ void MessageHandler::sendInviteSuccess(){
 	
 	std::set<int> isSent;
 	isSent.insert(_clientSocket);
-	if(_eventHandler->getRequestClient() != NULL)
+	if(_eventHandler->getRequestChannel() != NULL)
 		_eventHandler->getRequestChannel()->sendToClients(isSent);
 	
+	// 타겟한테 메시지 보내기
 	setCallerInfo();
 	_replyMsg +=  _command + " " + _targetName + " :" + _channel + "\n";
 	sendMessage();
@@ -258,7 +259,7 @@ void MessageHandler::sendJoinSuccess(){
 
 	std::set<int> isSent;
 	isSent.insert(_clientSocket);
-	if(_eventHandler->getRequestClient() != NULL)
+	if(_eventHandler->getRequestChannel() != NULL)
 		_eventHandler->getRequestChannel()->sendToClients(isSent);
 }
 
@@ -403,7 +404,7 @@ void MessageHandler::sendPartSuccess(){
 		_replyMsg += _command + " " + _channel + " " + _description + "\n";
 	
 	setBroadCastMsg();
-	if(_eventHandler->getRequestClient() != NULL)
+	if(_eventHandler->getRequestChannel() != NULL)
 		_eventHandler->getRequestChannel()->sendToClients();
 }
 

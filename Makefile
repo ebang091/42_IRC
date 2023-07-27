@@ -3,65 +3,75 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: kwsong <kwsong@student.42seoul.kr>         +#+  +:+       +#+         #
+#    By: ebang <ebang@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/07/13 19:22:49 by kwsong            #+#    #+#              #
-#    Updated: 2023/07/25 20:58:05 by kwsong           ###   ########.fr        #
+#    Updated: 2023/07/27 18:19:07 by ebang            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-# make all - make debug - make client1, make client2 ... 
+NAME = ircserv
 
-all 		:
-	docker build . --tag irc:my
-	docker run --name irc --rm irc:my
+CC = c++
+CXXFLAGS = -std=c++98 -Wall -Wextra -Werror -fsanitize=address -g
 
-run		:
-	docker run --name irc --rm irc:my
+SRCS_FILE = main.cpp \
+		ErrorHandler.cpp \
+		Server/Server.cpp \
+		Server/Parser.cpp \
+		Server/SocketHandler.cpp \
+		Server/EventHandler.cpp \
+		Command/CommandHandler.cpp \
+		Command/MessageHandler.cpp \
+		Command/FSM.cpp \
+		Channel/ChannelManager.cpp \
+		Channel/Channel.cpp \
+		Client/ClientManager.cpp \
+		Client/Client.cpp
+OBJS_FILE = $(SRCS_FILE:.cpp=.o)
 
+SRCS_DIR = ./srcs/
+INCS_DIR = ./includes/
 
-c1		:
-	docker exec -it irc irssi -c 127.0.0.1 -p 6667 -n one -w 1234
+SRCS = $(addprefix $(SRCS_DIR), $(SRCS_FILE))
+OBJS = $(addprefix $(SRCS_DIR), $(OBJS_FILE))
 
-c2		:
-	docker exec -it irc irssi -c 127.0.0.1 -p 6667 -n two
+all 	: $(NAME)
 
-c3		:
-	docker exec -it irc irssi -c 127.0.0.1 -p 6667 -n three
+$(NAME)	: $(OBJS)
+	$(CC) $(CXXFLAGS) -o $@ $^ -I$(INCS_DIR)
 
-c4		:
-	docker exec -it irc irssi -c 127.0.0.1 -p 6667 -n four
+%.o		: %.cpp
+	$(CC) $(CXXFLAGS) -o $@ -c $< -I$(INCS_DIR)
+	
+clean	:
+	rm  -rf $(OBJS)
 
-c5		:
-	docker exec -it irc irssi -c 127.0.0.1 -p 6667 -n five
+fclean	:
+	$(MAKE) clean
+	rm -rf $(NAME)
+
+re		:
+	$(MAKE) fclean
+	$(MAKE) all
 
 n1		:
-	docker exec -it irc nc 127.0.0.1 6667
+	nc 127.0.0.1 4242
 
 n2		:
-	docker exec -it irc nc 127.0.0.1 6667
+	nc 127.0.0.1 4242
 
 n3		:
-	docker exec -it irc nc 127.0.0.1 -p 6667
+	nc 127.0.0.1 4242
 
-n4		:
-	docker exec -it irc nc 127.0.0.1 -p 6667
+c1		:
+	irssi -c 127.0.0.1 -p 4242 -n one -w 1234
 
-n5		:
-	docker exec -it irc nc 127.0.0.1 -p 6667
+c2		:
+	irssi -c 127.0.0.1 -p 4242 -n two -w 1234
+
+c3		:
+	irssi -c 127.0.0.1 -p 4242 -n three -w 1234
 
 
-exec		:
-	docker exec -it irc bash
-
-down		:
-	docker stop irc
-
-clean		:
-	docker system prune -a
-
-re			:
-	make clean
-	make all
-
-.PHONY		: all run c1 c2 c3 c4 c5 exec down clean re
+.PHONY	: all clean fclean re debug n1 n2 n3 c1 c2 c3
