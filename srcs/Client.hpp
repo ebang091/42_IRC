@@ -22,8 +22,9 @@ private:
     int _socketNumber;
 
 public:
-    bool isAuth() const;
-    bool getAuth() const;
+    bool authNoSent() const;
+    bool isAuthenticated() const;
+    char getAuth() const;
     void setAuth(const char auth);
     
     const std::string& getNickName() const;

@@ -32,7 +32,6 @@ private:
     std::string _option;
     std::string _state;
     std::string _description;
-    CMD::CODE _cmdCode;
     std::vector<std::string> _params;
 
     std::string _replyMsg;

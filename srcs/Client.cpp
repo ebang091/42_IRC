@@ -64,13 +64,19 @@ bool Client::checkHost(int clientSocket, const std::string& newHost){
     return true;
 }
 
-bool Client::isAuth() const{
+bool Client::authNoSent() const{
     if((GET_PASS_AUTH(this->_auth)) && (GET_USER_AUTH(this->_auth)) && (GET_NICK_AUTH(this->_auth)) && !(GET_SENT_AUTH(this->_auth)))
         return true;
     return false;
 }
 
-bool Client::getAuth() const{
+bool Client::isAuthenticated() const{
+    if(GET_SENT_AUTH(this->_auth))
+        return true;
+    return false;
+}
+
+char Client::getAuth() const{
     return this->_auth;
 }
 

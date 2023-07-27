@@ -56,7 +56,6 @@ void ClientManager::insertClientByNick(const std::string& nickName, Client* clie
 }
 
 void ClientManager::insertClientByFD(int fd){
-	Client* 
 	_clientByFD.insert(std::make_pair(fd, new Client(fd)));
 }
 
@@ -92,5 +91,7 @@ void ClientManager::printClients()
 }
 
 int  ClientManager::getClientNum(){
+	if(this->_clientByNick.empty())
+		return 0;
 	return this->_clientByNick.size();
 }

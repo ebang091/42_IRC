@@ -35,6 +35,7 @@ void CommandHandler::executeCommand(CMD::CODE cmdCode, std::vector<std::string>&
 	_client = _eventHandler->getRequestClient();
 	_messageHandler->setRequestClientInfo(_client);
 	_messageHandler->setEventHandler(_eventHandler);
+	_messageHandler->setClientManager(_clientManager);
 	_messageHandler->setRequestClientSocket(_client->getSocketNumber());
 	
 	if(cmdCode == CMD::NONE && GET_SENT_AUTH(_client->getAuth()))
@@ -63,7 +64,6 @@ void CommandHandler::nick(std::vector<std::string>& parameters){
 
 	std::cout << "NICK execute\n";
 	char auth = _client->getAuth();
-	std::cout <<  std::bitset<8>(_client->getAuth()) << "NICK execute\n";
 	if(parameters.empty() || (!(GET_PASS_AUTH(auth))) || (!(GET_USER_AUTH(auth))))
 	{
 		return;
@@ -98,11 +98,10 @@ void CommandHandler::nick(std::vector<std::string>& parameters){
 	_channelManager->changeNickNameAllChannels(originname, _client);
 	if(!(GET_NICK_AUTH(auth)))
 		_client->setAuth(SWITCH_NICK_AUTH(auth));
-	std::cout <<  std::bitset<8>(_client->getAuth()) << "after NICK execute\n";
 
-	if(_client->isAuth())
+	if(_client->authNoSent())
 	{
-		std::cout << "--- 3\n";
+		_messageHandler->setRequestClientInfo(_client);
 		_messageHandler->sendConnectionSuccess();
 	}
 }
@@ -463,7 +462,7 @@ void CommandHandler::user(std::vector<std::string>& parameters){
 	if (!(GET_USER_AUTH(auth)))
 		_client->setAuth(SWITCH_USER_AUTH(auth));
 	std::cout <<  std::bitset<8>(_client->getAuth()) << "in user (after set)" << "\n";
-	if(_client->isAuth()) {		//000 110 111
+	if(_client->authNoSent()) {		//000 110 111
 		std::cout << "auth check in user\n";
 		_messageHandler->sendConnectionSuccess();
 	}

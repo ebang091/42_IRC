@@ -1,14 +1,30 @@
 #include "MessageHandler.hpp"
 #include "EventHandler.hpp"
 
-MessageHandler::MessageHandler(){
+MessageHandler::MessageHandler()
+:_userName("")
+, _targetName("")
+, _nickName("")
+, _host("")
+, _channel("")
+, _command("")
+, _reason("")
+, _option()
+, _state("")
+, _description("")
+, _replyMsg("")
+, _broadcastMsg("")
+{
 	// -- welcome
 	codeMap.insert(std::make_pair(NUMERIC::WELCOME, " :Welcome to the Localnet IRC Network"));  // 뒤에 three!root@127.0.0.1
 	codeMap.insert(std::make_pair(NUMERIC::INTRO, " :Your host is irc.local, running version kwsongeban_ver0.0"));
 	codeMap.insert(std::make_pair(NUMERIC::SERVERCREATE, " :This server was created ")); // 뒤에 01:23:10 Jul 24 2023
 	codeMap.insert(std::make_pair(NUMERIC::MYINFO, " :irc.local ft_irc iosw biklmnopstv :bklov"));
 	codeMap.insert(std::make_pair(NUMERIC::CAPINFO, " :are supported by this server")); // 앞에 AWAYLEN=200 CASEMAPPING=rfc1459 CHANLIMIT=#:20 CHANMODES=b,k,l,imnpst CHANNELLEN=64 CHANTYPES=# ELIST=CMNTU HOSTLEN=64 KEYLEN=32 KICKLEN=255 LINELEN=512 MAXLIST=b:100
+	codeMap.insert(std::make_pair(NUMERIC::USERINFO, "")); 
+	codeMap.insert(std::make_pair(NUMERIC::CLIENTINFO, ""));
 	codeMap.insert(std::make_pair(NUMERIC::MESSAGESTART, " :irc.local message of the day"));
+	codeMap.insert(std::make_pair(NUMERIC::MESSAGEOFDAY, ""));
 	codeMap.insert(std::make_pair(NUMERIC::MESSAGEEND, " :End of message of the day."));
 	// --
 	codeMap.insert(std::make_pair(NUMERIC::NO_PARAM, ""));
@@ -49,6 +65,11 @@ void MessageHandler::setRequestClientInfo(const Client *client){
 
 void MessageHandler::setEventHandler(EventHandler *eventHandler){
 	this->_eventHandler = eventHandler;
+}
+
+
+void MessageHandler::setClientManager(ClientManager *clientManager){
+	this->_clientManager = clientManager;
 }
 
 void MessageHandler::setRequestClientSocket(int socket){
@@ -247,10 +268,8 @@ void MessageHandler::sendKickSuccess(){
 	_replyMsg += _command + " " + _channel + " " +  _targetName + " "  + _description + "\n";
 
 	setBroadCastMsg();
-	sendMessage();
 
 	std::set<int> isSet;
-	isSet.insert(_clientSocket);
 	if(_eventHandler->getRequestChannel() != NULL)
 		_eventHandler->getRequestChannel()->sendToClients(isSet);
 }
@@ -378,15 +397,15 @@ void MessageHandler::sendConnectionSuccess(){
 	const char PREFIX = '@';		// (채널 특권을 표현하는 문자. @: operator && creator)
 
 	setServerInfo(NUMERIC::WELCOME);
-	_replyMsg += _nickName + ":" + _reason + "\n";
+	_replyMsg = _nickName + ":" + _reason + "\n";
 	
 	setServerInfo(NUMERIC::INTRO);
 	_replyMsg += _nickName + ":" + _reason + "\n";
-	sendMessage();
+
 
 	setServerInfo(NUMERIC::SERVERCREATE);
 	_replyMsg += _nickName + ":" + _reason + "\n";
-	sendMessage();
+
 
 	setServerInfo(NUMERIC::CAPINFO);
 	_replyMsg += _nickName;
@@ -404,7 +423,8 @@ void MessageHandler::sendConnectionSuccess(){
 
 	setServerInfo(NUMERIC::USERINFO);
 	int user = _clientManager->getClientNum();
-	_replyMsg += _nickName + " :There are " + ntoStr(user) + " users and 1 invisible on 1 servers\n";
+	std::cout << "num : " << user <<"\n";
+	_replyMsg += _nickName + " :There are " + ntoStr(user) + " users and 001 invisible on 001 servers\n";
 
 	setServerInfo(NUMERIC::MESSAGESTART);
 	_replyMsg += _reason + "\n";
