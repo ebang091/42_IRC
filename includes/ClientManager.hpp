@@ -6,7 +6,7 @@
 /*   By: ebang <ebang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/14 12:48:26 by ebang             #+#    #+#             */
-/*   Updated: 2023/07/21 16:31:29 by ebang            ###   ########.fr       */
+/*   Updated: 2023/07/28 16:17:14 by ebang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,11 +21,15 @@
 #include "ErrorHandler.hpp"
 #include "Client.hpp"
 #include "Enums.hpp"
+#include "Bot.hpp"
 
 class ClientManager{
 private:
     std::map<std::string, Client*> _clientByNick;
     std::map<int, Client*> _clientByFD;
+
+private:
+    ClientManager();
 
 public:
     ~ClientManager();

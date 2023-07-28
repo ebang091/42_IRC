@@ -12,6 +12,11 @@
 
 #include "ClientManager.hpp"
 
+ClientManager::ClientManager(){
+	Client* clientptr = NULL;
+	_clientByNick.insert(std::make_pair(BOT_NAME, clientptr));
+}
+
 ClientManager::~ClientManager(){
 	std::map<int, Client*>::iterator it;
     
@@ -28,25 +33,23 @@ ClientManager& ClientManager::getInstance(){
 }
 
 Client* ClientManager::getClientByNick(const std::string& nickName){
-	try
-	{
-		Client* tmp = _clientByNick.at(nickName);		
+	try{
+		Client* tmp = _clientByNick.at(nickName);	
+		std::cout << "*** FOUND\n";	
 		return tmp;
 	}
-	catch(const std::exception& e)
-	{
+	catch(const std::exception& e){
+		std::cout << "*** NO SUCH USER\n";
 		return NULL;
 	}
 }
 
 Client* ClientManager::getClientByFD(int fd){
-	try
-	{
+	try{
 		Client* tmp = _clientByFD.at(fd);		
 		return tmp;
 	}
-	catch(const std::exception& e)
-	{
+	catch(const std::exception& e){
 		return NULL;
 	}
 }
@@ -69,8 +72,7 @@ void ClientManager::eraseClientByNick(const std::string& nickName){
 void ClientManager::eraseClientByFD(int fd){
 	std::map<int, Client*>::iterator target = _clientByFD.find(fd);
 
-	if (target != _clientByFD.end())
-	{
+	if (target != _clientByFD.end()){
 		close(target->first);
 		delete target->second;
 		_clientByFD.erase(fd);

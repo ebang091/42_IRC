@@ -21,8 +21,12 @@
 #include <vector>
 #include "ErrorHandler.hpp"
 #include "CommandHandler.hpp"
+#include "EventHandler.hpp"
 
 class Parser{
+private:
+	Parser(){};
+
 public:
 	static Parser& getInstance();
 	bool getCmdQ(std::string& parsingLine, std::queue<std::string> &buffer);

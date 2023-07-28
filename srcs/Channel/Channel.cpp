@@ -1,20 +1,21 @@
 #include "Channel.hpp"
 #include "MessageHandler.hpp"
 
-Channel::Channel(){
-    
-}
-
 Channel::Channel(const std::string& channelName, Client* client)
 	: _topic()
 	, _name(channelName)
 	, _password()
+	, _notice("")
+	, _welcomMsg("")
 	, _limit(CONFIG::USERLIMIT)
 	, _permissions(0)
 {
 	time(&_creationTime);
+	Client* clientptr = NULL;
 	_clientList.insert(std::make_pair(client->getNickName(), client));
 	_operators.insert(std::make_pair(client->getNickName(), client));
+	_clientList.insert(std::make_pair(BOT_NAME, clientptr));
+	_operators.insert(std::make_pair(BOT_NAME, clientptr));
 }
 
 Client* Channel::getOperatorByNick(const std::string& nickName) const
@@ -85,10 +86,24 @@ time_t Channel::getCreationTime() const {
 	return this->_creationTime;	
 }
 
-
-int Channel::getLimit() const
-{
+int Channel::getLimit() const{
 	return this->_limit;
+}
+
+const std::string& Channel::getNotice() const{
+	return _notice;
+}
+
+const std::string& Channel::getWelcomeMsg() const{
+	return _welcomMsg;
+}
+
+void Channel::setNotice(const std::string& newNotice) {
+	_notice = newNotice;
+}
+
+void Channel::setWelcomeMsg(const std::string& newWelcomeMsg){
+	_welcomMsg = newWelcomeMsg;
 }
 
 void Channel::setName(const std::string& name){
@@ -157,9 +172,11 @@ void Channel::sendToClients(){
 	
 	for (std::map<std::string, Client*>::iterator iter = _clientList.begin(); iter != _clientList.end(); ++iter)
 	{
-		std::cout << "sendToClients() message: " << iter->second->getNickName() << ": " << msg << "\n";
+		if (iter->second == NULL)
+			continue;
 		if (send(iter->second->getSocketNumber(), msg.c_str(), msg.length(), MSG_DONTWAIT) == -1)
 			throw ErrorHandler::SendException();
+		std::cout << "sendToClients() message: " << iter->second->getNickName() << ": " << msg << "\n";
 	}
 	messageHandler.flushOutput();
 }
@@ -171,14 +188,15 @@ void Channel::sendToClients(std::set<int>& isSent){
 	if(_clientList.size() != 0) {
 		for (std::map<std::string, Client*>::iterator iter = _clientList.begin(); iter != _clientList.end(); ++iter)
 		{
+			if (iter->second == NULL)
+				continue;
 			int curFd = iter->second->getSocketNumber();
 			if (isSent.find(curFd) != isSent.end())
 				continue;
-			std::cout << "sendToClients() message: " << iter->second->getNickName() << ": " << msg << "\n";
 			isSent.insert(curFd);
-			//std::cout << "msg: " << msg << "\n";
 			if (send(iter->second->getSocketNumber(), msg.c_str(), msg.length(), MSG_DONTWAIT) == -1)
 				throw ErrorHandler::SendException();
+			std::cout << "sendToClients() message: " << iter->second->getNickName() << ": " << msg << "\n";
 		}
 	}
 	messageHandler.flushOutput();

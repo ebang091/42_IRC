@@ -11,7 +11,6 @@
 /* ************************************************************************** */
 
 #include "Parser.hpp"
-#include "EventHandler.hpp"
 
 Parser& Parser::getInstance(){
 	static Parser instance;

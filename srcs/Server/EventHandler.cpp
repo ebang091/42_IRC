@@ -115,7 +115,7 @@ void EventHandler::listenToClients(){
 						disconnectCurClient(_curEvent);
                     }
                     
-                    test();
+                    //test();
                 }
 			}
         }

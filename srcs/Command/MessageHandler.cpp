@@ -1,5 +1,6 @@
 #include "MessageHandler.hpp"
 #include "EventHandler.hpp"
+#include "Bot.hpp"
 
 MessageHandler::MessageHandler()
 :_userName("")
@@ -210,7 +211,7 @@ void MessageHandler::sendErrorWithCmdAndReason(NUMERIC::CODE code){
 	sendMessage();
 }
 
-void MessageHandler::sendErrorUnknownError(const std::string& reason){
+void MessageHandler::sendErrorUnknown(const std::string& reason){
 	setServerInfo(NUMERIC::UNKNOWN_ERR);
 	_replyMsg += reason + "\n";
 
@@ -249,7 +250,11 @@ one!root@127.0.0.1 JOIN :#b
 void MessageHandler::sendJoinSuccess(){
 	// sendMessage();
 	// one!root@127.0.0.1 JOIN :#b
-	
+
+	/*
+
+	_replyMsg += _command + " " + _channel + " " + _description + "\n";
+	*/	
 	setCallerInfo();
 	_replyMsg += _command + " :" + _channel + "\n";
 	setBroadCastMsg();
@@ -261,6 +266,10 @@ void MessageHandler::sendJoinSuccess(){
 	isSent.insert(_clientSocket);
 	if(_eventHandler->getRequestChannel() != NULL)
 		_eventHandler->getRequestChannel()->sendToClients(isSent);
+	
+	_command = "PRIVMSG";
+	
+	Bot::getInstance().sendWelcomeMessage(_channel);
 }
 
 	// q!root@127.0.0.1 QUIT :Quit: byt bye
@@ -358,19 +367,17 @@ void MessageHandler::sendErrorNoModeParam(){
 void MessageHandler::sendPrivMsgToUser(){
 	setCallerInfo();
 	//
-	_replyMsg += _command + " " + _nickName + " " + _description + "\n";
+	_replyMsg += _command + " " + _targetName + " " + _description + "\n";
 	
 	sendMessage();
 }
 
 // two!root@127.0.0.1 PRIVMSG #f :hi
-void MessageHandler::sendPrivMsgToChannel(){
+void MessageHandler::sendPrivMsgToChannel(std::set<int>& isSent){
 	setCallerInfo();
 	_replyMsg += _command + " " + _channel + " " + _description + "\n";
 	setBroadCastMsg();
 	
-	std::set<int> isSent;
-	isSent.insert(_clientSocket);
 	_eventHandler->getRequestChannel()->sendToClients(isSent);
 }
 

@@ -11,6 +11,17 @@ Client::Client(int socketNumber)
 {
 }
 
+Client::Client(const std::string& nickName, const std::string& userName, const std::string& host)
+	: _nickname(nickName)
+    , _username(userName)
+    , _realname("")
+    , _host(host)
+    , _recvBuffer("")
+    , _auth(0)
+    , _socketNumber(1)
+{
+}
+
 const std::string& Client::getNickName() const{
     return this->_nickname;
 }

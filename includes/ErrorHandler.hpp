@@ -7,6 +7,9 @@
 
 class ErrorHandler
 {
+private:
+	ErrorHandler(){};
+
 public:
 	class PortNmberException : public std::exception{
 	public:

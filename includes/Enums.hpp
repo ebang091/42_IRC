@@ -45,10 +45,21 @@
 #define GET_SENT_AUTH(auth) (auth) & AUTH::SENT
 #define SWITCH_SENT_AUTH(auth) (auth) ^ AUTH::SENT
 
-namespace PERMISSION
-{
-	enum CODE
-	{
+#define BOT_NAME "ebangBot"
+
+namespace BOT{
+	enum CODE{
+		FAIL = 0,
+        CMD_NOT_FOUND = 1,
+        GET_NOTICE = 8,
+        SET_NOTICE = 12,
+        GET_WELCOME = 10,
+        SET_WELCOME = 15
+	};
+};
+
+namespace PERMISSION{
+	enum CODE{
 		N = 1,	// 0000 0001
         I = 2,	// 0000 0010
         T = 4,	// 0000 0100
@@ -60,12 +71,10 @@ namespace PERMISSION
 
 namespace AUTH{
 	enum CODE{
-
 		USER = 1,
 		PASS = 2,
 		SENT = 4,
 		NICK = 8
-
 	};
 };
 

@@ -10,18 +10,19 @@
 #include "Channel.hpp"
 #include "ClientManager.hpp"
 #include "ErrorHandler.hpp"
+#include "Bot.hpp"
 
 class EventHandler;
+class ClientManager;
 
 class MessageHandler{
 private:
-    EventHandler *_eventHandler;  
-    ClientManager *_clientManager;  
     std::map<NUMERIC::CODE, std::string> codeMap;
-    int           _clientSocket;
-    NUMERIC::CODE _rplCode; //성공이거나 실패 시 저장
+    EventHandler	*_eventHandler;  
+    ClientManager	*_clientManager;  
+    int				_clientSocket;
+    NUMERIC::CODE	_rplCode; //성공이거나 실패 시 저장
 
-    
     std::string _userName;
     std::string _targetName;
     std::string _nickName;
@@ -36,38 +37,11 @@ private:
 
     std::string _replyMsg;
     std::string _broadcastMsg;
-    //CAP : 출력이 다... -> ???=
-    //JOIN -> 채널 정보-> '\n' 추가하면서 한 줄로 만들기??=
-
-    //userinfo
-    //[nick]!host@ip
-    
-    //command 
-    //reason
-    //params
-
-    //errormessage format
-    //[servername] [errcode] [user] [command] : [reason]
-
-    //channel message format
-    //[nick]!host@ip [command] [params]
-
-    //params 는 command 에 종속적.
-    
-    //example
-    //[command] [params]
-
-    //[NICK] [:newNickname]
-    //[JOIN] [:#myCh]
-    //[INVITE] 
-    //[TOPIC] [#myCh : newTopic]
-    //[MODE] [#a : +i]
-    //[PART] [:#myCh]
-    //[QUIT] [:Quit: msg]
-    //
 
 private:
     MessageHandler();
+
+private:
     void serializeChannelClientList();
     void sendMessage();
     void setCallerInfo();
@@ -99,10 +73,10 @@ public:
 
     void sendInviteWithNickAndTargetUserAndChannel();
     void sendPrivMsgToUser();
-    void sendPrivMsgToChannel();
+    void sendPrivMsgToChannel(std::set<int>& isSet);
     void sendPartSuccess();
     void sendConnectionSuccess();
-    void sendErrorUnknownError(const std::string& reason);
+    void sendErrorUnknown(const std::string& reason);
     void sendErrorWithCommand(NUMERIC::CODE code);
     void sendJoinSuccess();
     void sendNickSuccess();

@@ -10,6 +10,7 @@
 #include "Client.hpp"
 #include "Enums.hpp"
 #include "ErrorHandler.hpp"
+#include "Bot.hpp"
 
 class Channel{
 public:
@@ -24,7 +25,9 @@ private:
 	Topic		 _topic;
 	std::string _name;
 	std::string _password;
-	size_t 		_limit;
+	std::string _notice;
+	std::string _welcomMsg;
+	size_t 		_limit;	
 	char _permissions;
     time_t _creationTime;
 	std::map<std::string, Client*> _clientList;
@@ -32,7 +35,6 @@ private:
 	std::map<std::string, Client*> _invitedList;
 
 public:
-    Channel();
 	Channel(const std::string& channelName, Client* client);
 
 public:
@@ -44,8 +46,11 @@ public:
 	time_t getCreationTime() const;
 	time_t getTopicCreationTime() const;
 	int getLimit() const;
-	
+	const std::string& getNotice() const;
+	const std::string& getWelcomeMsg() const;
 
+	void setNotice(const std::string& newNotice);
+	void setWelcomeMsg(const std::string& newWelcomeMsg);
 	void setName(const std::string& name);
 	void setTopic(const std::string& topic, Client *setUser);
 	void setPassword(const std::string& password);

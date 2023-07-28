@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: eunjungbang <eunjungbang@student.42.fr>    +#+  +:+       +#+        */
+/*   By: ebang <ebang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/14 12:28:35 by ebang             #+#    #+#             */
-/*   Updated: 2023/07/25 23:53:17 by eunjungbang      ###   ########.fr       */
+/*   Updated: 2023/07/28 16:14:37 by ebang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,8 @@ private:
     time_t _creationTime;
     int _portNumber;
 	std::string _passWord;
+
+private:
     Server();
 
 public:

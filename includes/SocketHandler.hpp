@@ -13,9 +13,12 @@ class SocketHandler{
 private:
     int _serverSocket;
 
+private:
+    SocketHandler(){};
+
 public:
-    int getServerSocket();
     static SocketHandler& getInstance();
+    int getServerSocket();
     void makeSocketAndListen(int portNumber);
 };
 

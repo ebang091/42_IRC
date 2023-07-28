@@ -19,9 +19,11 @@ private:
 	MessageHandler* _messageHandler;
 
 private:
+	FSM();
+
+private:
 	INPUT::CODE getInput(char c) const;
 	void executeAndChangeState(STATE::CODE &state, std::queue<std::string>& params, char c);
-	
 	void plusN(std::queue<std::string>& params, STATE::CODE& state);
 	void plusT(std::queue<std::string>& params, STATE::CODE& state);
 	void plusI(std::queue<std::string>& params, STATE::CODE& state);
@@ -38,11 +40,9 @@ private:
 	void toMinus(std::queue<std::string>& params, STATE::CODE& state);
 	
 public:
-	FSM();
 	void setMessageHandler(MessageHandler *messagehandler);
     void executeMode(std::queue<std::string>& params, const std::string& options);
     static FSM& getInstance();
-    
 };
 
 #endif

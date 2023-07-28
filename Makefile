@@ -6,7 +6,7 @@
 #    By: ebang <ebang@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/07/13 19:22:49 by kwsong            #+#    #+#              #
-#    Updated: 2023/07/27 18:19:07 by ebang            ###   ########.fr        #
+#    Updated: 2023/07/28 16:24:47 by ebang            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -27,7 +27,8 @@ SRCS_FILE = main.cpp \
 		Channel/ChannelManager.cpp \
 		Channel/Channel.cpp \
 		Client/ClientManager.cpp \
-		Client/Client.cpp
+		Client/Client.cpp \
+		Bot/Bot.cpp
 OBJS_FILE = $(SRCS_FILE:.cpp=.o)
 
 SRCS_DIR = ./srcs/

@@ -1,14 +1,11 @@
 #include "CommandHandler.hpp"
-#include "EventHandler.hpp"
-#include "Server.hpp"
-#include "Parser.hpp"
-#include "MessageHandler.hpp"
-#include <bitset>
+
 
 CommandHandler& CommandHandler::getInstance(){
 	static CommandHandler instance;
 	return instance;
 }
+
 CMD::CODE CommandHandler::identifyCommand(const std::string& cmd){
     const std::string title[CMD::SIZE] = {"PING", "CAP", "QUIT", "NICK", "JOIN", "KICK", 
 										"INVITE", "TOPIC", "MODE", "PART", 
@@ -140,7 +137,6 @@ void CommandHandler::join(std::vector<std::string>& parameters){
 	if (parameters.size() >= 2)
 		_parser->parseByDelimeter(',', parameters[1], keyList);
 
-	std::cout << "*** " << channelList.size() << "\n";
     while (channelList.empty() == false){
         channelName = channelList.front();
 		channelList.pop();
@@ -175,7 +171,6 @@ void CommandHandler::join(std::vector<std::string>& parameters){
 					keyList.pop();
 				}
 				if(GET_PERMISSION_I(foundChannel->getPermissions())){ //i option
-					//invitedList 확인
 					if(!foundChannel->getInviteByNick(callerName)){
 						_messageHandler->sendErrorWithChannel(NUMERIC::INVITE_ONLY_CHAN);
 						continue;
@@ -414,7 +409,7 @@ void CommandHandler::privmsg(std::vector<std::string>& parameters){
 	std::string description;
 	
 	if (parameters.size() < 2)
-		return;//no param
+		return; //no param
 
 	target = parameters[0];
 
@@ -429,11 +424,16 @@ void CommandHandler::privmsg(std::vector<std::string>& parameters){
 		return _messageHandler->sendErrorWithChannel(NUMERIC::NO_SUCH_CHAN);
 	else if (code == NUMERIC::BAD_CHAN_MASK)
 	{
+		std::cout << "*** " << target << "\n";
 		_messageHandler->setTargetName(target);
-		if (!_clientManager->getClientByNick(target))
+		if (target != BOT_NAME && !_clientManager->getClientByNick(target))
 			return _messageHandler->sendErrorWithNickAndTargetName(NUMERIC::NO_SUCH_NICK);
 		
-		_messageHandler->setRequestClientSocket(_clientManager->getClientByNick(target)->getSocketNumber());	
+		Bot& bot = Bot::getInstance();
+		if (target == bot.getName())
+			return bot.sendMessage(parameters, _client);
+
+		_messageHandler->setRequestClientSocket(_clientManager->getClientByNick(target)->getSocketNumber());
 		_messageHandler->sendPrivMsgToUser();
 	}
 	else 
@@ -442,7 +442,10 @@ void CommandHandler::privmsg(std::vector<std::string>& parameters){
 		if (!_eventHandler->getRequestChannel()->getClientByNick(_client->getNickName()))
 			return _messageHandler->sendErrorWithChannel(NUMERIC::CANNOTSENDTOCHAN);
 		std::cout << "message send! in privmsg\n";
-		_messageHandler->sendPrivMsgToChannel();
+
+		std::set<int> isSent;
+		isSent.insert(_client->getSocketNumber());
+		_messageHandler->sendPrivMsgToChannel(isSent);
 	}
 	std::cout << "NICK success\n";
 }
@@ -467,13 +470,13 @@ void CommandHandler::user(std::vector<std::string>& parameters){
 	host = parameters[2];
 
 	if (userName != parameters[1])
-		return _messageHandler->sendErrorUnknownError("user name not same");
+		return _messageHandler->sendErrorUnknown("user name not same");
 	
 	if (userName.size() > CONFIG::USERLEN)
 		userName = userName.substr(0, CONFIG::USERLEN);
 	
 	if (!_client->checkHost(_client->getSocketNumber(), host))
-		return _messageHandler->sendErrorUnknownError("invalid host");
+		return _messageHandler->sendErrorUnknown("invalid host");
 	
 	std::string realName = "";
 	getDescription(parameters, 3, realName);

@@ -8,10 +8,10 @@
 #include <sys/socket.h>
 #include "Enums.hpp"
 
-
 class Client{
 public:
 	Client(int socketNumber);
+    Client(const std::string& nickName, const std::string& userName, const std::string& host);
 
 private:
     std::string _nickname;
