@@ -40,10 +40,9 @@ void EventHandler::init(){
 }
 
 void EventHandler::listenToClients(){
-    Parser &parser = Parser::getInstance();
 	init();
 
-    while (1)
+    while (true)
     {
         _numberOfNewEvents = kevent(_kq, &_changeList[0], _changeList.size(), _event_list, EVENT_BUFFER_SIZE, NULL);
         if (_numberOfNewEvents == -1)
@@ -58,34 +57,15 @@ void EventHandler::listenToClients(){
             {
                 if (static_cast<int>(_curEvent->ident) == _serverSocket)
 					throw ErrorHandler::KeventException();
-                disconnectCurClient();
+                else
+                    disconnectCurClient();
             }
 			else if (_curEvent->filter == EVFILT_READ)
 			{
 				if (static_cast<int>(_curEvent->ident) == _serverSocket)
                     acceptNewClient();
-                else{
-                    /* read data from client */
-                    char buf[READ_BUFFER_SIZE];
-					int n = recv(_curEvent->ident, buf, READ_BUFFER_SIZE, MSG_DONTWAIT);
-                    this->_requestClient = _clientManager->getClientByFD(_curEvent->ident); 
-                    
-                    std::cout << "recv len : " << n << + ", " + std::string(buf) + "\n";
-					if (n == -1){
-                        disconnectCurClient();
-						continue;
-					}
-                    buf[n] = '\0';
-                    try{
-                    	parser.parseCommandsAndExecute(buf);//client->clearbuffer 파싱하고 실행
-                    }
-                    catch(const std::exception& e){
-                        std::cerr << e.what() << '\n';
-						disconnectCurClient();
-                    }
-                    
-                    //test();
-                }
+                else
+                    transportData();
 			}
         }
     }
@@ -109,14 +89,34 @@ void EventHandler::acceptNewClient(){
         return;
     
     fcntl(clientSocket, F_SETFL, O_NONBLOCK);
-    /* add event for client socket - add read && write event */
     changeEvents(_changeList, clientSocket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
     _clientManager->insertClientByFD(clientSocket);
     //std::cout << "\n****client buffer : " << clientManager.getClientByFD(clientSocket)->getBuffer() << "\n";
 }
 
 void EventHandler::transportData(){
+    Parser &parser = Parser::getInstance();
 
+    char buf[READ_BUFFER_SIZE];
+	int n = recv(_curEvent->ident, buf, READ_BUFFER_SIZE, MSG_DONTWAIT);
+    this->_requestClient = _clientManager->getClientByFD(_curEvent->ident); 
+    
+    std::cout << "recv len : " << n << + ", " + std::string(buf) + "\n";
+	if (n == -1){
+        disconnectCurClient();
+		return;
+	}
+
+    buf[n] = '\0';
+    try{
+    	parser.parseCommandsAndExecute(buf);
+    }
+    catch(const std::exception& e){
+        std::cerr << e.what() << '\n';
+		disconnectCurClient();
+    }
+    
+    //test();
 }    
 
 Client* EventHandler::getRequestClient() const

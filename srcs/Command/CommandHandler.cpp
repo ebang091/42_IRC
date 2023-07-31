@@ -104,9 +104,8 @@ void CommandHandler::nick(std::vector<std::string>& parameters){
 		else
 			return _messageHandler->sendErrorWithNickAndTargetName(NUMERIC::DUP_NICK);
     }
-
     if(candidateNickname.length() > CONFIG::NICKLEN)
-        return _messageHandler->sendErrorWithNickAndTargetName(NUMERIC::INVALID_NICK);
+    	return _messageHandler->sendErrorWithNickAndTargetName(NUMERIC::INVALID_NICK);
 
 	_messageHandler->sendNickSuccess();
 	
