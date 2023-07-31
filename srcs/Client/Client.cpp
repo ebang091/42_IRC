@@ -6,6 +6,7 @@ Client::Client(int socketNumber)
     , _realname("")
     , _host("")
     , _recvBuffer("")
+    , _sendBuffer("")
     , _auth(0)
     , _socketNumber(socketNumber)
 {
@@ -17,6 +18,7 @@ Client::Client(const std::string& nickName, const std::string& userName, const s
     , _realname("")
     , _host(host)
     , _recvBuffer("")
+    , _sendBuffer("")
     , _auth(0)
     , _socketNumber(1)
 {
@@ -68,6 +70,14 @@ void Client::clearBuffer(){
 
 const std::string& Client::getBuffer(){
     return this->_recvBuffer;
+}
+
+const std::string& Client::getSendBuffer() const{
+    return this->_sendBuffer;
+}
+
+void Client::setSendBuffer(const std::string &buffer) {
+    this->_sendBuffer = buffer;
 }
 
 bool Client::checkHost(int clientSocket, const std::string& newHost){

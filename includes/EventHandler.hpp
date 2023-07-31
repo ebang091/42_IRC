@@ -6,7 +6,7 @@
 /*   By: ebang <ebang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/14 13:18:51 by ebang             #+#    #+#             */
-/*   Updated: 2023/07/31 16:16:34 by ebang            ###   ########.fr       */
+/*   Updated: 2023/07/31 17:35:14 by ebang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,8 +46,8 @@ private:
     void acceptNewClient();
     void transportData();
     void disconnectCurClient();
-	void changeEvents(std::vector<struct kevent>& changeList, uintptr_t ident, int16_t filter,\
-                    uint16_t flags, uint32_t fflags, intptr_t data, void *udata);
+	void changeEvents(uintptr_t ident, int16_t filter, uint16_t flags, \
+                    uint32_t fflags, intptr_t data, void *udata);
 
 public:
 	static EventHandler& getInstance();
@@ -55,6 +55,8 @@ public:
     Client *getRequestClient() const;
     Channel *getRequestChannel()const;
     void setRequestChannel(Channel* channel);
+
+    void sendRemainBuffer(Client* curClient);
 };
 
 

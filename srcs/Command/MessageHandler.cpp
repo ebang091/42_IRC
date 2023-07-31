@@ -357,9 +357,15 @@ void MessageHandler::sendPrivMsgToChannel(std::set<int>& isSent){
 }
 
 void MessageHandler::sendMessage(){
-	if (send(_clientSocket, _replyMsg.c_str(), _replyMsg.length(), MSG_DONTWAIT) == -1)
-		throw ErrorHandler::SendException();
-	flushOutput();
+	Client* curClient = _clientManager->getClientByFD(_clientSocket);
+	std::string sendBuffer = curClient->getSendBuffer();
+
+	ssize_t result = send(_clientSocket, _replyMsg.c_str(), _replyMsg.length(), MSG_DONTWAIT);
+	if (result == sendBuffer.length())
+		return flushOutput();
+	if (result == -1)
+       	result = 0;
+	curClient->setSendBuffer(sendBuffer.substr(result, sendBuffer.size() - result));
 }
 
 void MessageHandler::flushOutput(){

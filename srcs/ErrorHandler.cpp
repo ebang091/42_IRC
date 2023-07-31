@@ -40,11 +40,6 @@ const char* ErrorHandler::KeventException::what() const throw()
 	return "Error : failed kevent()";
 }
 
-const char* ErrorHandler::SendException::what() const throw()
-{
-	return "Error : failed send()";
-}
-
 const char* ErrorHandler::QuitException::what() const throw()
 {
 	return "Quit User";

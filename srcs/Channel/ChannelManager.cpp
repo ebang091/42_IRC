@@ -6,7 +6,7 @@
 /*   By: ebang <ebang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/14 12:28:31 by ebang             #+#    #+#             */
-/*   Updated: 2023/07/31 16:57:04 by ebang            ###   ########.fr       */
+/*   Updated: 2023/07/31 17:22:26 by ebang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,6 @@ ChannelManager& ChannelManager::getInstance(){
 }
 
 void ChannelManager::insertChannel(const std::string& channelName, Client *client){
-
     if(_channels.find(channelName) == _channels.end()){
 		  _channels.insert(std::make_pair(channelName, new Channel(channelName, client)));
     }

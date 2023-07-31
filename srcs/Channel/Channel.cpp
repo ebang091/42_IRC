@@ -169,12 +169,18 @@ void Channel::sendToClients(){
 	MessageHandler& messageHandler = MessageHandler::getInstance();
 	std::string msg = messageHandler.getBroadcastMsg();
 	
-	for (std::map<std::string, Client*>::iterator iter = _clientList.begin(); iter != _clientList.end(); ++iter)
-	{
+	for (std::map<std::string, Client*>::iterator iter = _clientList.begin(); iter != _clientList.end(); ++iter){
 		if (iter->second == NULL)
 			continue;
-		if (send(iter->second->getSocketNumber(), msg.c_str(), msg.length(), MSG_DONTWAIT) == -1)
-			throw ErrorHandler::SendException();
+
+		std::string sendBuffer = iter->second->getSendBuffer();
+		ssize_t result = send(iter->second->getSocketNumber(), msg.c_str(), msg.length(), MSG_DONTWAIT);
+		if (result == sendBuffer.length())
+			continue;
+		if (result == -1)
+        	result = 0;
+	    iter->second->setSendBuffer(sendBuffer.substr(result, sendBuffer.size() - result));
+
 		std::cout << "sendToClients() message: " << iter->second->getNickName() << ": " << msg << "\n";
 	}
 	messageHandler.flushOutput();
@@ -185,16 +191,22 @@ void Channel::sendToClients(std::set<int>& isSent){
 	std::string msg = messageHandler.getBroadcastMsg();
 
 	if(_clientList.size() != 0) {
-		for (std::map<std::string, Client*>::iterator iter = _clientList.begin(); iter != _clientList.end(); ++iter)
-		{
+		for (std::map<std::string, Client*>::iterator iter = _clientList.begin(); iter != _clientList.end(); ++iter){
 			if (iter->second == NULL)
 				continue;
 			int curFd = iter->second->getSocketNumber();
 			if (isSent.find(curFd) != isSent.end())
 				continue;
 			isSent.insert(curFd);
-			if (send(iter->second->getSocketNumber(), msg.c_str(), msg.length(), MSG_DONTWAIT) == -1)
-				throw ErrorHandler::SendException();
+
+			std::string sendBuffer = iter->second->getSendBuffer();
+			ssize_t result = send(iter->second->getSocketNumber(), msg.c_str(), msg.length(), MSG_DONTWAIT);
+			if (result == sendBuffer.length())
+				continue;
+			if (result == -1)
+				result = 0;
+			iter->second->setSendBuffer(sendBuffer.substr(result, sendBuffer.size() - result));
+
 			std::cout << "sendToClients() message: " << iter->second->getNickName() << ": " << msg << "\n";
 		}
 	}

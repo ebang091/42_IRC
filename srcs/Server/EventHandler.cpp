@@ -2,7 +2,7 @@
 
 EventHandler::EventHandler()
 	: _requestClient(NULL)
-    , _changeList()
+	, _changeList()
 {
 }
 
@@ -11,116 +11,128 @@ EventHandler& EventHandler::getInstance(){
 	return instance;
 }
 
-void EventHandler::changeEvents(std::vector<struct kevent>& changeList, uintptr_t ident, int16_t filter,
-        uint16_t flags, uint32_t fflags, intptr_t data, void *udata){
-    struct kevent temp_event;
+void EventHandler::changeEvents(uintptr_t ident, int16_t filter,
+		uint16_t flags, uint32_t fflags, intptr_t data, void *udata){
+	struct kevent temp_event;
 
-    EV_SET(&temp_event, ident, filter, flags, fflags, data, udata);
-    changeList.push_back(temp_event);
+	EV_SET(&temp_event, ident, filter, flags, fflags, data, udata);
+	_changeList.push_back(temp_event);
 }
 
 void test(){
-    std::cout << "---- TEST -----\n";
-    ClientManager& clm = ClientManager::getInstance();
-    ChannelManager& chm = ChannelManager::getInstance();
+	std::cout << "---- TEST -----\n";
+	ClientManager& clm = ClientManager::getInstance();
+	ChannelManager& chm = ChannelManager::getInstance();
 
-    clm.printClients();
-    chm.printChannels();
-    std::cout << "\n";
+	clm.printClients();
+	chm.printChannels();
+	std::cout << "\n";
 }
 
 void EventHandler::init(){
 	_serverSocket = SocketHandler::getInstance().getServerSocket();
-    _clientManager = &ClientManager::getInstance();
-    _kq = kqueue();
-    if (_kq == -1)
+	_clientManager = &ClientManager::getInstance();
+	_kq = kqueue();
+	if (_kq == -1)
 		throw ErrorHandler::KqueueException();
 
-    changeEvents(_changeList, _serverSocket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+	changeEvents(_serverSocket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
 }
 
 void EventHandler::listenToClients(){
 	init();
 
-    while (true)
-    {
-        _numberOfNewEvents = kevent(_kq, &_changeList[0], _changeList.size(), _event_list, EVENT_BUFFER_SIZE, NULL);
-        if (_numberOfNewEvents == -1)
-            throw ErrorHandler::KeventException();
+	while (true)
+	{
+		_numberOfNewEvents = kevent(_kq, &_changeList[0], _changeList.size(), _event_list, EVENT_BUFFER_SIZE, NULL);
+		if (_numberOfNewEvents == -1)
+			throw ErrorHandler::KeventException();
 
-        _changeList.clear(); 
-        for (int i = 0; i < _numberOfNewEvents; ++i){
-            _curEvent = &_event_list[i];
+		_changeList.clear(); 
+		for (int i = 0; i < _numberOfNewEvents; ++i){
+			_curEvent = &_event_list[i];
 
-             /* check error event return */
-            if (_curEvent->flags & EV_ERROR || _curEvent->flags & EV_EOF){
-                if (static_cast<int>(_curEvent->ident) == _serverSocket)
+			if (_curEvent->flags & EV_ERROR || _curEvent->flags & EV_EOF){
+				if (static_cast<int>(_curEvent->ident) == _serverSocket)
 					throw ErrorHandler::KeventException();
-                else
-                    disconnectCurClient();
-            }
+				else
+					disconnectCurClient();
+			}
 			else if (_curEvent->filter == EVFILT_READ){
 				if (static_cast<int>(_curEvent->ident) == _serverSocket)
-                    acceptNewClient();
-                else
-                    transportData();
+					acceptNewClient();
+				else
+					transportData();
 			}
-            else if (_curEvent->filter == EVFILT_WRITE){
-                // send to clients
+			else if (_curEvent->filter == EVFILT_WRITE){
+                Client* curClient = _clientManager->getClientByFD(_curEvent->filter);
+                if (!curClient->getSendBuffer().empty())
+                    sendRemainBuffer(curClient);
             }
         }
-    }
+	}
 }
 
-void EventHandler::disconnectCurClient()
-{
+void EventHandler::sendRemainBuffer(Client* curClient){
+    std::string sendBuffer = curClient->getSendBuffer();
+
+    unsigned long result = send(curClient->getSocketNumber(), sendBuffer.c_str(), sendBuffer.length(), MSG_DONTWAIT);
+    // result와 sendBuffer.length() 비교 시 형변환
+    if (result == sendBuffer.length())
+        sendBuffer.clear();
+    else if (result != std::numeric_limits<unsigned long>::max())
+        curClient->setSendBuffer(sendBuffer.substr(result, sendBuffer.size() - result));
+}
+
+void EventHandler::disconnectCurClient(){
 	ClientManager &clientManager = ClientManager::getInstance();
 	Client* curClient = clientManager.getClientByFD(_curEvent->ident);
 	
 	ChannelManager::getInstance().eraseClientAllChannels(curClient->getNickName());
 	clientManager.eraseClientByNick(curClient->getNickName());
 	clientManager.eraseClientByFD(_curEvent->ident);
-    close(_curEvent->ident);
+	close(_curEvent->ident);
 }
 
 void EventHandler::acceptNewClient(){
-    int clientSocket;
-                    
-    if ((clientSocket = accept(_serverSocket, NULL, NULL)) == -1)
-        return;
-    
-    fcntl(clientSocket, F_SETFL, O_NONBLOCK);
-    changeEvents(_changeList, clientSocket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
-    _clientManager->insertClientByFD(clientSocket);
+	int clientSocket;
+					
+	if ((clientSocket = accept(_serverSocket, NULL, NULL)) == -1)
+		return;
+	
+	fcntl(clientSocket, F_SETFL, O_NONBLOCK);
+	changeEvents(clientSocket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+	_clientManager->insertClientByFD(clientSocket);
 }
 
 void EventHandler::transportData(){
-    Parser &parser = Parser::getInstance();
+	Parser &parser = Parser::getInstance();
 
-    char buf[READ_BUFFER_SIZE];
+	char buf[READ_BUFFER_SIZE];
 	int n = recv(_curEvent->ident, buf, READ_BUFFER_SIZE, MSG_DONTWAIT);
-    this->_requestClient = _clientManager->getClientByFD(_curEvent->ident); 
-    
+	this->_requestClient = _clientManager->getClientByFD(_curEvent->ident); 
+	
 	if (n == -1){
-        disconnectCurClient();
+		disconnectCurClient();
 		return;
 	}
 
-    buf[n] = '\0';
-    try{
-    	parser.parseCommandsAndExecute(buf);
-    }
-    catch(const std::exception& e){
-        std::cerr << e.what() << '\n';
+	buf[n] = '\0';
+    // send()
+	try{
+		parser.parseCommandsAndExecute(buf);
+	}
+	catch(const std::exception& e){
+		std::cerr << e.what() << '\n';
 		disconnectCurClient();
-    }
-    
-    //test();
+	}
+	
+	//test();
 }    
 
 Client* EventHandler::getRequestClient() const
 {
-    return _requestClient;
+	return _requestClient;
 }
 
 Channel* EventHandler::getRequestChannel()const

@@ -19,6 +19,7 @@ private:
     std::string _realname;
     std::string _host;
     std::string _recvBuffer;
+    std::string _sendBuffer;
     char _auth;
     int _socketNumber;
 
@@ -37,11 +38,13 @@ public:
 	const std::string& getRealName() const;
     const std::string& getHost() const;
 	int getSocketNumber() const;
+    const std::string& getSendBuffer() const;
 	
     void setNickName(const std::string& newNickName);
     void setUserName(const std::string& newUserName);
     void setRealName(const std::string& newRealName);
     void setHost(const std::string& newHost);
+    void setSendBuffer(const std::string &buffer);
 
     bool checkHost(int clientSocket, const std::string& newHost);
 };
