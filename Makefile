@@ -6,7 +6,7 @@
 #    By: ebang <ebang@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/07/13 19:22:49 by kwsong            #+#    #+#              #
-#    Updated: 2023/07/28 16:24:47 by ebang            ###   ########.fr        #
+#    Updated: 2023/07/31 16:06:08 by ebang            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -56,14 +56,8 @@ re		:
 	$(MAKE) fclean
 	$(MAKE) all
 
-n1		:
-	nc 127.0.0.1 4242
-
-n2		:
-	nc 127.0.0.1 4242
-
-n3		:
-	nc 127.0.0.1 4242
+nc		:
+	nc -c 127.0.0.1 4242
 
 c1		:
 	irssi -c 127.0.0.1 -p 4242 -n one -w 1234
@@ -74,5 +68,11 @@ c2		:
 c3		:
 	irssi -c 127.0.0.1 -p 4242 -n three -w 1234
 
+c4		:
+	irssi -c 127.0.0.1 -p 4242 -n four -w 1234
 
-.PHONY	: all clean fclean re debug n1 n2 n3 c1 c2 c3
+c5		:
+	irssi -c 127.0.0.1 -p 4242 -n five -w 1234
+
+
+.PHONY	: all clean fclean re debug nc c1 c2 c3 c4 c5

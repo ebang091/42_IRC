@@ -93,7 +93,7 @@ void CommandHandler::nick(std::vector<std::string>& parameters){
 
 	_messageHandler->setTargetName(candidateNickname);
     if(candidateNickname.front() == CHANNEL_PREFIX || candidateNickname.front() == DESCRIPT_PREFIX
-		|| candidateNickname.find(7) != std::string::npos)
+		|| candidateNickname.find(7) != std::string::npos || candidateNickname.find(',') != std::string::npos)
 		return _messageHandler->sendErrorWithNickAndTargetName(NUMERIC::INVALID_NICK);
 	
     Client *foundDuplicate = _clientManager->getClientByNick(candidateNickname);

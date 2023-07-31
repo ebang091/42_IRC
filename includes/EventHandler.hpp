@@ -6,7 +6,7 @@
 /*   By: ebang <ebang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/14 13:18:51 by ebang             #+#    #+#             */
-/*   Updated: 2023/07/28 16:17:32 by ebang            ###   ########.fr       */
+/*   Updated: 2023/07/31 16:16:34 by ebang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,7 @@ class EventHandler{
 private:
     Client *_requestClient;
     Channel *_requestChannel;
+    ClientManager *_clientManager;
     std::vector<struct kevent> _changeList;
     struct kevent _event_list[EVENT_BUFFER_SIZE];
     struct kevent* _curEvent;
@@ -42,7 +43,9 @@ private:
 
 private:
     void init();
-    void disconnectCurClient(struct kevent* curEvent);
+    void acceptNewClient();
+    void transportData();
+    void disconnectCurClient();
 	void changeEvents(std::vector<struct kevent>& changeList, uintptr_t ident, int16_t filter,\
                     uint16_t flags, uint32_t fflags, intptr_t data, void *udata);
 

@@ -31,6 +31,7 @@ void test(){
 
 void EventHandler::init(){
 	_serverSocket = SocketHandler::getInstance().getServerSocket();
+    _clientManager = &ClientManager::getInstance();
     _kq = kqueue();
     if (_kq == -1)
 		throw ErrorHandler::KqueueException();
@@ -40,7 +41,6 @@ void EventHandler::init(){
 
 void EventHandler::listenToClients(){
     Parser &parser = Parser::getInstance();
-    ClientManager &clientManager = ClientManager::getInstance();
 	init();
 
     while (1)
@@ -58,34 +58,21 @@ void EventHandler::listenToClients(){
             {
                 if (static_cast<int>(_curEvent->ident) == _serverSocket)
 					throw ErrorHandler::KeventException();
-                disconnectCurClient(_curEvent);
+                disconnectCurClient();
             }
 			else if (_curEvent->filter == EVFILT_READ)
 			{
-				if (static_cast<int>(_curEvent->ident) == _serverSocket){
-                    /* accept new client */
-                    int clientSocket;
-                    
-                    if ((clientSocket = accept(_serverSocket, NULL, NULL)) == -1)
-                        continue;
-                    
-                    //client 와 통신해서 비밀번호 입력해야함
-                    fcntl(clientSocket, F_SETFL, O_NONBLOCK);
-
-                    /* add event for client socket - add read && write event */
-                    changeEvents(_changeList, clientSocket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
-                    clientManager.insertClientByFD(clientSocket);
-                    std::cout << "\n****client buffer : " << clientManager.getClientByFD(clientSocket)->getBuffer() << "\n";
-                }
+				if (static_cast<int>(_curEvent->ident) == _serverSocket)
+                    acceptNewClient();
                 else{
                     /* read data from client */
                     char buf[READ_BUFFER_SIZE];
 					int n = recv(_curEvent->ident, buf, READ_BUFFER_SIZE, MSG_DONTWAIT);
-                    this->_requestClient = clientManager.getClientByFD(_curEvent->ident); 
+                    this->_requestClient = _clientManager->getClientByFD(_curEvent->ident); 
                     
                     std::cout << "recv len : " << n << + ", " + std::string(buf) + "\n";
 					if (n == -1){
-                        disconnectCurClient(_curEvent);
+                        disconnectCurClient();
 						continue;
 					}
                     buf[n] = '\0';
@@ -94,7 +81,7 @@ void EventHandler::listenToClients(){
                     }
                     catch(const std::exception& e){
                         std::cerr << e.what() << '\n';
-						disconnectCurClient(_curEvent);
+						disconnectCurClient();
                     }
                     
                     //test();
@@ -104,7 +91,7 @@ void EventHandler::listenToClients(){
     }
 }
 
-void EventHandler::disconnectCurClient(struct kevent* _curEvent)
+void EventHandler::disconnectCurClient()
 {
 	ClientManager &clientManager = ClientManager::getInstance();
 	Client* curClient = clientManager.getClientByFD(_curEvent->ident);
@@ -114,6 +101,23 @@ void EventHandler::disconnectCurClient(struct kevent* _curEvent)
 	clientManager.eraseClientByFD(_curEvent->ident);
     close(_curEvent->ident);
 }
+
+void EventHandler::acceptNewClient(){
+    int clientSocket;
+                    
+    if ((clientSocket = accept(_serverSocket, NULL, NULL)) == -1)
+        return;
+    
+    fcntl(clientSocket, F_SETFL, O_NONBLOCK);
+    /* add event for client socket - add read && write event */
+    changeEvents(_changeList, clientSocket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+    _clientManager->insertClientByFD(clientSocket);
+    //std::cout << "\n****client buffer : " << clientManager.getClientByFD(clientSocket)->getBuffer() << "\n";
+}
+
+void EventHandler::transportData(){
+
+}    
 
 Client* EventHandler::getRequestClient() const
 {

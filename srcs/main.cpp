@@ -4,12 +4,12 @@
 	1. 이벤트 핸들러 메인 함수 리팩토링 (모듈화 더
 
 
- 		1. buffer still exist after quit
+		1. buffer still exist after quit
 		2. privmsg to user (check return value of getDescription)
 		3. join() 167 line -> if (!keyList.empty()) keyList.pop()
 		4. empty key list -> bad channel key?? (msg)
 		5. join with empty parameter
-	6. server down when fail to send
+		6. server down when fail to send
 		7. privmsg to unauthed user ()
 		8. pop before check k permission at minusK
 		9. change nickname to Ctrl+G
