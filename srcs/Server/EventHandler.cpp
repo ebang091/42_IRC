@@ -76,11 +76,13 @@ void EventHandler::listenToClients(){
 void EventHandler::sendRemainBuffer(Client* curClient){
     std::string sendBuffer = curClient->getSendBuffer();
 
-    unsigned long result = send(curClient->getSocketNumber(), sendBuffer.c_str(), sendBuffer.length(), MSG_DONTWAIT);
-    // result와 sendBuffer.length() 비교 시 형변환
-    if (result == sendBuffer.length())
+	ssize_t result = send(curClient->getSocketNumber(), sendBuffer.c_str(), sendBuffer.length(), MSG_DONTWAIT);
+
+	if (result == -1)
+		return;
+    if (static_cast<size_t>(result) == sendBuffer.length())
         sendBuffer.clear();
-    else if (result != std::numeric_limits<unsigned long>::max())
+	else
         curClient->setSendBuffer(sendBuffer.substr(result, sendBuffer.size() - result));
 }
 
@@ -116,17 +118,15 @@ void EventHandler::transportData(){
 		disconnectCurClient();
 		return;
 	}
-
 	buf[n] = '\0';
-    // send()
 	try{
 		parser.parseCommandsAndExecute(buf);
 	}
 	catch(const std::exception& e){
+		std::cout << "here2";
 		std::cerr << e.what() << '\n';
 		disconnectCurClient();
 	}
-	
 	//test();
 }    
 

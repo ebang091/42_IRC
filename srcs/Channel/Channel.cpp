@@ -173,13 +173,12 @@ void Channel::sendToClients(){
 		if (iter->second == NULL)
 			continue;
 
-		std::string sendBuffer = iter->second->getSendBuffer();
 		ssize_t result = send(iter->second->getSocketNumber(), msg.c_str(), msg.length(), MSG_DONTWAIT);
-		if (result == sendBuffer.length())
-			continue;
 		if (result == -1)
-        	result = 0;
-	    iter->second->setSendBuffer(sendBuffer.substr(result, sendBuffer.size() - result));
+			result = 0;
+		else if (static_cast<size_t>(result) == msg.length())
+			continue;
+	    iter->second->setSendBuffer(msg.substr(result, msg.size() - result));
 
 		std::cout << "sendToClients() message: " << iter->second->getNickName() << ": " << msg << "\n";
 	}
@@ -199,13 +198,12 @@ void Channel::sendToClients(std::set<int>& isSent){
 				continue;
 			isSent.insert(curFd);
 
-			std::string sendBuffer = iter->second->getSendBuffer();
 			ssize_t result = send(iter->second->getSocketNumber(), msg.c_str(), msg.length(), MSG_DONTWAIT);
-			if (result == sendBuffer.length())
-				continue;
 			if (result == -1)
 				result = 0;
-			iter->second->setSendBuffer(sendBuffer.substr(result, sendBuffer.size() - result));
+			else if (static_cast<size_t>(result) == msg.length())
+				continue;
+			iter->second->setSendBuffer(msg.substr(result, msg.size() - result));
 
 			std::cout << "sendToClients() message: " << iter->second->getNickName() << ": " << msg << "\n";
 		}

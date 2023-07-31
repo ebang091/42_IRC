@@ -40,9 +40,8 @@ void FSM::executeMode(std::queue<std::string>& params, const std::string& option
     _client = _eventHandler->getRequestClient();
 	STATE::CODE state = STATE::NONE;
 
-    for(size_t i = 0; i < options.size(); i++){
+    for(size_t i = 0; i < options.size(); i++)
 		executeAndChangeState(state, params, options[i]);
-	}
 }
 
 INPUT::CODE FSM::getInput(char c) const{
@@ -174,7 +173,11 @@ void FSM::plusL(std::queue<std::string>& params, STATE::CODE& state){
 	limitStr = ss.str();
 	
 	char permissions = _channel->getPermissions();
-    _channel->setPermission(SWITCH_PERMISSION_L(permissions));	
+	if (!(GET_PERMISSION_L(permissions)))
+		_channel->setPermission(SWITCH_PERMISSION_L(permissions));
+	if (_channel->getLimit() == limitNum)
+		return;
+
 	_channel->setLimit(limitNum);
 	_messageHandler->setDescription(ss.str());
 	_messageHandler->sendModeSuccess();

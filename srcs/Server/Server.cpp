@@ -6,7 +6,7 @@
 /*   By: ebang <ebang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/14 12:28:31 by ebang             #+#    #+#             */
-/*   Updated: 2023/07/31 16:26:43 by ebang            ###   ########.fr       */
+/*   Updated: 2023/07/31 19:37:56 by ebang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,7 @@ void Server::run(std::string portnumber, std::string password){
     }
     catch (const std::exception& e)
     {
+        std::cout << "here1";
 		std::cout << e.what() << std::endl;
     }
 }

@@ -17,11 +17,11 @@ MessageHandler::MessageHandler()
 , _broadcastMsg("")
 {
 	// -- welcome
-	codeMap.insert(std::make_pair(NUMERIC::WELCOME, " :Welcome to the Localnet IRC Network"));  // 뒤에 three!root@127.0.0.1
+	codeMap.insert(std::make_pair(NUMERIC::WELCOME, " :Welcome to the Localnet IRC Network"));  
 	codeMap.insert(std::make_pair(NUMERIC::INTRO, " :Your host is irc.local, running version kwsongeban_ver0.0"));
-	codeMap.insert(std::make_pair(NUMERIC::SERVERCREATE, " :This server was created ")); // 뒤에 01:23:10 Jul 24 2023
+	codeMap.insert(std::make_pair(NUMERIC::SERVERCREATE, " :This server was created "));
 	codeMap.insert(std::make_pair(NUMERIC::MYINFO, " :irc.local ft_irc iosw biklmnopstv :bklov"));
-	codeMap.insert(std::make_pair(NUMERIC::CAPINFO, " :are supported by this server")); // 앞에 AWAYLEN=200 CASEMAPPING=rfc1459 CHANLIMIT=#:20 CHANMODES=b,k,l,imnpst CHANNELLEN=64 CHANTYPES=# ELIST=CMNTU HOSTLEN=64 KEYLEN=32 KICKLEN=255 LINELEN=512 MAXLIST=b:100
+	codeMap.insert(std::make_pair(NUMERIC::CAPINFO, " :are supported by this server")); 
 	codeMap.insert(std::make_pair(NUMERIC::USERINFO, "")); 
 	codeMap.insert(std::make_pair(NUMERIC::CLIENTINFO, ""));
 	codeMap.insert(std::make_pair(NUMERIC::MESSAGESTART, " :irc.local message of the day"));
@@ -183,14 +183,12 @@ void MessageHandler::sendInviteWithNickAndTargetUserAndChannel(){
 void MessageHandler::sendErrorWithNickAndTargetName(NUMERIC::CODE code){
 	setServerInfo(code);
 	_replyMsg += _nickName + " " + _targetName + " :" + _reason + "\n";
-
 	sendMessage();
 }
 
 void MessageHandler::sendErrorNoParam(NUMERIC::CODE code){
 	setServerInfo(code);
 	_replyMsg += _nickName + " :" + _reason + "\n";
-
 	sendMessage();
 }
 
@@ -203,21 +201,18 @@ void MessageHandler::sendErrorWithCommand(NUMERIC::CODE code){
 void MessageHandler::sendErrorWithCmdAndReason(NUMERIC::CODE code){
 	setServerInfo(code);
 	_replyMsg += _command + " :" + _reason + "\n";
-
 	sendMessage();
 }
 
 void MessageHandler::sendErrorUnknown(const std::string& reason){
 	setServerInfo(NUMERIC::UNKNOWN_ERR);
 	_replyMsg += reason + "\n";
-
 	sendMessage();
 }
 
 void MessageHandler::sendErrorWithChannel(NUMERIC::CODE code){
 	setServerInfo(code);
 	_replyMsg += _nickName + " " +  _channel + " :" + _reason + "\n";
-
 	sendMessage();
 }
 
@@ -258,14 +253,12 @@ void MessageHandler::sendJoinSuccess(){
 void MessageHandler::sendQuitSuccess(){
 	setCallerInfo();
 	_replyMsg += _command + " " + _description + "\n";
-
 	setBroadCastMsg();
 }
 
 void MessageHandler::sendNickSuccess(){
 	setCallerInfo();
 	_replyMsg += _command + " :" + _targetName + "\n";
-
 	setBroadCastMsg();
 	sendMessage();
 }
@@ -273,9 +266,7 @@ void MessageHandler::sendNickSuccess(){
 void MessageHandler::sendKickSuccess(){
 	setCallerInfo();
 	_replyMsg += _command + " " + _channel + " " +  _targetName + " " + _description + "\n";
-
 	setBroadCastMsg();
-
 	if(_eventHandler->getRequestChannel() != NULL)
 		_eventHandler->getRequestChannel()->sendToClients();
 }
@@ -283,7 +274,6 @@ void MessageHandler::sendKickSuccess(){
 void MessageHandler::sendTopicSuccess(){
 	setCallerInfo();
 	_replyMsg += _command + " " + _channel + " " + _description + "\n";
-
 	setBroadCastMsg();
 	std::set<int> isSet;
 	if(_eventHandler->getRequestChannel() != NULL)
@@ -293,7 +283,6 @@ void MessageHandler::sendTopicSuccess(){
 void MessageHandler::sendModeSuccess(){
 	setCallerInfo();
 	_replyMsg += _command + " " + _channel;
-	
 	if (_description.empty())
 		_replyMsg += " :" + _state + _option + "\n";
 	else
@@ -306,7 +295,6 @@ void MessageHandler::sendModeSuccess(){
 void MessageHandler::sendInvalidModeError(NUMERIC::CODE code){
 	setServerInfo(code);
 	_replyMsg += _nickName + " " + _option +" :" + _reason + "\n";
-
 	sendMessage();
 }
 
@@ -337,14 +325,12 @@ void MessageHandler::sendErrorNoModeParam(){
 	_replyMsg += _nickName + " " + _channel + " " + _option +" * :";
 	_replyMsg += "You must specify a parameter for the " + atoOption() + " mode.";
 	_replyMsg += " Syntax: <" + atoParam() + ">.\n";
-
 	sendMessage();
 }
 
 void MessageHandler::sendPrivMsgToUser(){
 	setCallerInfo();
 	_replyMsg += _command + " " + _targetName + " " + _description + "\n";
-	
 	sendMessage();
 }
 
@@ -352,20 +338,18 @@ void MessageHandler::sendPrivMsgToChannel(std::set<int>& isSent){
 	setCallerInfo();
 	_replyMsg += _command + " " + _channel + " " + _description + "\n";
 	setBroadCastMsg();
-	
 	_eventHandler->getRequestChannel()->sendToClients(isSent);
 }
 
 void MessageHandler::sendMessage(){
 	Client* curClient = _clientManager->getClientByFD(_clientSocket);
-	std::string sendBuffer = curClient->getSendBuffer();
 
 	ssize_t result = send(_clientSocket, _replyMsg.c_str(), _replyMsg.length(), MSG_DONTWAIT);
-	if (result == sendBuffer.length())
-		return flushOutput();
 	if (result == -1)
-       	result = 0;
-	curClient->setSendBuffer(sendBuffer.substr(result, sendBuffer.size() - result));
+		result = 0;
+	else if (static_cast<size_t>(result) == _replyMsg.length())
+		return flushOutput();
+	curClient->setSendBuffer(_replyMsg.substr(result, _replyMsg.size() - result));
 }
 
 void MessageHandler::flushOutput(){
@@ -388,7 +372,6 @@ void MessageHandler::sendPartSuccess(){
 		_replyMsg += _command + " :" + _channel + "\n";
 	else
 		_replyMsg += _command + " " + _channel + " " + _description + "\n";
-	
 	setBroadCastMsg();
 	if(_eventHandler->getRequestChannel() != NULL)
 		_eventHandler->getRequestChannel()->sendToClients();

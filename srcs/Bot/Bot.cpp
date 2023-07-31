@@ -132,7 +132,7 @@ void Bot::sendWelcomeMessage(std::string& channelName){
     channelName.erase(0, 1);
     _requestChannel = _channelManager->getChannelByName(channelName);
     _messageHandler->setChannel(channelName);
-    _messageHandler->setDescription("🍫 Welcome Message from channel : [" + _requestChannel->getWelcomeMsg() + "], 🍫*** Notice from channel *** [" + _requestChannel->getNotice() + "]" );
+    _messageHandler->setDescription("🍫 Welcome Message : [" + _requestChannel->getWelcomeMsg() + "], 🍫*** Notice *** [" + _requestChannel->getNotice() + "]" );
     Client temp(BOT_NAME, BOT_NAME, "127.0.0.1");
     _messageHandler->setRequestClientInfo(&temp);
    
