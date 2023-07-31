@@ -42,9 +42,6 @@ void FSM::executeMode(std::queue<std::string>& params, const std::string& option
 
     for(size_t i = 0; i < options.size(); i++){
 		executeAndChangeState(state, params, options[i]);
-
-		// 인자 있으면 포함해서 send  :one!root@127.0.0.1 MODE #a +l :10
-		// 인자 없으면  			   :qd!root@127.0.0.1 MODE #f :+t   
 	}
 }
 
@@ -72,16 +69,12 @@ INPUT::CODE FSM::getInput(char c) const{
 	}
 }
 
-#include <iostream>
 void FSM::plusN(std::queue<std::string>& params, STATE::CODE& state){
-	std::cout << "+N called\n";
 	(void)state;
 	(void)params;
-	return;
 }
 
 void FSM::plusT(std::queue<std::string>& params, STATE::CODE& state){
-	std::cout << "+T called\n";
 	(void)state;
 	(void)params;
 	std::string broadcast;
@@ -91,34 +84,31 @@ void FSM::plusT(std::queue<std::string>& params, STATE::CODE& state){
 
 	_messageHandler->setDescription("");
     _channel->setPermission(SWITCH_PERMISSION_T(permissions));
-	// :one!root@127.0.0.1 MODE #b :+t
 	_messageHandler->sendModeSuccess();
 }
 
 void FSM::plusI(std::queue<std::string>& params, STATE::CODE& state){
-	std::cout << "+I called\n";
+	std::string broadcast;
 	(void)state;
 	(void)params;
-	std::string broadcast;
+
     char permissions = _channel->getPermissions();
 	if (GET_PERMISSION_I(permissions))
 		return;
 
 	_channel->setPermission(SWITCH_PERMISSION_I(permissions));
 
-	// USER root root 127.0.0.1 :root
 	_messageHandler->setDescription("");
 	_messageHandler->sendModeSuccess();
 }
 
 void FSM::plusK(std::queue<std::string>& params, STATE::CODE& state){
-    std::cout << "+K called\n";
     std::string password;
     std::string broadcast;
 	(void)state;
+
     if(params.empty())
 		return _messageHandler->sendErrorNoModeParam();
-        //:irc.local 696 qd #f k * :You must specify a parameter for the key mode. Syntax: <key>
     password = params.front();
 	if(password.size() > CAP::KEYLEN)
 		password = password.substr(0, CAP::KEYLEN);
@@ -135,11 +125,10 @@ void FSM::plusK(std::queue<std::string>& params, STATE::CODE& state){
 }
 
 void FSM::plusO(std::queue<std::string>& params, STATE::CODE& state){
-	std::cout << "+O called\n";
 	std::string targetName;
 	std::string broadcast;
 	(void)state;
-	//param이 없으면 696
+
 	if(params.size() == 0)
 		return _messageHandler->sendErrorNoModeParam();
 	
@@ -147,22 +136,18 @@ void FSM::plusO(std::queue<std::string>& params, STATE::CODE& state){
 	params.pop();
 	
 	Client *find = _channel->getClientByNick(targetName);
-	//user 가 channel에 없으면 401 no such nick
 	if(find == NULL)
 		return _messageHandler->sendErrorWithNickAndTargetName(NUMERIC::NO_SUCH_NICK);
 	
-	//user가 이미 channel operator 이면 무시
 	if(find == _channel->getOperatorByNick(targetName))
 		return;
 
-	//channel의 operator list에 param 인 user 추가
 	_channel->insertOperator(find);
 	_messageHandler->setDescription(targetName);
 	_messageHandler->sendModeSuccess();
 }
 
 void FSM::plusL(std::queue<std::string>& params, STATE::CODE& state){
-	std::cout << "+L called\n";
 	std::string limitStr;
     std::string broadcast;
 	(void)state;
@@ -171,7 +156,6 @@ void FSM::plusL(std::queue<std::string>& params, STATE::CODE& state){
     
     if(params.empty())
 		return _messageHandler->sendErrorNoModeParam();
-        //error: 696 ERR_INCALIDMODEPARAM "<client> <target chan/user> <mode char> <parameter> :<description>"
     
     limitStr = params.front();
     params.pop();   
@@ -181,7 +165,7 @@ void FSM::plusL(std::queue<std::string>& params, STATE::CODE& state){
 
 	if (limitNum < 0)
 		return _messageHandler->sendErrorUnknown(" :Invalid limitStr mode parameter. Syntax: <limitStr>.");
-	// overflow, not a number
+
 	if (iss.fail())
 		limitNum = 0;
 
@@ -197,7 +181,6 @@ void FSM::plusL(std::queue<std::string>& params, STATE::CODE& state){
 }
 
 void FSM::minusN(std::queue<std::string>& params, STATE::CODE& state){
-	std::cout << "-N called\n";
 	(void)state;
 	(void)params;
 
@@ -205,10 +188,10 @@ void FSM::minusN(std::queue<std::string>& params, STATE::CODE& state){
 }
 
 void FSM::minusT(std::queue<std::string>& params, STATE::CODE& state){
-	std::cout << "-T called\n";
 	(void)state;
 	(void)params;
 	std::string broadcast;
+
     char permissions = _channel->getPermissions();
 	if (!(GET_PERMISSION_T(permissions)))
 		return;
@@ -222,6 +205,7 @@ void FSM::minusI(std::queue<std::string>& params, STATE::CODE& state){
 	std::string broadcast;
 	(void)state;
 	(void)params;
+
     char permissions = _channel->getPermissions();
 	if (!(GET_PERMISSION_I(permissions)))
 		return;
@@ -232,13 +216,12 @@ void FSM::minusI(std::queue<std::string>& params, STATE::CODE& state){
 }
 
 void FSM::minusK(std::queue<std::string>& params, STATE::CODE& state){
-	std::cout << "-K called\n";
 	std::string password;
     std::string broadcast;
 	(void)state;
 
 	if (params.empty())
-		return _messageHandler->sendErrorNoModeParam();	// 696
+		return _messageHandler->sendErrorNoModeParam();
 
 	password = params.front();
     params.pop();
@@ -247,9 +230,8 @@ void FSM::minusK(std::queue<std::string>& params, STATE::CODE& state){
 	if (!(GET_PERMISSION_K(permissions)))
 		return;
 	
-	//:irc.local 467 one #b :Channel key already set
 	if (password != _channel->getPassword())
-		return _messageHandler->sendErrorWithChannel(NUMERIC::KEY_ALREADY_SET);	// 497?
+		return _messageHandler->sendErrorWithChannel(NUMERIC::KEY_ALREADY_SET);
 
     _channel->setPermission(SWITCH_PERMISSION_K(permissions));   
 	_channel->setPassword("");
@@ -258,12 +240,10 @@ void FSM::minusK(std::queue<std::string>& params, STATE::CODE& state){
 }
 
 void FSM::minusO(std::queue<std::string>& params, STATE::CODE& state){
-	std::cout << "-O called\n";
 	(void)state;
 	std::string targetName;
 	std::string broadcast;
 
-	//param이 없으면 696
 	if(params.size() == 0)
 		return _messageHandler->sendErrorNoModeParam();
 	
@@ -271,22 +251,18 @@ void FSM::minusO(std::queue<std::string>& params, STATE::CODE& state){
 	params.pop();
 	
 	Client *find = _channel->getClientByNick(targetName);
-	//user 가 channel에 없으면 401 no such nick
 	if(find == NULL)
-		return _messageHandler->sendErrorWithNickAndTargetName(NUMERIC::NO_SUCH_NICK);// :irc.local 401 one a :No such nick
+		return _messageHandler->sendErrorWithNickAndTargetName(NUMERIC::NO_SUCH_NICK);
 	
-	//user가 이미 channel operator가 아니면 무시??
 	if(find != _channel->getOperatorByNick(targetName))
 		return;
 
-	//channel의 operator list에 param 인 user 제거
 	_channel->eraseOperator(find->getNickName());
 	_messageHandler->setDescription(targetName);
 	_messageHandler->sendModeSuccess();
 }
 
 void FSM::minusL(std::queue<std::string>& params, STATE::CODE& state){
-	std::cout << "-L called\n";
 	(void)state;
 	(void)params;
 	std::string broadcast;
@@ -303,12 +279,10 @@ void FSM::minusL(std::queue<std::string>& params, STATE::CODE& state){
 
 void FSM::toPlus(std::queue<std::string>& params, STATE::CODE& state){
 	(void)params;
-	std::cout << "++ called\n";
     state = STATE::PLUS;
 }
 
 void FSM::toMinus(std::queue<std::string>& params, STATE::CODE& state){
 	(void)params;
-	std::cout << "-- called\n";
     state = STATE::MINUS;
 }

@@ -70,13 +70,11 @@ void Parser::parseByDelimeter(char delimeter, std::string& parsingLine, std::que
 }
 
 void Parser::parseCommandsAndExecute(std::string command){
-    //파싱 방식: 스페이스 단위로 parameter list를 만들어 반환받는다. 가장 앞은 CMD, 그 뒤는 parameters
     std::queue<std::string> commandsQ;
     std::string cmd;
     std::string word;
     std::vector<std::string> parameters;
 
-    std::cout << "input command in parseCommandsAndExecute() : " << command << "\n";
     CommandHandler& commandHandler = CommandHandler::getInstance();
 	Client* requestClient = EventHandler::getInstance().getRequestClient();
 
@@ -90,8 +88,8 @@ void Parser::parseCommandsAndExecute(std::string command){
         parameters.clear();
         while(ss >> word)
             parameters.push_back(word);
-        CMD::CODE cmdCode = commandHandler.identifyCommand(cmd);//NONE 이면 무시? 에러?
-        commandHandler.executeCommand(cmdCode, parameters); //실행 및 출력
+        CMD::CODE cmdCode = commandHandler.identifyCommand(cmd);
+        commandHandler.executeCommand(cmdCode, parameters);
         commandsQ.pop();
     }
 

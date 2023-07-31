@@ -35,11 +35,9 @@ ClientManager& ClientManager::getInstance(){
 Client* ClientManager::getClientByNick(const std::string& nickName){
 	try{
 		Client* tmp = _clientByNick.at(nickName);	
-		std::cout << "*** FOUND\n";	
 		return tmp;
 	}
 	catch(const std::exception& e){
-		std::cout << "*** NO SUCH USER\n";
 		return NULL;
 	}
 }

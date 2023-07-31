@@ -6,7 +6,7 @@
 /*   By: ebang <ebang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/14 12:48:26 by ebang             #+#    #+#             */
-/*   Updated: 2023/07/28 16:17:14 by ebang            ###   ########.fr       */
+/*   Updated: 2023/07/31 16:25:36 by ebang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,10 +42,6 @@ public:
     void insertClientByFD(int fd);
     void eraseClientByNick(const std::string& nickName);
     void eraseClientByFD(int fd);
-
-    
-
-    
 
 public:
     void printClients();

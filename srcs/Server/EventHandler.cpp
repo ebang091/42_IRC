@@ -48,25 +48,26 @@ void EventHandler::listenToClients(){
         if (_numberOfNewEvents == -1)
             throw ErrorHandler::KeventException();
 
-        _changeList.clear(); // clear changeList for new changes
+        _changeList.clear(); 
         for (int i = 0; i < _numberOfNewEvents; ++i){
             _curEvent = &_event_list[i];
 
              /* check error event return */
-            if (_curEvent->flags & EV_ERROR || _curEvent->flags & EV_EOF)
-            {
+            if (_curEvent->flags & EV_ERROR || _curEvent->flags & EV_EOF){
                 if (static_cast<int>(_curEvent->ident) == _serverSocket)
 					throw ErrorHandler::KeventException();
                 else
                     disconnectCurClient();
             }
-			else if (_curEvent->filter == EVFILT_READ)
-			{
+			else if (_curEvent->filter == EVFILT_READ){
 				if (static_cast<int>(_curEvent->ident) == _serverSocket)
                     acceptNewClient();
                 else
                     transportData();
 			}
+            else if (_curEvent->filter == EVFILT_WRITE){
+                // send to clients
+            }
         }
     }
 }
@@ -91,7 +92,6 @@ void EventHandler::acceptNewClient(){
     fcntl(clientSocket, F_SETFL, O_NONBLOCK);
     changeEvents(_changeList, clientSocket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
     _clientManager->insertClientByFD(clientSocket);
-    //std::cout << "\n****client buffer : " << clientManager.getClientByFD(clientSocket)->getBuffer() << "\n";
 }
 
 void EventHandler::transportData(){
@@ -101,7 +101,6 @@ void EventHandler::transportData(){
 	int n = recv(_curEvent->ident, buf, READ_BUFFER_SIZE, MSG_DONTWAIT);
     this->_requestClient = _clientManager->getClientByFD(_curEvent->ident); 
     
-    std::cout << "recv len : " << n << + ", " + std::string(buf) + "\n";
 	if (n == -1){
         disconnectCurClient();
 		return;

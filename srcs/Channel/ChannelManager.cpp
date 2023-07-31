@@ -6,7 +6,7 @@
 /*   By: ebang <ebang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/14 12:28:31 by ebang             #+#    #+#             */
-/*   Updated: 2023/07/31 15:53:01 by ebang            ###   ########.fr       */
+/*   Updated: 2023/07/31 16:57:04 by ebang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ ChannelManager& ChannelManager::getInstance(){
 }
 
 void ChannelManager::insertChannel(const std::string& channelName, Client *client){
-    //channelinfo에서 확인한 후 없으면 만듬
+
     if(_channels.find(channelName) == _channels.end()){
 		  _channels.insert(std::make_pair(channelName, new Channel(channelName, client)));
     }
@@ -39,8 +39,7 @@ void ChannelManager::insertChannel(const std::string& channelName, Client *clien
 void ChannelManager::eraseChannel(const std::string &channelName){
 	std::map<std::string, Channel*>::iterator target = _channels.find(channelName);
 
-	if (target != _channels.end())
-	{
+	if (target != _channels.end()){
 		Channel* temp = target->second;
 		_channels.erase(channelName);
 		delete temp;
@@ -48,13 +47,11 @@ void ChannelManager::eraseChannel(const std::string &channelName){
 }
 
 Channel* ChannelManager::getChannelByName(const std::string& channelName) const{
-	try
-	{
+	try{
 		Channel* tmp = _channels.at(channelName);
 		return tmp;
 	}
-	catch(const std::exception& e)
-	{
+	catch(const std::exception& e){
 		return NULL;
 	}
 }
@@ -63,8 +60,7 @@ void ChannelManager::eraseClientAllChannels(const std::string& targetName){
 	std::set<int> isSent;
 	std::vector<Channel*> eraseList;
 
-	for (std::map<std::string, Channel*>::iterator iter = _channels.begin(); iter != _channels.end(); ++iter)
-	{
+	for (std::map<std::string, Channel*>::iterator iter = _channels.begin(); iter != _channels.end(); ++iter){
 		iter->second->eraseInvite(targetName);
 		if (!iter->second->getClientByNick(targetName))
 			continue;
@@ -80,8 +76,7 @@ void ChannelManager::eraseClientAllChannels(const std::string& targetName){
 			eraseList.push_back(iter->second);
 	}
 
-	for (size_t i = 0; i < eraseList.size(); ++i)
-	{
+	for (size_t i = 0; i < eraseList.size(); ++i){
 		_channels.erase(eraseList[i]->getName());
 		delete eraseList[i];
 	}
@@ -91,8 +86,7 @@ void ChannelManager::changeNickNameAllChannels(const std::string& originname, Cl
 	std::set<int> isSent;
 	
 	isSent.insert(clientNewNick->getSocketNumber());
-	for (std::map<std::string, Channel*>::iterator iter = _channels.begin(); iter != _channels.end(); ++iter)
-	{
+	for (std::map<std::string, Channel*>::iterator iter = _channels.begin(); iter != _channels.end(); ++iter){
 		if (!iter->second->getClientByNick(originname))
 			continue;
 		iter->second->eraseClient(originname);
@@ -112,8 +106,7 @@ void ChannelManager::changeNickNameAllChannels(const std::string& originname, Cl
 #include <bitset>
 void ChannelManager::printChannels(){
 	std::cout << "\n** channel list\n";
-	for (std::map<std::string, Channel*>::iterator iter = _channels.begin(); iter != _channels.end(); ++iter)
-	{
+	for (std::map<std::string, Channel*>::iterator iter = _channels.begin(); iter != _channels.end(); ++iter){
 		std::cout << "channel name [" << iter->second->getName() << "]\n";
 		std::cout << "topic	        :" << iter->second->getTopic().__content << "\n";
 		std::cout << "creationTime  :" << iter->second->getCreationTime() << "\n";
@@ -121,7 +114,6 @@ void ChannelManager::printChannels(){
 		std::cout << "permission    :" << std::bitset<8>(iter->second->getPermissions()) << "\n";
 		std::cout << "password      :" << iter->second->getPassword() << "\n";
 
-		
 		iter->second->printClients();
 	}
 }

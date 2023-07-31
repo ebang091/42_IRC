@@ -15,7 +15,7 @@ MessageHandler::MessageHandler()
 , _description("")
 , _replyMsg("")
 , _broadcastMsg("")
-{ // PRIVMSG #a :asd
+{
 	// -- welcome
 	codeMap.insert(std::make_pair(NUMERIC::WELCOME, " :Welcome to the Localnet IRC Network"));  // 뒤에 three!root@127.0.0.1
 	codeMap.insert(std::make_pair(NUMERIC::INTRO, " :Your host is irc.local, running version kwsongeban_ver0.0"));
@@ -94,10 +94,6 @@ void MessageHandler::setState(STATE::CODE code){
 
 void MessageHandler::setParam(const std::vector<std::string>& params){
 	_params = params;
-	// _params.clear();
-	// _params.reserve(params.size());
-	// for (int i = 0; i < params.size(); ++i)
-	// 	_params.push_back(params[i]);
 }
 
 void MessageHandler::setChannel(const std::string& channel){
@@ -236,25 +232,12 @@ void MessageHandler::sendInviteSuccess(){
 	if(_eventHandler->getRequestChannel() != NULL)
 		_eventHandler->getRequestChannel()->sendToClients(isSent);
 	
-	// 타겟한테 메시지 보내기
 	setCallerInfo();
 	_replyMsg +=  _command + " " + _targetName + " :" + _channel + "\n";
 	sendMessage();
 }
 
-/*
-one!root@127.0.0.1 JOIN :#b
-:irc.local 353 one = #b :@one
-:irc.local 366 one #b :End of /NAMES list.
-*/
 void MessageHandler::sendJoinSuccess(){
-	// sendMessage();
-	// one!root@127.0.0.1 JOIN :#b
-
-	/*
-
-	_replyMsg += _command + " " + _channel + " " + _description + "\n";
-	*/	
 	setCallerInfo();
 	_replyMsg += _command + " :" + _channel + "\n";
 	setBroadCastMsg();
@@ -272,7 +255,6 @@ void MessageHandler::sendJoinSuccess(){
 	Bot::getInstance().sendWelcomeMessage(_channel);
 }
 
-	// q!root@127.0.0.1 QUIT :Quit: byt bye
 void MessageHandler::sendQuitSuccess(){
 	setCallerInfo();
 	_replyMsg += _command + " " + _description + "\n";
@@ -299,7 +281,6 @@ void MessageHandler::sendKickSuccess(){
 }
 
 void MessageHandler::sendTopicSuccess(){
-	//:ebang!root@127.0.0.1 TOPIC #n :aa
 	setCallerInfo();
 	_replyMsg += _command + " " + _channel + " " + _description + "\n";
 
@@ -310,7 +291,6 @@ void MessageHandler::sendTopicSuccess(){
 }
 
 void MessageHandler::sendModeSuccess(){
-	// :one!root@127.0.0.1 MODE #a +l :10
 	setCallerInfo();
 	_replyMsg += _command + " " + _channel;
 	
@@ -324,7 +304,6 @@ void MessageHandler::sendModeSuccess(){
 }
 
 void MessageHandler::sendInvalidModeError(NUMERIC::CODE code){
-	//:irc.local 472 one x :is not a recognised channel mode.
 	setServerInfo(code);
 	_replyMsg += _nickName + " " + _option +" :" + _reason + "\n";
 
@@ -354,7 +333,6 @@ std::string MessageHandler::atoParam(){
 }
 
 void MessageHandler::sendErrorNoModeParam(){
-	//:irc.local 696 qd #f k * :You must specify a parameter for the key mode. Syntax: <key>.
 	setServerInfo(NUMERIC::NO_PARAM);
 	_replyMsg += _nickName + " " + _channel + " " + _option +" * :";
 	_replyMsg += "You must specify a parameter for the " + atoOption() + " mode.";
@@ -363,16 +341,13 @@ void MessageHandler::sendErrorNoModeParam(){
 	sendMessage();
 }
 
-// qd!root@127.0.0.1 PRIVMSG two :ads
 void MessageHandler::sendPrivMsgToUser(){
 	setCallerInfo();
-	//
 	_replyMsg += _command + " " + _targetName + " " + _description + "\n";
 	
 	sendMessage();
 }
 
-// two!root@127.0.0.1 PRIVMSG #f :hi
 void MessageHandler::sendPrivMsgToChannel(std::set<int>& isSent){
 	setCallerInfo();
 	_replyMsg += _command + " " + _channel + " " + _description + "\n";
@@ -382,10 +357,8 @@ void MessageHandler::sendPrivMsgToChannel(std::set<int>& isSent){
 }
 
 void MessageHandler::sendMessage(){
-	std::cout << "sendMessage() message: " << _replyMsg << "\n";
 	if (send(_clientSocket, _replyMsg.c_str(), _replyMsg.length(), MSG_DONTWAIT) == -1)
 		throw ErrorHandler::SendException();
-	std::cout << "after sendMessage() message: " << _replyMsg << "\n";
 	flushOutput();
 }
 
@@ -417,8 +390,8 @@ void MessageHandler::sendPartSuccess(){
 
 void MessageHandler::sendConnectionSuccess(){
 	const char MODES[CAP::MODESIZE] = {'k', 'l', 'o', 'i', 'n', 't'};
-	const char CHANNELTYPES = '#';	// ('#' 모든 서버가 알고 있다는 의미.)
-	const char PREFIX = '@';		// (채널 특권을 표현하는 문자. @: operator && creator)
+	const char CHANNELTYPES = '#';
+	const char PREFIX = '@';
 
 	setServerInfo(NUMERIC::WELCOME);
 	_replyMsg = _nickName + ":" + _reason + "\n";
@@ -447,7 +420,6 @@ void MessageHandler::sendConnectionSuccess(){
 
 	setServerInfo(NUMERIC::USERINFO);
 	int user = _clientManager->getClientNum();
-	std::cout << "num : " << user <<"\n";
 	_replyMsg += _nickName + " :There are " + ntoStr(user) + " users and 001 invisible on 001 servers\n";
 
 	setServerInfo(NUMERIC::MESSAGESTART);

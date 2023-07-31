@@ -21,7 +21,7 @@ private:
     EventHandler	*_eventHandler;  
     ClientManager	*_clientManager;  
     int				_clientSocket;
-    NUMERIC::CODE	_rplCode; //성공이거나 실패 시 저장
+    NUMERIC::CODE	_rplCode;
 
     std::string _userName;
     std::string _targetName;

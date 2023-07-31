@@ -109,7 +109,7 @@ void Channel::setWelcomeMsg(const std::string& newWelcomeMsg){
 void Channel::setName(const std::string& name){
 	this->_name = name;	
 }
-//string topic, Client *setUser
+
 void Channel::setTopic(const std::string& topic, Client *setUser){
 	this->_topic.__content = topic;
 	time(&(this->_topic.__creationTime));
@@ -163,7 +163,6 @@ void Channel::printClients()
 	for (std::map<std::string, Client*>::iterator iter = _invitedList.begin(); iter != _invitedList.end(); ++iter)
 		std::cout << "(" << iter->second->getNickName() << ") - ";
 	std::cout << "\n";
-
 }
 
 void Channel::sendToClients(){
