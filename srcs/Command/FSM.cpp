@@ -30,10 +30,8 @@ void FSM::executeAndChangeState(STATE::CODE &state, std::queue<std::string>& par
                                     , {&FSM::minusN, &FSM::minusT, &FSM::minusI, &FSM::minusK, &FSM::minusO, &FSM::minusL, &FSM::toPlus, &FSM::toMinus}
                                     , {NULL, NULL, NULL, NULL, NULL, NULL, &FSM::toPlus, &FSM::toMinus}
                                     };
-    
-	(this->*fp[state][inputCode])(params, state);
-	
-	
+    if (fp[state][inputCode] != NULL)
+		(this->*fp[state][inputCode])(params, state);
 }
 
 void FSM::executeMode(std::queue<std::string>& params, const std::string& options){
@@ -239,15 +237,15 @@ void FSM::minusK(std::queue<std::string>& params, STATE::CODE& state){
     std::string broadcast;
 	(void)state;
 
-	char permissions = _channel->getPermissions();
-	if (!(GET_PERMISSION_K(permissions)))
-		return;
-    
 	if (params.empty())
 		return _messageHandler->sendErrorNoModeParam();	// 696
 
 	password = params.front();
     params.pop();
+
+	char permissions = _channel->getPermissions();
+	if (!(GET_PERMISSION_K(permissions)))
+		return;
 	
 	//:irc.local 467 one #b :Channel key already set
 	if (password != _channel->getPassword())

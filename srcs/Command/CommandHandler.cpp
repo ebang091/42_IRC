@@ -92,7 +92,8 @@ void CommandHandler::nick(std::vector<std::string>& parameters){
 		candidateNickname = candidateNickname.substr(0, CAP::NICKLEN);
 
 	_messageHandler->setTargetName(candidateNickname);
-    if(candidateNickname.front() == CHANNEL_PREFIX || candidateNickname.front() == DESCRIPT_PREFIX)
+    if(candidateNickname.front() == CHANNEL_PREFIX || candidateNickname.front() == DESCRIPT_PREFIX
+		|| candidateNickname.find(7) != std::string::npos)
 		return _messageHandler->sendErrorWithNickAndTargetName(NUMERIC::INVALID_NICK);
 	
     Client *foundDuplicate = _clientManager->getClientByNick(candidateNickname);
@@ -114,11 +115,11 @@ void CommandHandler::nick(std::vector<std::string>& parameters){
 	_client->setNickName(candidateNickname);
 	_clientManager->insertClientByNick(candidateNickname, _client);
 	_channelManager->changeNickNameAllChannels(originname, _client);
+
 	if(!(GET_NICK_AUTH(auth)))
 		_client->setAuth(SWITCH_NICK_AUTH(auth));
 
-	if(_client->authNoSent())
-	{
+	if(_client->authNoSent()){
 		_messageHandler->setRequestClientInfo(_client);
 		_messageHandler->sendConnectionSuccess();
 	}
@@ -163,8 +164,9 @@ void CommandHandler::join(std::vector<std::string>& parameters){
 				if(GET_PERMISSION_K(foundChannel->getPermissions())){ // key option
 					while (!keyList.empty() && keyList.front() == "x")
 						keyList.pop();
-					if(keyList.empty() == true || foundChannel->getPassword() != keyList.front()){
-						keyList.pop();
+					if(keyList.empty() || foundChannel->getPassword() != keyList.front()){
+						if(!keyList.empty())
+							keyList.pop();
 						_messageHandler->sendErrorWithChannel(NUMERIC::BAD_CHAN_KEY);
 						continue;
 					}					
@@ -223,6 +225,8 @@ void CommandHandler::mode(std::vector<std::string>& parameters){
 
    	NUMERIC::CODE code = checkValid(&channelName, NULL, &_client->getNickName(), true);
 
+	if(code == NUMERIC::BAD_CHAN_MASK)
+		return;
 	if (code != NUMERIC::SUCCESS)
 		return _messageHandler->sendErrorWithChannel(code);
 
@@ -263,7 +267,7 @@ void CommandHandler::part(std::vector<std::string>& parameters){
 		Channel* foundChannel = _eventHandler->getRequestChannel();
 		_messageHandler->sendPartSuccess();
 		foundChannel->eraseOperator(_client->getNickName());
-		if (foundChannel->eraseClient(_client->getNickName()) == 0)
+		if (foundChannel->eraseClient(_client->getNickName()) == 1)
 			_channelManager->eraseChannel(foundChannel->getName());
     }
 }
@@ -304,7 +308,7 @@ void CommandHandler::kick(std::vector<std::string>& parameters){
 
 	_messageHandler->sendKickSuccess();
 	requestChannel->eraseOperator(targetName);
-	if (requestChannel->eraseClient(targetName) == 0)
+	if (requestChannel->eraseClient(targetName) == 1)
 		_channelManager->eraseChannel(requestChannel->getName());
 }
 
@@ -391,7 +395,7 @@ void CommandHandler::quit(std::vector<std::string>& parameters){
 
 void CommandHandler::pass(std::vector<std::string>& parameters){
 	//USER setting 되어있으면 return 
-	std::cout << parameters[0] + ", " + Server::getInstance().getPassword() + " PASS Execute in pass\n";
+	//std::cout << parameters[0] + ", " + Server::getInstance().getPassword() + " PASS Execute in pass\n";
 
 	char auth = _client->getAuth();
 	if(GET_PASS_AUTH(auth))
@@ -426,7 +430,9 @@ void CommandHandler::privmsg(std::vector<std::string>& parameters){
 	{
 		std::cout << "*** " << target << "\n";
 		_messageHandler->setTargetName(target);
-		if (target != BOT_NAME && !_clientManager->getClientByNick(target))
+		Client* find = _clientManager->getClientByNick(target);
+
+		if(target != BOT_NAME && (!find || !find->isAuthenticated()))
 			return _messageHandler->sendErrorWithNickAndTargetName(NUMERIC::NO_SUCH_NICK);
 		
 		Bot& bot = Bot::getInstance();
@@ -447,7 +453,7 @@ void CommandHandler::privmsg(std::vector<std::string>& parameters){
 		isSent.insert(_client->getSocketNumber());
 		_messageHandler->sendPrivMsgToChannel(isSent);
 	}
-	std::cout << "NICK success\n";
+	std::cout << "privmsg success\n";
 }
 
 //input 형식 USER <username> <username> <host> :<real name>
@@ -520,9 +526,11 @@ NUMERIC::CODE CommandHandler::checkValid(std::string* channelName, const std::st
     requestChannel = _eventHandler->getRequestChannel();
 	if (!requestChannel)
         return NUMERIC::NO_SUCH_CHAN;
-
-	if (targetName && !_clientManager->getClientByNick(*targetName))
-		return NUMERIC::NO_SUCH_NICK;
+	if (targetName){
+		Client* find = _clientManager->getClientByNick(*targetName);
+		if (!find || !find->isAuthenticated())
+			return NUMERIC::NO_SUCH_NICK;
+	}
 
 	if (callerName)
 	{

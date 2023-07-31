@@ -6,7 +6,7 @@
 /*   By: ebang <ebang@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/14 12:28:31 by ebang             #+#    #+#             */
-/*   Updated: 2023/07/26 19:45:32 by ebang            ###   ########.fr       */
+/*   Updated: 2023/07/31 15:53:01 by ebang            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,18 +59,6 @@ Channel* ChannelManager::getChannelByName(const std::string& channelName) const{
 	}
 }
 
-// void ChannelManager::sendClientAllChannels(const std::string& targetName){
-// 	std::set<int> isSent;
-
-// 	for (std::map<std::string, Channel*>::iterator iter = _channels.begin(); iter != _channels.end(); ++iter)
-// 	{
-// 		if (!iter->second->getClientByNick(targetName))
-// 			continue;
-		
-// 		//iter->second->sendToClients(isSent);
-// 	}
-// }
-
 void ChannelManager::eraseClientAllChannels(const std::string& targetName){
 	std::set<int> isSent;
 	std::vector<Channel*> eraseList;
@@ -80,8 +68,13 @@ void ChannelManager::eraseClientAllChannels(const std::string& targetName){
 		iter->second->eraseInvite(targetName);
 		if (!iter->second->getClientByNick(targetName))
 			continue;
+		try	{
+			iter->second->sendToClients(isSent);
+		}
+		catch(const std::exception& e){
+			(void)e;
+		}
 		
-		iter->second->sendToClients(isSent);
 		iter->second->eraseOperator(targetName);
 		if (iter->second->eraseClient(targetName) == 0)
 			eraseList.push_back(iter->second);

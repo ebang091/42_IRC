@@ -138,7 +138,7 @@ void MessageHandler::serializeChannelClientList(){
 
 	Channel::Topic topic = channel->getTopic();
 	if (!topic.__content.empty()){
-		_replyMsg += ":irc.local " + ntoStr(NUMERIC::TOPIC) + " " + _nickName + " " + _channel +  " :" + topic.__content + "\n";
+		_replyMsg += ":irc.local " + ntoStr(NUMERIC::TOPIC) + " " + _nickName + " " + _channel +  " " + topic.__content + "\n";
 		
 		_replyMsg += ":irc.local " +  ntoStr(NUMERIC::TOPIC_WHOTIME) + " ";
 		
@@ -385,7 +385,7 @@ void MessageHandler::sendMessage(){
 	std::cout << "sendMessage() message: " << _replyMsg << "\n";
 	if (send(_clientSocket, _replyMsg.c_str(), _replyMsg.length(), MSG_DONTWAIT) == -1)
 		throw ErrorHandler::SendException();
-		std::cout << "after sendMessage() message: " << _replyMsg << "\n";
+	std::cout << "after sendMessage() message: " << _replyMsg << "\n";
 	flushOutput();
 }
 
@@ -482,6 +482,6 @@ void MessageHandler::sendPongMessage(){
 }
 
 void MessageHandler::sendCapMessage(){
-	_replyMsg += _command + " * " + _description + "\n";
+	_replyMsg = _command + " * " + _description + "\n";
 	sendMessage();
 }

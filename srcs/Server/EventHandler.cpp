@@ -50,32 +50,24 @@ void EventHandler::listenToClients(){
             throw ErrorHandler::KeventException();
 
         _changeList.clear(); // clear changeList for new changes
-
         for (int i = 0; i < _numberOfNewEvents; ++i){
             _curEvent = &_event_list[i];
 
              /* check error event return */
             if (_curEvent->flags & EV_ERROR || _curEvent->flags & EV_EOF)
             {
-                if (static_cast<int>(_curEvent->ident) == _serverSocket){
+                if (static_cast<int>(_curEvent->ident) == _serverSocket)
 					throw ErrorHandler::KeventException();
-                }
-                else
-                {
-                    //어쩌면 quit 일 때도 이럴 수도..?
-                    close(_curEvent->ident);
-                    clientManager.eraseClientByFD(_curEvent->ident);
-                }
+                disconnectCurClient(_curEvent);
             }
 			else if (_curEvent->filter == EVFILT_READ)
 			{
-				if (static_cast<int>(_curEvent->ident) == _serverSocket)
-                {
+				if (static_cast<int>(_curEvent->ident) == _serverSocket){
                     /* accept new client */
                     int clientSocket;
                     
                     if ((clientSocket = accept(_serverSocket, NULL, NULL)) == -1)
-                        throw ErrorHandler::AcceptException();
+                        continue;
                     
                     //client 와 통신해서 비밀번호 입력해야함
                     fcntl(clientSocket, F_SETFL, O_NONBLOCK);
@@ -83,10 +75,9 @@ void EventHandler::listenToClients(){
                     /* add event for client socket - add read && write event */
                     changeEvents(_changeList, clientSocket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
                     clientManager.insertClientByFD(clientSocket);
-                    
+                    std::cout << "\n****client buffer : " << clientManager.getClientByFD(clientSocket)->getBuffer() << "\n";
                 }
-                else
-                {
+                else{
                     /* read data from client */
                     char buf[READ_BUFFER_SIZE];
 					int n = recv(_curEvent->ident, buf, READ_BUFFER_SIZE, MSG_DONTWAIT);
@@ -96,22 +87,13 @@ void EventHandler::listenToClients(){
 					if (n == -1){
                         disconnectCurClient(_curEvent);
 						continue;
-					} 
-
-                	if (n > READ_MAX){
-                	    //안된다고 출력하고 아무 반응도 안함.  버퍼에 저저장장
-                        continue;                 	
-                	}
-
+					}
                     buf[n] = '\0';
-                    try
-                    {
+                    try{
                     	parser.parseCommandsAndExecute(buf);//client->clearbuffer 파싱하고 실행
                     }
-                    catch(const std::exception& e)
-                    {
+                    catch(const std::exception& e){
                         std::cerr << e.what() << '\n';
-
 						disconnectCurClient(_curEvent);
                     }
                     
