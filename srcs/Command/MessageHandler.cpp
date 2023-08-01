@@ -57,7 +57,8 @@ MessageHandler& MessageHandler::getInstance(){
 	return instance;
 }
 	
-void MessageHandler::setRequestClientInfo(const Client *client){
+void MessageHandler::setRequestClient(Client *client){
+	_client = client;
 	_userName = client->getUserName();
 	_nickName = client->getNickName();
 	_host = client->getHost();
@@ -67,13 +68,8 @@ void MessageHandler::setEventHandler(EventHandler *eventHandler){
 	this->_eventHandler = eventHandler;
 }
 
-
 void MessageHandler::setClientManager(ClientManager *clientManager){
 	this->_clientManager = clientManager;
-}
-
-void MessageHandler::setRequestClientSocket(int socket){
-	_clientSocket = socket;
 }
 
 void MessageHandler::setCommand(const std::string& command){
@@ -163,57 +159,57 @@ void MessageHandler::sendErrorWithTargetUserAndChannel(NUMERIC::CODE code){
 	setServerInfo(code);
 	_replyMsg += _targetName + " " + _channel + " :" + _reason + "\n";
 
-	sendMessage();
+	sendOrPushMessage(_replyMsg, _client);
 }
 
 void MessageHandler::sendErrorWithNickAndTargetUserAndChannel(){
 	setCallerInfo();
 	_replyMsg += _targetName + " " + _channel + " :" + _reason + "\n";
 
-	sendMessage();
+	sendOrPushMessage(_replyMsg, _client);;
 }
 
 void MessageHandler::sendInviteWithNickAndTargetUserAndChannel(){
 	setServerInfo(NUMERIC::INVITE);
 	_replyMsg += _nickName + " " + _targetName + " :" + _channel + "\n";
 	
-	sendMessage();	
+	sendOrPushMessage(_replyMsg, _client);;	
 }
 
 void MessageHandler::sendErrorWithNickAndTargetName(NUMERIC::CODE code){
 	setServerInfo(code);
 	_replyMsg += _nickName + " " + _targetName + " :" + _reason + "\n";
-	sendMessage();
+	sendOrPushMessage(_replyMsg, _client);;
 }
 
 void MessageHandler::sendErrorNoParam(NUMERIC::CODE code){
 	setServerInfo(code);
 	_replyMsg += _nickName + " :" + _reason + "\n";
-	sendMessage();
+	sendOrPushMessage(_replyMsg, _client);;
 }
 
 void MessageHandler::sendErrorWithCommand(NUMERIC::CODE code){
 	setServerInfo(code);
 	_replyMsg += _nickName + " " + _command + " :" +  _reason + "\n";
-	sendMessage();
+	sendOrPushMessage(_replyMsg, _client);;
 }
 
 void MessageHandler::sendErrorWithCmdAndReason(NUMERIC::CODE code){
 	setServerInfo(code);
 	_replyMsg += _command + " :" + _reason + "\n";
-	sendMessage();
+	sendOrPushMessage(_replyMsg, _client);;
 }
 
 void MessageHandler::sendErrorUnknown(const std::string& reason){
 	setServerInfo(NUMERIC::UNKNOWN_ERR);
 	_replyMsg += reason + "\n";
-	sendMessage();
+	sendOrPushMessage(_replyMsg, _client);;
 }
 
 void MessageHandler::sendErrorWithChannel(NUMERIC::CODE code){
 	setServerInfo(code);
 	_replyMsg += _nickName + " " +  _channel + " :" + _reason + "\n";
-	sendMessage();
+	sendOrPushMessage(_replyMsg, _client);;
 }
 
 void MessageHandler::sendInviteSuccess(){
@@ -223,13 +219,13 @@ void MessageHandler::sendInviteSuccess(){
 	setBroadCastMsg();
 	
 	std::set<int> isSent;
-	isSent.insert(_clientSocket);
+	isSent.insert(_client->getSocketNumber());
 	if(_eventHandler->getRequestChannel() != NULL)
 		_eventHandler->getRequestChannel()->sendToClients(isSent);
 	
 	setCallerInfo();
 	_replyMsg +=  _command + " " + _targetName + " :" + _channel + "\n";
-	sendMessage();
+	sendOrPushMessage(_replyMsg, _client);;
 }
 
 void MessageHandler::sendJoinSuccess(){
@@ -241,7 +237,7 @@ void MessageHandler::sendJoinSuccess(){
 	sendErrorWithChannel(NUMERIC::RPL_ENDOFNAMES);
 
 	std::set<int> isSent;
-	isSent.insert(_clientSocket);
+	isSent.insert(_client->getSocketNumber());
 	if(_eventHandler->getRequestChannel() != NULL)
 		_eventHandler->getRequestChannel()->sendToClients(isSent);
 	
@@ -260,7 +256,7 @@ void MessageHandler::sendNickSuccess(){
 	setCallerInfo();
 	_replyMsg += _command + " :" + _targetName + "\n";
 	setBroadCastMsg();
-	sendMessage();
+	sendOrPushMessage(_replyMsg, _client);;
 }
 
 void MessageHandler::sendKickSuccess(){
@@ -295,7 +291,7 @@ void MessageHandler::sendModeSuccess(){
 void MessageHandler::sendInvalidModeError(NUMERIC::CODE code){
 	setServerInfo(code);
 	_replyMsg += _nickName + " " + _option +" :" + _reason + "\n";
-	sendMessage();
+	sendOrPushMessage(_replyMsg, _client);;
 }
 
 std::string MessageHandler::atoOption(){
@@ -325,13 +321,13 @@ void MessageHandler::sendErrorNoModeParam(){
 	_replyMsg += _nickName + " " + _channel + " " + _option +" * :";
 	_replyMsg += "You must specify a parameter for the " + atoOption() + " mode.";
 	_replyMsg += " Syntax: <" + atoParam() + ">.\n";
-	sendMessage();
+	sendOrPushMessage(_replyMsg, _client);
 }
 
 void MessageHandler::sendPrivMsgToUser(){
 	setCallerInfo();
 	_replyMsg += _command + " " + _targetName + " " + _description + "\n";
-	sendMessage();
+	sendOrPushMessage(_replyMsg, _client);
 }
 
 void MessageHandler::sendPrivMsgToChannel(std::set<int>& isSent){
@@ -341,15 +337,37 @@ void MessageHandler::sendPrivMsgToChannel(std::set<int>& isSent){
 	_eventHandler->getRequestChannel()->sendToClients(isSent);
 }
 
-void MessageHandler::sendMessage(){
-	Client* curClient = _clientManager->getClientByFD(_clientSocket);
+void MessageHandler::sendOrPushMessage(std::string& msg, Client* target){
+	std::queue<std::string>& sendQue = target->getSendQue();
+	ssize_t result = 0;
 
-	ssize_t result = send(_clientSocket, _replyMsg.c_str(), _replyMsg.length(), MSG_DONTWAIT);
-	if (result == -1)
-		result = 0;
-	else if (static_cast<size_t>(result) == _replyMsg.length())
-		return flushOutput();
-	curClient->setSendBuffer(_replyMsg.substr(result, _replyMsg.size() - result));
+	if (sendQue.empty()){
+		result = send(target->getSocketNumber(), msg.c_str(), msg.length(), MSG_DONTWAIT);
+	
+		if (result == -1)
+			result = 0;
+		else if (static_cast<size_t>(result) == msg.length())
+			return flushOutput();
+	}
+	sendQue.push(msg.substr(result, msg.size() - result));
+}
+
+void MessageHandler::sendRemainBuffer(Client* target){
+	std::queue<std::string>& sendQue = target->getSendQue();
+
+	while (true){
+		if (sendQue.empty())
+			break;
+
+		std::string& msg = sendQue.front();
+		
+		ssize_t result = send(target->getSocketNumber(), msg.c_str(), msg.length(), MSG_DONTWAIT);
+		if (result == -1 || static_cast<size_t>(result) != msg.length()){
+			sendQue.front() = msg.substr(result, msg.size() - result);
+			break;
+		}
+		sendQue.pop();
+	}
 }
 
 void MessageHandler::flushOutput(){
@@ -432,17 +450,17 @@ void MessageHandler::sendConnectionSuccess(){
 	setServerInfo(NUMERIC::MESSAGEEND);
 	_replyMsg += _reason + "\n";
 
-	sendMessage();
+	sendOrPushMessage(_replyMsg, _client);;
 	Client *client = _eventHandler->getRequestClient();
 	client->setAuth(SWITCH_SENT_AUTH(client->getAuth()));
 }
 
 void MessageHandler::sendPongMessage(){
 	_replyMsg += ":irc.local PONG irc.local " + _description + "\n";
-	sendMessage();
+	sendOrPushMessage(_replyMsg, _client);;
 }
 
 void MessageHandler::sendCapMessage(){
 	_replyMsg = _command + " * " + _description + "\n";
-	sendMessage();
+	sendOrPushMessage(_replyMsg, _client);;
 }

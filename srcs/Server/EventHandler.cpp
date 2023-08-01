@@ -1,4 +1,5 @@
 #include "EventHandler.hpp"
+#include "MessageHandler.hpp"
 
 EventHandler::EventHandler()
 	: _requestClient(NULL)
@@ -66,24 +67,11 @@ void EventHandler::listenToClients(){
 			}
 			else if (_curEvent->filter == EVFILT_WRITE){
                 Client* curClient = _clientManager->getClientByFD(_curEvent->filter);
-                if (!curClient->getSendBuffer().empty())
-                    sendRemainBuffer(curClient);
+                if (!curClient->getSendQue().empty())
+                    MessageHandler::getInstance().sendRemainBuffer(curClient);
             }
         }
 	}
-}
-
-void EventHandler::sendRemainBuffer(Client* curClient){
-    std::string sendBuffer = curClient->getSendBuffer();
-
-	ssize_t result = send(curClient->getSocketNumber(), sendBuffer.c_str(), sendBuffer.length(), MSG_DONTWAIT);
-
-	if (result == -1)
-		return;
-    if (static_cast<size_t>(result) == sendBuffer.length())
-        sendBuffer.clear();
-	else
-        curClient->setSendBuffer(sendBuffer.substr(result, sendBuffer.size() - result));
 }
 
 void EventHandler::disconnectCurClient(){
@@ -123,7 +111,6 @@ void EventHandler::transportData(){
 		parser.parseCommandsAndExecute(buf);
 	}
 	catch(const std::exception& e){
-		std::cout << "here2";
 		std::cerr << e.what() << '\n';
 		disconnectCurClient();
 	}

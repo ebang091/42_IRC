@@ -49,7 +49,7 @@ bool Parser::getCmdQ(std::string& parsingLine, std::queue<std::string> &buffer){
     if (parsingLine.size() < 2 || (parsingLine[parsingLine.size() - 2] != 13 && parsingLine[parsingLine.size() - 1] != 10))
         return false;
 
-    parsingLine = requestClient->getBuffer() + parsingLine;
+    parsingLine = requestClient->getRecvBuffer() + parsingLine;
     std::stringstream ssLine(parsingLine);
 
     while (std::getline(ssLine, word, '\n'))
@@ -79,7 +79,7 @@ void Parser::parseCommandsAndExecute(std::string command){
 	Client* requestClient = EventHandler::getInstance().getRequestClient();
 
     if (!getCmdQ(command, commandsQ))
-		return requestClient->addBuffer(command);
+		return requestClient->addRecvBuffer(command);
 
 	while(!commandsQ.empty()){
         std::stringstream ss(commandsQ.front());
@@ -93,6 +93,6 @@ void Parser::parseCommandsAndExecute(std::string command){
         commandsQ.pop();
     }
 
-	requestClient->clearBuffer();
+	requestClient->clearRecvBuffer();
 }
 

@@ -20,7 +20,7 @@ private:
     std::map<NUMERIC::CODE, std::string> codeMap;
     EventHandler	*_eventHandler;  
     ClientManager	*_clientManager;  
-    int				_clientSocket;
+	Client			*_client;
     NUMERIC::CODE	_rplCode;
 
     std::string _userName;
@@ -43,22 +43,22 @@ private:
 
 private:
     void serializeChannelClientList();
-    void sendMessage();
     void setCallerInfo();
     void setServerInfo(NUMERIC::CODE code);
+    void flushOutput();
 
 public:
 	static MessageHandler& getInstance();
-    void flushOutput();
     std::string ntoStr(int n);
     std::string atoOption();
     std::string atoParam();
 
+    void sendOrPushMessage(std::string& msg, Client* target);
+	void sendRemainBuffer(Client* target);
     const std::string& getBroadcastMsg();
     void setEventHandler(EventHandler *eventHandler);
     void setClientManager(ClientManager *ClientManager);
-    void setRequestClientSocket(int socket);
-    void setRequestClientInfo(const Client *client);
+    void setRequestClient(Client *client);
 	void setCommand(const std::string& command);
     void setParam(const std::vector<std::string>& params);
 	void setChannel(const std::string& channel);

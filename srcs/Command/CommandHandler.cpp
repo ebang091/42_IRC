@@ -26,10 +26,9 @@ void CommandHandler::executeCommand(CMD::CODE cmdCode, std::vector<std::string>&
 	_clientManager = &ClientManager::getInstance();
 	_parser = &Parser::getInstance();
 	_client = _eventHandler->getRequestClient();
-	_messageHandler->setRequestClientInfo(_client);
+	_messageHandler->setRequestClient(_client);
 	_messageHandler->setEventHandler(_eventHandler);
 	_messageHandler->setClientManager(_clientManager);
-	_messageHandler->setRequestClientSocket(_client->getSocketNumber());
 	
 	if(cmdCode == CMD::NONE && GET_SENT_AUTH(_client->getAuth()))
 		return _messageHandler->sendErrorWithCommand(NUMERIC::UNKNOWN_CMD);
@@ -117,7 +116,7 @@ void CommandHandler::nick(std::vector<std::string>& parameters){
 		_client->setAuth(SWITCH_NICK_AUTH(auth));
 
 	if(_client->authNoSent()){
-		_messageHandler->setRequestClientInfo(_client);
+		_messageHandler->setRequestClient(_client);
 		_messageHandler->sendConnectionSuccess();
 	}
 }
@@ -401,7 +400,6 @@ void CommandHandler::privmsg(std::vector<std::string>& parameters){
 		if (target == bot.getName())
 			return bot.sendMessage(parameters, _client);
 
-		_messageHandler->setRequestClientSocket(_clientManager->getClientByNick(target)->getSocketNumber());
 		_messageHandler->sendPrivMsgToUser();
 	}
 	else 
