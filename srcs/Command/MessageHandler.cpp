@@ -343,11 +343,12 @@ void MessageHandler::sendOrPushMessage(std::string& msg, Client* target){
 
 	if (sendQue.empty()){
 		result = send(target->getSocketNumber(), msg.c_str(), msg.length(), MSG_DONTWAIT);
-	
+
 		if (result == -1)
 			result = 0;
-		else if (static_cast<size_t>(result) == msg.length())
+		else if (static_cast<size_t>(result) == msg.length()){
 			return flushOutput();
+		}
 	}
 	sendQue.push(msg.substr(result, msg.size() - result));
 }
@@ -363,6 +364,8 @@ void MessageHandler::sendRemainBuffer(Client* target){
 		
 		ssize_t result = send(target->getSocketNumber(), msg.c_str(), msg.length(), MSG_DONTWAIT);
 		if (result == -1 || static_cast<size_t>(result) != msg.length()){
+			// if (result == -1)
+			// 	result = 0;
 			sendQue.front() = msg.substr(result, msg.size() - result);
 			break;
 		}
