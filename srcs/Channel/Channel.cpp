@@ -173,16 +173,16 @@ void Channel::sendToClients(){
 		if (iter->second == NULL)
 			continue;
 
-		ssize_t result = send(iter->second->getSocketNumber(), msg.c_str(), msg.length(), MSG_DONTWAIT);
-		if (result == -1)
-			result = 0;
-		else if (static_cast<size_t>(result) == msg.length())
-			continue;
-	    iter->second->setSendBuffer(msg.substr(result, msg.size() - result));
+		messageHandler.sendOrPushMessage(msg, iter->second);
+		// ssize_t result = send(iter->second->getSocketNumber(), msg.c_str(), msg.length(), MSG_DONTWAIT);
+		// if (result == -1)
+		// 	result = 0;
+		// else if (static_cast<size_t>(result) == msg.length())
+		// 	continue;
+	    // iter->second->sendQuePush(msg.substr(result, msg.size() - result));
 
 		std::cout << "sendToClients() message: " << iter->second->getNickName() << ": " << msg << "\n";
 	}
-	messageHandler.flushOutput();
 }
 
 void Channel::sendToClients(std::set<int>& isSent){
@@ -197,18 +197,17 @@ void Channel::sendToClients(std::set<int>& isSent){
 			if (isSent.find(curFd) != isSent.end())
 				continue;
 			isSent.insert(curFd);
-
-			ssize_t result = send(iter->second->getSocketNumber(), msg.c_str(), msg.length(), MSG_DONTWAIT);
-			if (result == -1)
-				result = 0;
-			else if (static_cast<size_t>(result) == msg.length())
-				continue;
-			iter->second->setSendBuffer(msg.substr(result, msg.size() - result));
+			messageHandler.sendOrPushMessage(msg, iter->second);
+			// ssize_t result = send(iter->second->getSocketNumber(), msg.c_str(), msg.length(), MSG_DONTWAIT);
+			// if (result == -1)
+			// 	result = 0;
+			// else if (static_cast<size_t>(result) == msg.length())
+			// 	continue;
+			// iter->second->sendQuePush(msg.substr(result, msg.size() - result));
 
 			std::cout << "sendToClients() message: " << iter->second->getNickName() << ": " << msg << "\n";
 		}
 	}
-	messageHandler.flushOutput();
 }
 
 void Channel::getClientList(std::vector<std::string>& list)

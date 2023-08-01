@@ -102,7 +102,7 @@ void Bot::sendMessage(std::vector<std::string>& parameters, Client* requestClien
 	_requestClient = requestClient;
 
     Client temp(BOT_NAME, BOT_NAME, "127.0.0.1");
-    _messageHandler->setRequestClientInfo(&temp);
+    _messageHandler->setRequestClient(&temp);
     _messageHandler->setTargetName(_requestClient->getNickName());
 
 	if(parameters.size() < 4){
@@ -134,7 +134,7 @@ void Bot::sendWelcomeMessage(std::string& channelName){
     _messageHandler->setChannel(channelName);
     _messageHandler->setDescription("🍫 Welcome Message : [" + _requestChannel->getWelcomeMsg() + "], 🍫*** Notice *** [" + _requestChannel->getNotice() + "]" );
     Client temp(BOT_NAME, BOT_NAME, "127.0.0.1");
-    _messageHandler->setRequestClientInfo(&temp);
+    _messageHandler->setRequestClient(&temp);
    
     std::set<int> isSet;
     _messageHandler->sendPrivMsgToChannel(isSet);

@@ -6,6 +6,7 @@
 #include <string>
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include <queue>
 #include "Enums.hpp"
 
 class Client{
@@ -19,7 +20,7 @@ private:
     std::string _realname;
     std::string _host;
     std::string _recvBuffer;
-    std::string _sendBuffer;
+    std::queue<std::string> _sendQue;
     char _auth;
     int _socketNumber;
 
@@ -29,22 +30,21 @@ public:
     char getAuth() const;
     void setAuth(const char auth);
 
-    void addBuffer(const std::string& str);
-    const std::string& getBuffer();
-    void clearBuffer();
-    
+    void addRecvBuffer(const std::string& str);
+    const std::string& getRecvBuffer();
+    void clearRecvBuffer();
+    std::queue<std::string>& getSendQue();
+
     const std::string& getNickName() const;
 	const std::string& getUserName() const;
 	const std::string& getRealName() const;
     const std::string& getHost() const;
 	int getSocketNumber() const;
-    const std::string& getSendBuffer() const;
 	
     void setNickName(const std::string& newNickName);
     void setUserName(const std::string& newUserName);
     void setRealName(const std::string& newRealName);
     void setHost(const std::string& newHost);
-    void setSendBuffer(const std::string &buffer);
 
     bool checkHost(int clientSocket, const std::string& newHost);
 };
