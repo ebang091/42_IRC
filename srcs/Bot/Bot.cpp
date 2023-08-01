@@ -22,12 +22,13 @@ const std::string& Bot::getName() const{
 std::string Bot::getSendingMessage(BOT::CODE code){
     switch(code){
     case(BOT::GET_NOTICE):
-        return _requestChannel->getNotice();
+        return "***NOTICE*** " + _requestChannel->getNotice();
     case(BOT::GET_WELCOME):
-        return _requestChannel->getWelcomeMsg();
+        return "***WELCOME*** " +_requestChannel->getWelcomeMsg();
     case(BOT::SET_NOTICE):
     	if (!_requestChannel->getOperatorByNick(_requestClient->getNickName())){
-             _messageHandler->sendErrorWithTargetUserAndChannel(NUMERIC::NOT_OPER);
+            _messageHandler->BotSetDescriptionByCode(NUMERIC::NOT_OPER);
+		    _messageHandler->sendPrivMsgToUser(_requestClient);
             return "";
         }
         else{
@@ -36,7 +37,8 @@ std::string Bot::getSendingMessage(BOT::CODE code){
 		}
     case(BOT::SET_WELCOME):
         if (!_requestChannel->getOperatorByNick(_requestClient->getNickName())){
-            _messageHandler->sendErrorWithTargetUserAndChannel(NUMERIC::NOT_OPER);
+            _messageHandler->BotSetDescriptionByCode(NUMERIC::NOT_OPER);
+		    _messageHandler->sendPrivMsgToUser(_requestClient);
             return "";
         }
         else{
@@ -58,23 +60,22 @@ BOT::CODE Bot::parseMessage(std::vector<std::string>& parameters){
     _messageHandler->setTargetName(_requestClient->getNickName());
     channelName.erase(0,1);
     if(channelName.empty() || channelName.front() != CHANNEL_PREFIX){
-        _messageHandler->setDescription("🍫 bad channel mask.\n");
-		_messageHandler->sendPrivMsgToUser();
-
+        _messageHandler->BotSetDescriptionByCode(NUMERIC::BAD_CHAN_MASK);
+		_messageHandler->sendPrivMsgToUser(_requestClient);
         return BOT::FAIL;
     }
 	channelName.erase(0, 1);
 
 	_requestChannel = _channelManager->getChannelByName(channelName);
 	if (!_requestChannel){
-        _messageHandler->setDescription("🍫 no such channel.\n");
-		_messageHandler->sendPrivMsgToUser();
+        _messageHandler->BotSetDescriptionByCode(NUMERIC::NO_SUCH_CHAN);
+		_messageHandler->sendPrivMsgToUser(_requestClient);
 		return BOT::FAIL;
 	}
         
 	if (!_requestChannel->getClientByNick(_requestClient->getNickName())){
-		_messageHandler->setDescription("🍫 you're not on channel.\n");
-		_messageHandler->sendPrivMsgToUser();
+		_messageHandler->BotSetDescriptionByCode(NUMERIC::NOT_ON_CHAN);
+		_messageHandler->sendPrivMsgToUser(_requestClient);
 		return BOT::FAIL;
 	}
 
@@ -107,7 +108,7 @@ void Bot::sendMessage(std::vector<std::string>& parameters, Client* requestClien
 
 	if(parameters.size() < 4){
 		_messageHandler->setDescription("🍫 usage: /msg ebangBot <#targetChannel> <GET/SET> <NOTICE/WELCOME> <message you want to set>.");
-		_messageHandler->sendPrivMsgToUser();
+		_messageHandler->sendPrivMsgToUser(_requestClient);
 		return;
 	}
 

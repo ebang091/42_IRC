@@ -22,6 +22,7 @@ private:
     ClientManager	*_clientManager;  
 	Client			*_client;
     NUMERIC::CODE	_rplCode;
+    int _targetClientSocket;
 
     std::string _userName;
     std::string _targetName;
@@ -59,6 +60,7 @@ public:
     void setEventHandler(EventHandler *eventHandler);
     void setClientManager(ClientManager *ClientManager);
     void setRequestClient(Client *client);
+    void setTargetClientSocket(int fd);
 	void setCommand(const std::string& command);
     void setParam(const std::vector<std::string>& params);
 	void setChannel(const std::string& channel);
@@ -70,9 +72,9 @@ public:
     void setDescription(const std::string &description);
 
     void setBroadCastMsg();
-
-    void sendInviteWithNickAndTargetUserAndChannel();
-    void sendPrivMsgToUser();
+    void sendErrorNickAndTargetUserAndChannel(NUMERIC::CODE code);
+    void sendAndTargetUserAndChannel(NUMERIC::CODE code);
+    void sendPrivMsgToUser(Client* target);
     void sendPrivMsgToChannel(std::set<int>& isSet);
     void sendPartSuccess();
     void sendConnectionSuccess();
@@ -87,13 +89,16 @@ public:
     void sendModeSuccess();
     void sendPongMessage();
     void sendCapMessage();
-    void sendErrorWithTargetUserAndChannel(NUMERIC::CODE code);
-    void sendErrorWithNickAndTargetUserAndChannel();
+    void sendErrorWithTargetUserAndChannel(NUMERIC::CODE code, Client* target);
+    void sendErrorCallerTargetUserAndChannel();
     void sendErrorNoParam(NUMERIC::CODE code);
     void sendErrorWithChannel(NUMERIC::CODE code);
+    void sendErrorWithChannelToTarget(NUMERIC::CODE code, Client* target);
     void sendErrorWithNickAndTargetName(NUMERIC::CODE code);
     void sendInvalidModeError(NUMERIC::CODE code);
     void sendErrorNoModeParam();
     void sendErrorWithCmdAndReason(NUMERIC::CODE code);
+    
+    void BotSetDescriptionByCode(NUMERIC::CODE code);
 };
 #endif

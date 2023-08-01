@@ -3,7 +3,8 @@
 #include "Bot.hpp"
 
 MessageHandler::MessageHandler()
-:_userName("")
+: _targetClientSocket(0)
+, _userName("")
 , _targetName("")
 , _nickName("")
 , _host("")
@@ -56,6 +57,10 @@ MessageHandler& MessageHandler::getInstance(){
 	static MessageHandler instance;
 	return instance;
 }
+
+void MessageHandler::setTargetClientSocket(int fd){
+	_targetClientSocket = fd;
+}
 	
 void MessageHandler::setRequestClient(Client *client){
 	_client = client;
@@ -102,6 +107,11 @@ void MessageHandler::setChannel(const std::string& channel){
 void MessageHandler::setRplCode(NUMERIC::CODE code){
 	_rplCode = code;
 	_reason = codeMap.find(code)->second;
+}
+
+void MessageHandler::BotSetDescriptionByCode(NUMERIC::CODE code){
+	_rplCode = code;
+	_description = "🍫 " + codeMap.find(code)->second;
 }
 
 void MessageHandler::setReason(const std::string& reason){
@@ -155,65 +165,84 @@ void MessageHandler::setCallerInfo(){
 }
 
 
-void MessageHandler::sendErrorWithTargetUserAndChannel(NUMERIC::CODE code){
+void MessageHandler::sendErrorWithTargetUserAndChannel(NUMERIC::CODE code, Client* target){
 	setServerInfo(code);
+	_replyMsg += _targetName + " " + _channel + " :" + _reason + "\n";
+
+	sendOrPushMessage(_replyMsg, target);
+}
+
+void MessageHandler::sendErrorCallerTargetUserAndChannel(){
+	setCallerInfo();
 	_replyMsg += _targetName + " " + _channel + " :" + _reason + "\n";
 
 	sendOrPushMessage(_replyMsg, _client);
 }
 
-void MessageHandler::sendErrorWithNickAndTargetUserAndChannel(){
-	setCallerInfo();
-	_replyMsg += _targetName + " " + _channel + " :" + _reason + "\n";
-
-	sendOrPushMessage(_replyMsg, _client);;
-}
-
-void MessageHandler::sendInviteWithNickAndTargetUserAndChannel(){
-	setServerInfo(NUMERIC::INVITE);
+void MessageHandler::sendAndTargetUserAndChannel(NUMERIC::CODE code){
+	setServerInfo(code);
 	_replyMsg += _nickName + " " + _targetName + " :" + _channel + "\n";
 	
-	sendOrPushMessage(_replyMsg, _client);;	
+	sendOrPushMessage(_replyMsg, _client);	
+}
+
+void MessageHandler::sendErrorNickAndTargetUserAndChannel(NUMERIC::CODE code){
+	setServerInfo(code);
+	_replyMsg += _nickName + " " + _targetName + " " + _channel +  " :" + _reason + "\n";
+	
+	sendOrPushMessage(_replyMsg, _client);	
 }
 
 void MessageHandler::sendErrorWithNickAndTargetName(NUMERIC::CODE code){
 	setServerInfo(code);
 	_replyMsg += _nickName + " " + _targetName + " :" + _reason + "\n";
-	sendOrPushMessage(_replyMsg, _client);;
+	sendOrPushMessage(_replyMsg, _client);
 }
 
 void MessageHandler::sendErrorNoParam(NUMERIC::CODE code){
 	setServerInfo(code);
 	_replyMsg += _nickName + " :" + _reason + "\n";
-	sendOrPushMessage(_replyMsg, _client);;
+	sendOrPushMessage(_replyMsg, _client);
 }
 
 void MessageHandler::sendErrorWithCommand(NUMERIC::CODE code){
 	setServerInfo(code);
 	_replyMsg += _nickName + " " + _command + " :" +  _reason + "\n";
-	sendOrPushMessage(_replyMsg, _client);;
+	sendOrPushMessage(_replyMsg, _client);
 }
 
 void MessageHandler::sendErrorWithCmdAndReason(NUMERIC::CODE code){
 	setServerInfo(code);
 	_replyMsg += _command + " :" + _reason + "\n";
-	sendOrPushMessage(_replyMsg, _client);;
+	sendOrPushMessage(_replyMsg, _client);
 }
 
 void MessageHandler::sendErrorUnknown(const std::string& reason){
 	setServerInfo(NUMERIC::UNKNOWN_ERR);
 	_replyMsg += reason + "\n";
-	sendOrPushMessage(_replyMsg, _client);;
+	sendOrPushMessage(_replyMsg, _client);
 }
 
 void MessageHandler::sendErrorWithChannel(NUMERIC::CODE code){
 	setServerInfo(code);
 	_replyMsg += _nickName + " " +  _channel + " :" + _reason + "\n";
-	sendOrPushMessage(_replyMsg, _client);;
+	sendOrPushMessage(_replyMsg, _client);
 }
 
+void MessageHandler::sendErrorWithChannelToTarget(NUMERIC::CODE code, Client* target){
+	setServerInfo(code);
+	_replyMsg += _nickName + " " +  _channel + " :" + _reason + "\n";
+	sendOrPushMessage(_replyMsg, target);
+}
+
+// :irc.local 401 one a :No such nick
+// :irc.local 401 one a :No such nick
+
+// :irc.local 441 one two #a :They are not on that channel
+// :irc.local 441 one two :#a
+
 void MessageHandler::sendInviteSuccess(){
-	sendInviteWithNickAndTargetUserAndChannel();
+	sendAndTargetUserAndChannel(NUMERIC::INVITE);
 
 	_replyMsg += ":irc.local NOTICE " + _channel + " :*** " + _nickName + " invited " + _targetName + " into the channel\n";
 	setBroadCastMsg();
@@ -225,7 +254,7 @@ void MessageHandler::sendInviteSuccess(){
 	
 	setCallerInfo();
 	_replyMsg +=  _command + " " + _targetName + " :" + _channel + "\n";
-	sendOrPushMessage(_replyMsg, _client);;
+	sendOrPushMessage(_replyMsg, _client);
 }
 
 void MessageHandler::sendJoinSuccess(){
@@ -256,7 +285,7 @@ void MessageHandler::sendNickSuccess(){
 	setCallerInfo();
 	_replyMsg += _command + " :" + _targetName + "\n";
 	setBroadCastMsg();
-	sendOrPushMessage(_replyMsg, _client);;
+	sendOrPushMessage(_replyMsg, _client);
 }
 
 void MessageHandler::sendKickSuccess(){
@@ -291,7 +320,7 @@ void MessageHandler::sendModeSuccess(){
 void MessageHandler::sendInvalidModeError(NUMERIC::CODE code){
 	setServerInfo(code);
 	_replyMsg += _nickName + " " + _option +" :" + _reason + "\n";
-	sendOrPushMessage(_replyMsg, _client);;
+	sendOrPushMessage(_replyMsg, _client);
 }
 
 std::string MessageHandler::atoOption(){
@@ -324,10 +353,10 @@ void MessageHandler::sendErrorNoModeParam(){
 	sendOrPushMessage(_replyMsg, _client);
 }
 
-void MessageHandler::sendPrivMsgToUser(){
+void MessageHandler::sendPrivMsgToUser(Client* target){
 	setCallerInfo();
 	_replyMsg += _command + " " + _targetName + " " + _description + "\n";
-	sendOrPushMessage(_replyMsg, _client);
+	sendOrPushMessage(_replyMsg, target);
 }
 
 void MessageHandler::sendPrivMsgToChannel(std::set<int>& isSent){
@@ -343,7 +372,7 @@ void MessageHandler::sendOrPushMessage(std::string& msg, Client* target){
 
 	if (sendQue.empty()){
 		result = send(target->getSocketNumber(), msg.c_str(), msg.length(), MSG_DONTWAIT);
-
+		std::cout << "send Msg : " << msg << "\n";
 		if (result == -1)
 			result = 0;
 		else if (static_cast<size_t>(result) == msg.length()){
@@ -352,7 +381,8 @@ void MessageHandler::sendOrPushMessage(std::string& msg, Client* target){
 	}
 	sendQue.push(msg.substr(result, msg.size() - result));
 }
-
+// :irc.local 401 one w :No such nick
+// :irc.local 401 w #a :No such nick
 void MessageHandler::sendRemainBuffer(Client* target){
 	std::queue<std::string>& sendQue = target->getSendQue();
 
@@ -453,17 +483,18 @@ void MessageHandler::sendConnectionSuccess(){
 	setServerInfo(NUMERIC::MESSAGEEND);
 	_replyMsg += _reason + "\n";
 
-	sendOrPushMessage(_replyMsg, _client);;
+	sendOrPushMessage(_replyMsg, _client);
 	Client *client = _eventHandler->getRequestClient();
 	client->setAuth(SWITCH_SENT_AUTH(client->getAuth()));
 }
 
 void MessageHandler::sendPongMessage(){
 	_replyMsg += ":irc.local PONG irc.local " + _description + "\n";
-	sendOrPushMessage(_replyMsg, _client);;
+	sendOrPushMessage(_replyMsg, _client);
 }
 
 void MessageHandler::sendCapMessage(){
 	_replyMsg = _command + " * " + _description + "\n";
-	sendOrPushMessage(_replyMsg, _client);;
+	sendOrPushMessage(_replyMsg, _client);
 }
+

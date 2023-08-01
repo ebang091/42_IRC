@@ -270,12 +270,12 @@ void CommandHandler::kick(std::vector<std::string>& parameters){
 	
 	NUMERIC::CODE code = checkValid(&channelName, &targetName, &_client->getNickName(), true);	
 	if (code != NUMERIC::SUCCESS)
-		return _messageHandler->sendErrorWithTargetUserAndChannel(code);
+		return _messageHandler->sendErrorWithNickAndTargetName(code);
 	requestChannel = _eventHandler->getRequestChannel();
 	
 	target = requestChannel->getClientByNick(targetName);
 	if (target == NULL)
-		return _messageHandler->sendErrorWithTargetUserAndChannel(NUMERIC::TARGET_NOT_ON_CHAN);
+		return _messageHandler->sendErrorNickAndTargetUserAndChannel(NUMERIC::TARGET_NOT_ON_CHAN);
 
 	std::string description = "";
 	if (!getDescription(parameters, 2, description))
@@ -307,11 +307,17 @@ void CommandHandler::invite(std::vector<std::string>& parameters){
 	_messageHandler->setChannel(channelName);
 	NUMERIC::CODE code = checkValid(&channelName, &targetName, &_client->getNickName(), true);
 	
-	if (code != NUMERIC::SUCCESS)
-		return _messageHandler->sendErrorWithChannel(code);
+	if (code != NUMERIC::SUCCESS){
+		if(code == NUMERIC::NO_SUCH_CHAN || code == NUMERIC::NO_SUCH_NICK)
+			_messageHandler->sendErrorWithNickAndTargetName(code);
+		else
+			_messageHandler->sendErrorNickAndTargetUserAndChannel(code);
+	}
 
-	if (_eventHandler->getRequestChannel()->getClientByNick(targetName))
-		return _messageHandler->sendErrorWithNickAndTargetUserAndChannel();
+	if (_eventHandler->getRequestChannel()->getClientByNick(targetName)){
+		// _messageHandler->setReason()
+		return _messageHandler->sendErrorCallerTargetUserAndChannel();
+	}
 
 	_eventHandler->getRequestChannel()->insertInvite(_clientManager->getClientByNick(targetName));
 	_messageHandler->sendInviteSuccess();
@@ -399,8 +405,9 @@ void CommandHandler::privmsg(std::vector<std::string>& parameters){
 		Bot& bot = Bot::getInstance();
 		if (target == bot.getName())
 			return bot.sendMessage(parameters, _client);
-
-		_messageHandler->sendPrivMsgToUser();
+		
+		//_messageHandler->setRequestClientSocket(_clientManager->getClientByNick(target)->getSocketNumber());
+		_messageHandler->sendPrivMsgToUser(find);//caller x, to target
 	}
 	else 
 	{
