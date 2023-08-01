@@ -381,8 +381,7 @@ void MessageHandler::sendOrPushMessage(std::string& msg, Client* target){
 	}
 	sendQue.push(msg.substr(result, msg.size() - result));
 }
-// :irc.local 401 one w :No such nick
-// :irc.local 401 w #a :No such nick
+
 void MessageHandler::sendRemainBuffer(Client* target){
 	std::queue<std::string>& sendQue = target->getSendQue();
 
@@ -394,8 +393,8 @@ void MessageHandler::sendRemainBuffer(Client* target){
 		
 		ssize_t result = send(target->getSocketNumber(), msg.c_str(), msg.length(), MSG_DONTWAIT);
 		if (result == -1 || static_cast<size_t>(result) != msg.length()){
-			// if (result == -1)
-			// 	result = 0;
+			if (result == -1)
+				result = 0;
 			sendQue.front() = msg.substr(result, msg.size() - result);
 			break;
 		}
@@ -497,4 +496,3 @@ void MessageHandler::sendCapMessage(){
 	_replyMsg = _command + " * " + _description + "\n";
 	sendOrPushMessage(_replyMsg, _client);
 }
-
