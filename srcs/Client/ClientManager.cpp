@@ -77,6 +77,12 @@ void ClientManager::eraseClientByFD(int fd){
 	}
 }
 
+int  ClientManager::getClientNum(){
+	if(this->_clientByNick.empty())
+		return 0;
+	return this->_clientByNick.size();
+}
+
 void ClientManager::printClients()
 {
 	std::cout << "** client by nick list\n";
@@ -88,10 +94,4 @@ void ClientManager::printClients()
 	for (std::map<int, Client*>::iterator iter = _clientByFD.begin(); iter != _clientByFD.end(); ++iter)
 		std::cout << "(" << iter->first << ", " << iter->second << ") - ";
 	std::cout << "\n";
-}
-
-int  ClientManager::getClientNum(){
-	if(this->_clientByNick.empty())
-		return 0;
-	return this->_clientByNick.size();
 }

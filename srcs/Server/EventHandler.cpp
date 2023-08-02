@@ -20,16 +20,6 @@ void EventHandler::changeEvents(uintptr_t ident, int16_t filter,
 	_changeList.push_back(temp_event);
 }
 
-void test(){
-	std::cout << "---- TEST -----\n";
-	ClientManager& clm = ClientManager::getInstance();
-	ChannelManager& chm = ChannelManager::getInstance();
-
-	clm.printClients();
-	chm.printChannels();
-	std::cout << "\n";
-}
-
 void EventHandler::init(){
 	_serverSocket = SocketHandler::getInstance().getServerSocket();
 	_clientManager = &ClientManager::getInstance();
@@ -130,4 +120,14 @@ Channel* EventHandler::getRequestChannel()const
 void EventHandler::setRequestChannel(Channel* channel)
 {
 	_requestChannel = channel;
+}
+
+void test(){
+	std::cout << "---- TEST -----\n";
+	ClientManager& clm = ClientManager::getInstance();
+	ChannelManager& chm = ChannelManager::getInstance();
+
+	clm.printClients();
+	chm.printChannels();
+	std::cout << "\n";
 }

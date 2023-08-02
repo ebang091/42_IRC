@@ -212,8 +212,10 @@ void CommandHandler::mode(std::vector<std::string>& parameters){
 
    	NUMERIC::CODE code = checkValid(&channelName, NULL, &_client->getNickName(), true);
 
-	if(code == NUMERIC::BAD_CHAN_MASK)
+	if(code == NUMERIC::BAD_CHAN_MASK)	// for user mode
 		return;
+	if (code == NUMERIC::NO_SUCH_NICK)
+		return _messageHandler->sendErrorWithNickAndTargetName(code);
 	if (code != NUMERIC::SUCCESS)
 		return _messageHandler->sendErrorWithChannel(code);
 
@@ -241,10 +243,15 @@ void CommandHandler::part(std::vector<std::string>& parameters){
 		NUMERIC::CODE code = checkValid(&channelName, NULL, &_client->getNickName(), false);
 		_messageHandler->setChannel(channelName);
 
+		if (code == NUMERIC::NO_SUCH_NICK){
+			_messageHandler->sendErrorWithNickAndTargetName(code);
+			continue;
+		}
 		if (code != NUMERIC::SUCCESS){
 			_messageHandler->sendErrorWithChannel(code);
 			continue;
 		}
+		
 		Channel* foundChannel = _eventHandler->getRequestChannel();
 		_messageHandler->sendPartSuccess();
 		foundChannel->eraseOperator(_client->getNickName());
@@ -253,6 +260,9 @@ void CommandHandler::part(std::vector<std::string>& parameters){
     }
 }
 
+// 원본 :irc.local 482 one #a :You must be a channel half-operator
+// 저희 :irc.local 482 one twoo :You must have channel op access or above to set channel mode
+// server + nick + target -> server + nick + channel
 void CommandHandler::kick(std::vector<std::string>& parameters){
 	std::string targetName;
 	std::string channelName;
@@ -269,8 +279,10 @@ void CommandHandler::kick(std::vector<std::string>& parameters){
 	_messageHandler->setTargetName(targetName);
 	
 	NUMERIC::CODE code = checkValid(&channelName, &targetName, &_client->getNickName(), true);	
-	if (code != NUMERIC::SUCCESS)
+	if (code == NUMERIC::NO_SUCH_NICK)
 		return _messageHandler->sendErrorWithNickAndTargetName(code);
+	if (code != NUMERIC::SUCCESS)
+		return _messageHandler->sendErrorWithChannel(code);
 	requestChannel = _eventHandler->getRequestChannel();
 	
 	target = requestChannel->getClientByNick(targetName);
@@ -307,12 +319,10 @@ void CommandHandler::invite(std::vector<std::string>& parameters){
 	_messageHandler->setChannel(channelName);
 	NUMERIC::CODE code = checkValid(&channelName, &targetName, &_client->getNickName(), true);
 	
-	if (code != NUMERIC::SUCCESS){
-		if(code == NUMERIC::NO_SUCH_CHAN || code == NUMERIC::NO_SUCH_NICK)
-			_messageHandler->sendErrorWithNickAndTargetName(code);
-		else
-			_messageHandler->sendErrorNickAndTargetUserAndChannel(code);
-	}
+	if (code == NUMERIC::NO_SUCH_NICK)
+		return _messageHandler->sendErrorWithNickAndTargetName(code);
+	if (code != NUMERIC::SUCCESS)
+		return _messageHandler->sendErrorWithChannel(code);
 
 	if (_eventHandler->getRequestChannel()->getClientByNick(targetName)){
 		// _messageHandler->setReason()
@@ -334,9 +344,10 @@ void CommandHandler::topic(std::vector<std::string>& parameters){
 
 	NUMERIC::CODE code = checkValid(&channelName, NULL, &_client->getNickName(), true);
 	requestChannel = _eventHandler->getRequestChannel();
-	
-	if ((code != NUMERIC::SUCCESS && code != NUMERIC::NOT_OPER) || \
-		(code == NUMERIC::NOT_OPER && GET_PERMISSION_T(requestChannel->getPermissions())))
+
+	if (code == NUMERIC::NO_SUCH_NICK)
+		return _messageHandler->sendErrorWithNickAndTargetName(code);
+	if ((code == NUMERIC::NOT_OPER && GET_PERMISSION_T(requestChannel->getPermissions())) || code != NUMERIC::SUCCESS)
 		return _messageHandler->sendErrorWithChannel(code);
 
 	std::string topic = "";

@@ -125,18 +125,23 @@ void Bot::sendMessage(std::vector<std::string>& parameters, Client* requestClien
 	
     std::set<int> isSet;
     _messageHandler->sendPrivMsgToChannel(isSet);
+	_messageHandler->setRequestClient(_requestClient);
 }
 
-void Bot::sendWelcomeMessage(std::string& channelName){
+void Bot::sendWelcomeMessage(std::string& channelName, Client* requestClient){
 	_messageHandler = &MessageHandler::getInstance();
     _channelManager = &ChannelManager::getInstance();
     channelName.erase(0, 1);
     _requestChannel = _channelManager->getChannelByName(channelName);
     _messageHandler->setChannel(channelName);
+	_messageHandler->setCommand("PRIVMSG");
     _messageHandler->setDescription("🍫 Welcome Message : [" + _requestChannel->getWelcomeMsg() + "], 🍫*** Notice *** [" + _requestChannel->getNotice() + "]" );
-    Client temp(BOT_NAME, BOT_NAME, "127.0.0.1");
-    _messageHandler->setRequestClient(&temp);
+    
+	Client bot(BOT_NAME, BOT_NAME, "127.0.0.1");
+    _messageHandler->setRequestClient(&bot);
    
     std::set<int> isSet;
     _messageHandler->sendPrivMsgToChannel(isSet);
+	_messageHandler->setRequestClient(requestClient);
+	_messageHandler->setCommand("JOIN");
 }

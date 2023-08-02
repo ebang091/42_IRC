@@ -65,8 +65,16 @@ void MessageHandler::setTargetClientSocket(int fd){
 void MessageHandler::setRequestClient(Client *client){
 	_client = client;
 	_userName = client->getUserName();
-	_nickName = client->getNickName();
 	_host = client->getHost();
+
+	_nickName.clear();
+	const std::string& nickName = client->getNickName();
+	for (size_t i = 0; i < nickName.length(); ++i){
+		if (!std::isprint(nickName[i]))
+			_nickName += ".";
+		else
+			_nickName += nickName[i];
+	}
 }
 
 void MessageHandler::setEventHandler(EventHandler *eventHandler){
@@ -98,10 +106,20 @@ void MessageHandler::setParam(const std::vector<std::string>& params){
 }
 
 void MessageHandler::setChannel(const std::string& channel){
-	if (!channel.empty() && channel.front() == CHANNEL_PREFIX)
-		_channel = channel;
+	size_t i = 0;
+
+	_channel.clear();
+	if (!channel.empty() && channel.front() != CHANNEL_PREFIX)
+		_channel += "#";
 	else
-		_channel = "#" + channel;
+		++i;
+	
+	for (i = 0; i < channel.length(); ++i){
+		if (!std::isprint(channel[i]))
+			_channel += ".";
+		else
+			_channel += channel[i];
+	}
 }
 
 void MessageHandler::setRplCode(NUMERIC::CODE code){
@@ -126,7 +144,14 @@ void MessageHandler::setDescription(const std::string& description){
 }
 
 void MessageHandler::setTargetName(const std::string& targetName){
-	_targetName = targetName;
+	_targetName.clear();
+
+	for (size_t i = 0; i < targetName.length(); ++i){
+		if (!std::isprint(targetName[i]))
+			_targetName += ".";
+		else
+			_targetName += targetName[i];
+	}
 }
 
 void MessageHandler::setBroadCastMsg(){
@@ -269,10 +294,8 @@ void MessageHandler::sendJoinSuccess(){
 	isSent.insert(_client->getSocketNumber());
 	if(_eventHandler->getRequestChannel() != NULL)
 		_eventHandler->getRequestChannel()->sendToClients(isSent);
-	
-	_command = "PRIVMSG";
-	
-	Bot::getInstance().sendWelcomeMessage(_channel);
+
+	Bot::getInstance().sendWelcomeMessage(_channel, _client);
 }
 
 void MessageHandler::sendQuitSuccess(){

@@ -5,6 +5,7 @@
 #include <queue>
 #include <string>
 #include <sstream>
+#include <cstring>
 #include "Client.hpp"
 #include "Enums.hpp"
 #include "Channel.hpp"

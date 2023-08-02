@@ -147,24 +147,6 @@ bool Channel::isFull() const{
 	return false;
 }
 
-void Channel::printClients()
-{
-	std::cout << " * operators \n";
-	for (std::map<std::string, Client*>::iterator iter = _operators.begin(); iter != _operators.end(); ++iter)
-		std::cout << "(" << iter->second->getNickName() << ") - ";
-	std::cout << "\n";
-
-	std::cout << " * clients \n";
-	for (std::map<std::string, Client*>::iterator iter = _clientList.begin(); iter != _clientList.end(); ++iter)
-		std::cout << "(" << iter->second->getNickName() << ") - ";
-	std::cout << "\n";
-
-	std::cout << " * invited \n";
-	for (std::map<std::string, Client*>::iterator iter = _invitedList.begin(); iter != _invitedList.end(); ++iter)
-		std::cout << "(" << iter->second->getNickName() << ") - ";
-	std::cout << "\n";
-}
-
 void Channel::sendToClients(){
 	MessageHandler& messageHandler = MessageHandler::getInstance();
 	std::string msg = messageHandler.getBroadcastMsg();
@@ -221,4 +203,22 @@ void Channel::getClientList(std::vector<std::string>& list)
 
 		list.push_back(elem);
 	}
+}
+
+void Channel::printClients()
+{
+	std::cout << " * operators \n";
+	for (std::map<std::string, Client*>::iterator iter = _operators.begin(); iter != _operators.end(); ++iter)
+		std::cout << "(" << iter->second->getNickName() << ") - ";
+	std::cout << "\n";
+
+	std::cout << " * clients \n";
+	for (std::map<std::string, Client*>::iterator iter = _clientList.begin(); iter != _clientList.end(); ++iter)
+		std::cout << "(" << iter->second->getNickName() << ") - ";
+	std::cout << "\n";
+
+	std::cout << " * invited \n";
+	for (std::map<std::string, Client*>::iterator iter = _invitedList.begin(); iter != _invitedList.end(); ++iter)
+		std::cout << "(" << iter->second->getNickName() << ") - ";
+	std::cout << "\n";
 }
