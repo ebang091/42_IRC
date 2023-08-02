@@ -35,7 +35,7 @@ public:
 	static Bot& getInstance();
 	const std::string& getName() const;
 	void sendMessage(std::vector<std::string>& parameters, Client* requestClient);
-    void sendWelcomeMessage(std::string& channelName);
+    void sendWelcomeMessage(std::string& channelName, Client* requestClient);
 };
 
 #endif

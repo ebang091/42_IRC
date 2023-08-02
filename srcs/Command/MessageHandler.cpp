@@ -265,14 +265,13 @@ void MessageHandler::sendJoinSuccess(){
 	serializeChannelClientList();
 	sendErrorWithChannel(NUMERIC::RPL_ENDOFNAMES);
 
+	std::cout << "*** : " << _client << "\n";
 	std::set<int> isSent;
 	isSent.insert(_client->getSocketNumber());
 	if(_eventHandler->getRequestChannel() != NULL)
 		_eventHandler->getRequestChannel()->sendToClients(isSent);
 	
-	_command = "PRIVMSG";
-	
-	Bot::getInstance().sendWelcomeMessage(_channel);
+	Bot::getInstance().sendWelcomeMessage(_channel, _client);
 }
 
 void MessageHandler::sendQuitSuccess(){
