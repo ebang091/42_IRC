@@ -265,12 +265,11 @@ void MessageHandler::sendJoinSuccess(){
 	serializeChannelClientList();
 	sendErrorWithChannel(NUMERIC::RPL_ENDOFNAMES);
 
-	std::cout << "*** : " << _client << "\n";
 	std::set<int> isSent;
 	isSent.insert(_client->getSocketNumber());
 	if(_eventHandler->getRequestChannel() != NULL)
 		_eventHandler->getRequestChannel()->sendToClients(isSent);
-	
+
 	Bot::getInstance().sendWelcomeMessage(_channel, _client);
 }
 
