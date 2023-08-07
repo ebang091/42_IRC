@@ -176,6 +176,7 @@ void Channel::sendToClients(std::set<int>& isSent){
 			int curFd = iter->second->getSocketNumber();
 			if (isSent.find(curFd) != isSent.end())
 				continue;
+			std::cout << "isSent : not included\n";
 			isSent.insert(curFd);
 			messageHandler.sendOrPushMessage(msg, iter->second);
 			// ssize_t result = send(iter->second->getSocketNumber(), msg.c_str(), msg.length(), MSG_DONTWAIT);

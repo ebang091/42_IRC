@@ -83,7 +83,7 @@ public:
     void sendErrorWithCommand(NUMERIC::CODE code);
     void sendJoinSuccess();
     void sendNickSuccess();
-    void sendInviteSuccess();
+    void sendInviteSuccess(Client* target);
     void sendKickSuccess();
     void sendQuitSuccess();
     void sendTopicSuccess();

@@ -326,11 +326,13 @@ void CommandHandler::invite(std::vector<std::string>& parameters){
 
 	if (_eventHandler->getRequestChannel()->getClientByNick(targetName)){
 		// _messageHandler->setReason()
-		return _messageHandler->sendErrorCallerTargetUserAndChannel();
+		//return _messageHandler->sendErrorCallerTargetUserAndChannel();
+		return _messageHandler->sendErrorNickAndTargetUserAndChannel(NUMERIC::ALREADY_ON_CHAN);
 	}
 
-	_eventHandler->getRequestChannel()->insertInvite(_clientManager->getClientByNick(targetName));
-	_messageHandler->sendInviteSuccess();
+	Client* target = _clientManager->getClientByNick(targetName);
+	_eventHandler->getRequestChannel()->insertInvite(target);
+	_messageHandler->sendInviteSuccess(target);
 }
 
 void CommandHandler::topic(std::vector<std::string>& parameters){

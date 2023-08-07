@@ -30,6 +30,7 @@ MessageHandler::MessageHandler()
 	codeMap.insert(std::make_pair(NUMERIC::MESSAGEEND, " :End of message of the day."));
 	// --
 	codeMap.insert(std::make_pair(NUMERIC::NO_PARAM, ""));
+	codeMap.insert(std::make_pair(NUMERIC::INVITE, ""));
 	codeMap.insert(std::make_pair(NUMERIC::UNKNOWN_CMD, "Unknown command"));
 	codeMap.insert(std::make_pair(NUMERIC::NEED_MORE_PARAM, "Not enough parameters."));
 	codeMap.insert(std::make_pair(NUMERIC::ALREADY_REGISTERED, "You may not reregister"));
@@ -258,13 +259,13 @@ void MessageHandler::sendErrorWithChannelToTarget(NUMERIC::CODE code, Client* ta
 	sendOrPushMessage(_replyMsg, target);
 }
 
-// :irc.local 401 one a :No such nick
-// :irc.local 401 one a :No such nick
+// INVITE three #a
+// :irc.local 341 one three :#a
 
-// :irc.local 441 one two #a :They are not on that channel
-// :irc.local 441 one two :#a
+// INVITE three #a
+// :irc.local 341 one three :#a
 
-void MessageHandler::sendInviteSuccess(){
+void MessageHandler::sendInviteSuccess(Client* target){
 	sendAndTargetUserAndChannel(NUMERIC::INVITE);
 
 	_replyMsg += ":irc.local NOTICE " + _channel + " :*** " + _nickName + " invited " + _targetName + " into the channel\n";
@@ -275,9 +276,10 @@ void MessageHandler::sendInviteSuccess(){
 	if(_eventHandler->getRequestChannel() != NULL)
 		_eventHandler->getRequestChannel()->sendToClients(isSent);
 	
+	flushOutput();
 	setCallerInfo();
 	_replyMsg +=  _command + " " + _targetName + " :" + _channel + "\n";
-	sendOrPushMessage(_replyMsg, _client);
+	sendOrPushMessage(_replyMsg, target);
 }
 
 void MessageHandler::sendJoinSuccess(){
