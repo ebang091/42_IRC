@@ -461,13 +461,13 @@ void CommandHandler::user(std::vector<std::string>& parameters){
 	host = parameters[2];
 
 	if (userName != parameters[1])
-		return _messageHandler->sendErrorUnknown("user name not same");
+		return _messageHandler->sendErrorUnknown(":user name not same");
 	
 	if (userName.size() > CONFIG::USERLEN)
 		userName = userName.substr(0, CONFIG::USERLEN);
 	
 	if (!_client->checkHost(_client->getSocketNumber(), host))
-		return _messageHandler->sendErrorUnknown("invalid host");
+		return _messageHandler->sendErrorUnknown(":invalid host");
 	
 	std::string realName = "";
 	getDescription(parameters, 3, realName);

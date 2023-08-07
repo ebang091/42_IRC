@@ -163,7 +163,7 @@ void FSM::plusL(std::queue<std::string>& params, STATE::CODE& state){
 	iss >> limitNum;
 
 	if (limitNum < 0)
-		return _messageHandler->sendErrorUnknown(" :Invalid limitStr mode parameter. Syntax: <limitStr>.");
+		return _messageHandler->sendErrorUnknown(":Invalid limitStr mode parameter. Syntax: <limitStr>.");
 
 	if (iss.fail())
 		limitNum = 0;
@@ -187,7 +187,7 @@ void FSM::minusN(std::queue<std::string>& params, STATE::CODE& state){
 	(void)state;
 	(void)params;
 
-	return _messageHandler->sendErrorUnknown(" :You cannot unset option n");
+	return _messageHandler->sendErrorUnknown(":You cannot unset option n");
 }
 
 void FSM::minusT(std::queue<std::string>& params, STATE::CODE& state){

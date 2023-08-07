@@ -16,6 +16,8 @@ Channel::Channel(const std::string& channelName, Client* client)
 	_operators.insert(std::make_pair(client->getNickName(), client));
 	_clientList.insert(std::make_pair(BOT_NAME, clientptr));
 	_operators.insert(std::make_pair(BOT_NAME, clientptr));
+
+	_permissions = PERMISSION::T | PERMISSION::N;
 }
 
 Client* Channel::getOperatorByNick(const std::string& nickName) const
