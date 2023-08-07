@@ -260,9 +260,6 @@ void CommandHandler::part(std::vector<std::string>& parameters){
     }
 }
 
-// 원본 :irc.local 482 one #a :You must be a channel half-operator
-// 저희 :irc.local 482 one twoo :You must have channel op access or above to set channel mode
-// server + nick + target -> server + nick + channel
 void CommandHandler::kick(std::vector<std::string>& parameters){
 	std::string targetName;
 	std::string channelName;

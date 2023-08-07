@@ -97,7 +97,7 @@ public:
     void sendErrorWithChannelToTarget(NUMERIC::CODE code, Client* target);
     void sendErrorWithNickAndTargetName(NUMERIC::CODE code);
     void sendInvalidModeError(NUMERIC::CODE code);
-    void sendErrorNoModeParam();
+    void sendErrorNoModeParam(const std::string& desctiption);
     void sendErrorWithCmdAndReason(NUMERIC::CODE code);
     
     void BotSetDescriptionByCode(NUMERIC::CODE code);
