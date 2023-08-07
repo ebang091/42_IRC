@@ -162,8 +162,6 @@ void Channel::sendToClients(){
 		// else if (static_cast<size_t>(result) == msg.length())
 		// 	continue;
 	    // iter->second->sendQuePush(msg.substr(result, msg.size() - result));
-
-		std::cout << "sendToClients() message: " << iter->second->getNickName() << ": " << msg << "\n";
 	}
 }
 
@@ -186,8 +184,6 @@ void Channel::sendToClients(std::set<int>& isSent){
 			// else if (static_cast<size_t>(result) == msg.length())
 			// 	continue;
 			// iter->second->sendQuePush(msg.substr(result, msg.size() - result));
-
-			std::cout << "sendToClients() message: " << iter->second->getNickName() << ": " << msg << "\n";
 		}
 	}
 }

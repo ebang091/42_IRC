@@ -107,14 +107,12 @@ void MessageHandler::setParam(const std::vector<std::string>& params){
 
 void MessageHandler::setChannel(const std::string& channel){
 	size_t i = 0;
-
-	_channel.clear();
-	if (!channel.empty() && channel.front() != CHANNEL_PREFIX)
-		_channel += "#";
-	else
-		++i;
 	
-	for (i = 0; i < channel.length(); ++i){
+	if (!channel.empty() && channel.front() == CHANNEL_PREFIX)
+		++i;
+
+	_channel = "#";
+	for (; i < channel.length(); ++i){
 		if (!std::isprint(channel[i]))
 			_channel += ".";
 		else
