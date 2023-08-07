@@ -98,6 +98,7 @@ void EventHandler::transportData(){
 	}
 	buf[n] = '\0';
 	try{
+		std::cout << "recv : " << buf << "\n";
 		parser.parseCommandsAndExecute(buf);
 	}
 	catch(const std::exception& e){

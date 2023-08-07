@@ -95,7 +95,7 @@ void CommandHandler::nick(std::vector<std::string>& parameters){
 	
     Client *foundDuplicate = _clientManager->getClientByNick(candidateNickname);
 
-    if(foundDuplicate){
+    if(foundDuplicate || candidateNickname == BOT_NAME){
         if (foundDuplicate == _client)
 			return;
 		else
@@ -197,8 +197,8 @@ void CommandHandler::mode(std::vector<std::string>& parameters){
     std::string options;
     std::queue<std::string> params;
     FSM& fsm = FSM::getInstance();
-	fsm.setMessageHandler(_messageHandler);
 
+	fsm.setMessageHandler(_messageHandler);
 	if (parameters.size() < 2)
 		return _messageHandler->sendErrorNoParam(NUMERIC::NEED_MORE_PARAM);
 
