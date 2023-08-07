@@ -6,7 +6,7 @@
 /*   By: kwsong <kwsong@student.42seoul.kr>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/14 12:28:31 by ebang             #+#    #+#             */
-/*   Updated: 2023/08/07 14:33:32 by kwsong           ###   ########.fr       */
+/*   Updated: 2023/08/07 17:14:47 by kwsong           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,9 +64,8 @@ void ChannelManager::eraseClientAllChannels(const std::string& targetName){
 		if (!iter->second->getClientByNick(targetName))
 			continue;
 		iter->second->sendToClients(isSent);
-		
 		iter->second->eraseOperator(targetName);
-		if (iter->second->eraseClient(targetName) == 0)
+		if (iter->second->eraseClient(targetName) == 1)
 			eraseList.push_back(iter->second);
 	}
 

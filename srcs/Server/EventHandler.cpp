@@ -33,8 +33,7 @@ void EventHandler::init(){
 void EventHandler::listenToClients(){
 	init();
 
-	while (true)
-	{
+	while (true){
 		_numberOfNewEvents = kevent(_kq, &_changeList[0], _changeList.size(), _event_list, EVENT_BUFFER_SIZE, NULL);
 		if (_numberOfNewEvents == -1)
 			throw ErrorHandler::KeventException();
@@ -72,6 +71,7 @@ void EventHandler::disconnectCurClient(){
 	clientManager.eraseClientByNick(curClient->getNickName());
 	clientManager.eraseClientByFD(_curEvent->ident);
 	close(_curEvent->ident);
+	MessageHandler::getInstance().flushOutput();
 }
 
 void EventHandler::acceptNewClient(){
