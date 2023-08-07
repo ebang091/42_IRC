@@ -113,7 +113,7 @@ void Channel::setName(const std::string& name){
 void Channel::setTopic(const std::string& topic, Client *setUser){
 	this->_topic.__content = topic;
 	time(&(this->_topic.__creationTime));
-	this->_topic.__setUser += setUser->getNickName() + "!" + setUser->getUserName() + "@" + setUser->getHost();
+	this->_topic.__setUser = setUser->getNickName() + "!" + setUser->getUserName() + "@" + setUser->getHost();
 }
 
 void Channel::setPassword(const std::string& password){
@@ -163,6 +163,7 @@ void Channel::sendToClients(){
 		// 	continue;
 	    // iter->second->sendQuePush(msg.substr(result, msg.size() - result));
 	}
+	messageHandler.flushOutput();
 }
 
 void Channel::sendToClients(std::set<int>& isSent){
@@ -187,6 +188,7 @@ void Channel::sendToClients(std::set<int>& isSent){
 			// iter->second->sendQuePush(msg.substr(result, msg.size() - result));
 		}
 	}
+	messageHandler.flushOutput();
 }
 
 void Channel::getClientList(std::vector<std::string>& list)

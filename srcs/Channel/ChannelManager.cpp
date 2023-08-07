@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ChannelManager.cpp                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ebang <ebang@student.42.fr>                +#+  +:+       +#+        */
+/*   By: kwsong <kwsong@student.42seoul.kr>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/14 12:28:31 by ebang             #+#    #+#             */
-/*   Updated: 2023/07/31 17:22:26 by ebang            ###   ########.fr       */
+/*   Updated: 2023/08/07 14:33:32 by kwsong           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,12 +63,7 @@ void ChannelManager::eraseClientAllChannels(const std::string& targetName){
 		iter->second->eraseInvite(targetName);
 		if (!iter->second->getClientByNick(targetName))
 			continue;
-		try	{
-			iter->second->sendToClients(isSent);
-		}
-		catch(const std::exception& e){
-			(void)e;
-		}
+		iter->second->sendToClients(isSent);
 		
 		iter->second->eraseOperator(targetName);
 		if (iter->second->eraseClient(targetName) == 0)

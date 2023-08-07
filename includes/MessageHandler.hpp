@@ -47,7 +47,6 @@ private:
     void serializeChannelClientList();
     void setCallerInfo();
     void setServerInfo(NUMERIC::CODE code);
-    void flushOutput();
 
 public:
 	static MessageHandler& getInstance();
@@ -55,6 +54,7 @@ public:
     std::string atoOption();
     std::string atoParam();
 
+    void flushOutput();
     void sendOrPushMessage(std::string& msg, Client* target);
 	void sendRemainBuffer(Client* target);
     const std::string& getBroadcastMsg();

@@ -276,7 +276,6 @@ void MessageHandler::sendInviteSuccess(Client* target){
 	if(_eventHandler->getRequestChannel() != NULL)
 		_eventHandler->getRequestChannel()->sendToClients(isSent);
 	
-	flushOutput();
 	setCallerInfo();
 	_replyMsg +=  _command + " " + _targetName + " :" + _channel + "\n";
 	sendOrPushMessage(_replyMsg, target);

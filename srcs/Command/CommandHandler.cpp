@@ -346,16 +346,25 @@ void CommandHandler::topic(std::vector<std::string>& parameters){
 
 	NUMERIC::CODE code = checkValid(&channelName, NULL, &_client->getNickName(), true);
 	requestChannel = _eventHandler->getRequestChannel();
+	_messageHandler->setChannel(channelName);
 
 	if (code == NUMERIC::NO_SUCH_NICK)
 		return _messageHandler->sendErrorWithNickAndTargetName(code);
-	if ((code == NUMERIC::NOT_OPER && GET_PERMISSION_T(requestChannel->getPermissions())) || code != NUMERIC::SUCCESS)
-		return _messageHandler->sendErrorWithChannel(code);
 
+	std::cout << "topic : " << (GET_PERMISSION_T(requestChannel->getPermissions())) << "\n";
+	if (code == NUMERIC::NOT_OPER)
+	{
+		if (GET_PERMISSION_T(requestChannel->getPermissions()))
+			return _messageHandler->sendErrorWithChannel(code);
+	}
+	else if (code != NUMERIC::SUCCESS)
+		return _messageHandler->sendErrorWithChannel(code);
+	
 	std::string topic = "";
 	if (!getDescription(parameters, 1, topic))
 		return _messageHandler->sendErrorWithChannel(NUMERIC::NEED_MORE_PARAM);
 
+	std::cout << "TOPIC : " << topic << "\n";
 	if(topic.size() > CAP::TOPICLEN)
 		topic = topic.substr(0, CAP::TOPICLEN);
 	if (topic == requestChannel->getTopic().__content)
