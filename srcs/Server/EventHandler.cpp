@@ -80,7 +80,8 @@ void EventHandler::acceptNewClient(){
 	if ((clientSocket = accept(_serverSocket, NULL, NULL)) == -1)
 		return;
 	
-	fcntl(clientSocket, F_SETFL, O_NONBLOCK);
+	if (fcntl(clientSocket, F_SETFL, O_NONBLOCK) == -1)
+		throw ErrorHandler::FcntlException();
 	changeEvents(clientSocket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
 	_clientManager->insertClientByFD(clientSocket);
 }

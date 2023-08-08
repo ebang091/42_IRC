@@ -200,7 +200,8 @@ void CommandHandler::mode(std::vector<std::string>& parameters){
 
 	fsm.setMessageHandler(_messageHandler);
 	if (parameters.size() < 2)
-		return _messageHandler->sendErrorNoParam(NUMERIC::NEED_MORE_PARAM);
+		return;
+		//return _messageHandler->sendErrorNoParam(NUMERIC::NEED_MORE_PARAM);
 
 	channelName = parameters[0];
 	options = parameters[1];
