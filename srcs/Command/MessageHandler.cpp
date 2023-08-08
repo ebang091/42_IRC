@@ -365,7 +365,6 @@ void MessageHandler::sendErrorNoModeParam(const std::string& desctiption){
 	setServerInfo(NUMERIC::NO_PARAM);
 	_replyMsg += _nickName + " " + _channel + " " + _option + " ";
 
-	std::cout << "des : " << desctiption << " " << desctiption.empty() << "\n";
 	if (desctiption.empty())
 	{
 		_replyMsg += "* :You must specify a parameter for the " + atoOption() + " mode.";
@@ -395,7 +394,7 @@ void MessageHandler::sendOrPushMessage(std::string& msg, Client* target){
 
 	if (sendQue.empty()){
 		result = send(target->getSocketNumber(), msg.c_str(), msg.length(), MSG_DONTWAIT);
-		std::cout << result << " send Msg : " << msg << "\n";
+		std::cout << " send Msg : " << msg << "\n";
 		if (result == -1)
 			result = 0;
 		else if (static_cast<size_t>(result) == msg.length()){

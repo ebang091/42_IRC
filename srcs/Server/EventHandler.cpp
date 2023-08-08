@@ -47,6 +47,7 @@ void EventHandler::listenToClients(){
 					throw ErrorHandler::KeventException();
 				else
 					disconnectCurClient();
+				return;
 			}
 			else if (_curEvent->filter == EVFILT_READ){
 				if (static_cast<int>(_curEvent->ident) == _serverSocket)
@@ -60,6 +61,7 @@ void EventHandler::listenToClients(){
                     MessageHandler::getInstance().sendRemainBuffer(curClient);
             }
         }
+		//system("leaks ircserv");
 	}
 }
 

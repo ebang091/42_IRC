@@ -349,7 +349,6 @@ void CommandHandler::topic(std::vector<std::string>& parameters){
 	if (code == NUMERIC::NO_SUCH_NICK)
 		return _messageHandler->sendErrorWithNickAndTargetName(code);
 
-	std::cout << "topic : " << (GET_PERMISSION_T(requestChannel->getPermissions())) << "\n";
 	if (code == NUMERIC::NOT_OPER)
 	{
 		if (GET_PERMISSION_T(requestChannel->getPermissions()))
@@ -362,7 +361,6 @@ void CommandHandler::topic(std::vector<std::string>& parameters){
 	if (!getDescription(parameters, 1, topic))
 		return _messageHandler->sendErrorWithChannel(NUMERIC::NEED_MORE_PARAM);
 
-	std::cout << "TOPIC : " << topic << "\n";
 	if(topic.size() > CAP::TOPICLEN)
 		topic = topic.substr(0, CAP::TOPICLEN);
 	if (topic == requestChannel->getTopic().__content)
