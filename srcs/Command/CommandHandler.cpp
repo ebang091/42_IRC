@@ -95,7 +95,7 @@ void CommandHandler::nick(std::vector<std::string>& parameters){
 	
     Client *foundDuplicate = _clientManager->getClientByNick(candidateNickname);
 
-    if(foundDuplicate){
+    if(foundDuplicate || candidateNickname == BOT_NAME){
         if (foundDuplicate == _client)
 			return;
 		else
@@ -197,10 +197,11 @@ void CommandHandler::mode(std::vector<std::string>& parameters){
     std::string options;
     std::queue<std::string> params;
     FSM& fsm = FSM::getInstance();
-	fsm.setMessageHandler(_messageHandler);
 
+	fsm.setMessageHandler(_messageHandler);
 	if (parameters.size() < 2)
-		return _messageHandler->sendErrorNoParam(NUMERIC::NEED_MORE_PARAM);
+		return;
+		//return _messageHandler->sendErrorNoParam(NUMERIC::NEED_MORE_PARAM);
 
 	channelName = parameters[0];
 	options = parameters[1];
@@ -260,9 +261,6 @@ void CommandHandler::part(std::vector<std::string>& parameters){
     }
 }
 
-// 원본 :irc.local 482 one #a :You must be a channel half-operator
-// 저희 :irc.local 482 one twoo :You must have channel op access or above to set channel mode
-// server + nick + target -> server + nick + channel
 void CommandHandler::kick(std::vector<std::string>& parameters){
 	std::string targetName;
 	std::string channelName;
@@ -326,11 +324,13 @@ void CommandHandler::invite(std::vector<std::string>& parameters){
 
 	if (_eventHandler->getRequestChannel()->getClientByNick(targetName)){
 		// _messageHandler->setReason()
-		return _messageHandler->sendErrorCallerTargetUserAndChannel();
+		//return _messageHandler->sendErrorCallerTargetUserAndChannel();
+		return _messageHandler->sendErrorNickAndTargetUserAndChannel(NUMERIC::ALREADY_ON_CHAN);
 	}
 
-	_eventHandler->getRequestChannel()->insertInvite(_clientManager->getClientByNick(targetName));
-	_messageHandler->sendInviteSuccess();
+	Client* target = _clientManager->getClientByNick(targetName);
+	_eventHandler->getRequestChannel()->insertInvite(target);
+	_messageHandler->sendInviteSuccess(target);
 }
 
 void CommandHandler::topic(std::vector<std::string>& parameters){
@@ -344,12 +344,19 @@ void CommandHandler::topic(std::vector<std::string>& parameters){
 
 	NUMERIC::CODE code = checkValid(&channelName, NULL, &_client->getNickName(), true);
 	requestChannel = _eventHandler->getRequestChannel();
+	_messageHandler->setChannel(channelName);
 
 	if (code == NUMERIC::NO_SUCH_NICK)
 		return _messageHandler->sendErrorWithNickAndTargetName(code);
-	if ((code == NUMERIC::NOT_OPER && GET_PERMISSION_T(requestChannel->getPermissions())) || code != NUMERIC::SUCCESS)
-		return _messageHandler->sendErrorWithChannel(code);
 
+	if (code == NUMERIC::NOT_OPER)
+	{
+		if (GET_PERMISSION_T(requestChannel->getPermissions()))
+			return _messageHandler->sendErrorWithChannel(code);
+	}
+	else if (code != NUMERIC::SUCCESS)
+		return _messageHandler->sendErrorWithChannel(code);
+	
 	std::string topic = "";
 	if (!getDescription(parameters, 1, topic))
 		return _messageHandler->sendErrorWithChannel(NUMERIC::NEED_MORE_PARAM);
@@ -450,13 +457,13 @@ void CommandHandler::user(std::vector<std::string>& parameters){
 	host = parameters[2];
 
 	if (userName != parameters[1])
-		return _messageHandler->sendErrorUnknown("user name not same");
+		return _messageHandler->sendErrorUnknown(":user name not same");
 	
 	if (userName.size() > CONFIG::USERLEN)
 		userName = userName.substr(0, CONFIG::USERLEN);
 	
 	if (!_client->checkHost(_client->getSocketNumber(), host))
-		return _messageHandler->sendErrorUnknown("invalid host");
+		return _messageHandler->sendErrorUnknown(":invalid host");
 	
 	std::string realName = "";
 	getDescription(parameters, 3, realName);

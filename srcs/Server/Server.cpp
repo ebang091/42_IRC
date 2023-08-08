@@ -6,7 +6,7 @@
 /*   By: kwsong <kwsong@student.42seoul.kr>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/14 12:28:31 by ebang             #+#    #+#             */
-/*   Updated: 2023/08/02 14:16:33 by kwsong           ###   ########.fr       */
+/*   Updated: 2023/08/08 16:30:56 by kwsong           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,13 +34,8 @@ void Server::run(std::string portnumber, std::string password){
     SocketHandler& socketHandler = SocketHandler::getInstance();
     EventHandler& eventHandler = EventHandler::getInstance();
     _passWord = password;
-    try{
-        _portNumber = parser.parsePortNumber(portnumber.c_str());
-        socketHandler.makeSocketAndListen(_portNumber);
-        eventHandler.listenToClients();
         
-    }
-    catch (const std::exception& e){
-		std::cout << e.what() << std::endl;
-    }
+	_portNumber = parser.parsePortNumber(portnumber.c_str());
+    socketHandler.makeSocketAndListen(_portNumber);
+    eventHandler.listenToClients();
 }

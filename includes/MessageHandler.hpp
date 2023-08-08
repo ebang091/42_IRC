@@ -47,7 +47,6 @@ private:
     void serializeChannelClientList();
     void setCallerInfo();
     void setServerInfo(NUMERIC::CODE code);
-    void flushOutput();
 
 public:
 	static MessageHandler& getInstance();
@@ -55,6 +54,7 @@ public:
     std::string atoOption();
     std::string atoParam();
 
+    void flushOutput();
     void sendOrPushMessage(std::string& msg, Client* target);
 	void sendRemainBuffer(Client* target);
     const std::string& getBroadcastMsg();
@@ -83,7 +83,7 @@ public:
     void sendErrorWithCommand(NUMERIC::CODE code);
     void sendJoinSuccess();
     void sendNickSuccess();
-    void sendInviteSuccess();
+    void sendInviteSuccess(Client* target);
     void sendKickSuccess();
     void sendQuitSuccess();
     void sendTopicSuccess();
@@ -97,7 +97,7 @@ public:
     void sendErrorWithChannelToTarget(NUMERIC::CODE code, Client* target);
     void sendErrorWithNickAndTargetName(NUMERIC::CODE code);
     void sendInvalidModeError(NUMERIC::CODE code);
-    void sendErrorNoModeParam();
+    void sendErrorNoModeParam(const std::string& desctiption);
     void sendErrorWithCmdAndReason(NUMERIC::CODE code);
     
     void BotSetDescriptionByCode(NUMERIC::CODE code);

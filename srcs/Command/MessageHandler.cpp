@@ -30,6 +30,7 @@ MessageHandler::MessageHandler()
 	codeMap.insert(std::make_pair(NUMERIC::MESSAGEEND, " :End of message of the day."));
 	// --
 	codeMap.insert(std::make_pair(NUMERIC::NO_PARAM, ""));
+	codeMap.insert(std::make_pair(NUMERIC::INVITE, ""));
 	codeMap.insert(std::make_pair(NUMERIC::UNKNOWN_CMD, "Unknown command"));
 	codeMap.insert(std::make_pair(NUMERIC::NEED_MORE_PARAM, "Not enough parameters."));
 	codeMap.insert(std::make_pair(NUMERIC::ALREADY_REGISTERED, "You may not reregister"));
@@ -107,14 +108,12 @@ void MessageHandler::setParam(const std::vector<std::string>& params){
 
 void MessageHandler::setChannel(const std::string& channel){
 	size_t i = 0;
-
-	_channel.clear();
-	if (!channel.empty() && channel.front() != CHANNEL_PREFIX)
-		_channel += "#";
-	else
-		++i;
 	
-	for (i = 0; i < channel.length(); ++i){
+	if (!channel.empty() && channel.front() == CHANNEL_PREFIX)
+		++i;
+
+	_channel = "#";
+	for (; i < channel.length(); ++i){
 		if (!std::isprint(channel[i]))
 			_channel += ".";
 		else
@@ -260,13 +259,7 @@ void MessageHandler::sendErrorWithChannelToTarget(NUMERIC::CODE code, Client* ta
 	sendOrPushMessage(_replyMsg, target);
 }
 
-// :irc.local 401 one a :No such nick
-// :irc.local 401 one a :No such nick
-
-// :irc.local 441 one two #a :They are not on that channel
-// :irc.local 441 one two :#a
-
-void MessageHandler::sendInviteSuccess(){
+void MessageHandler::sendInviteSuccess(Client* target){
 	sendAndTargetUserAndChannel(NUMERIC::INVITE);
 
 	_replyMsg += ":irc.local NOTICE " + _channel + " :*** " + _nickName + " invited " + _targetName + " into the channel\n";
@@ -279,7 +272,7 @@ void MessageHandler::sendInviteSuccess(){
 	
 	setCallerInfo();
 	_replyMsg +=  _command + " " + _targetName + " :" + _channel + "\n";
-	sendOrPushMessage(_replyMsg, _client);
+	sendOrPushMessage(_replyMsg, target);
 }
 
 void MessageHandler::sendJoinSuccess(){
@@ -368,11 +361,17 @@ std::string MessageHandler::atoParam(){
 		return "error";	
 }
 
-void MessageHandler::sendErrorNoModeParam(){
+void MessageHandler::sendErrorNoModeParam(const std::string& desctiption){
 	setServerInfo(NUMERIC::NO_PARAM);
-	_replyMsg += _nickName + " " + _channel + " " + _option +" * :";
-	_replyMsg += "You must specify a parameter for the " + atoOption() + " mode.";
-	_replyMsg += " Syntax: <" + atoParam() + ">.\n";
+	_replyMsg += _nickName + " " + _channel + " " + _option + " ";
+
+	if (desctiption.empty())
+	{
+		_replyMsg += "* :You must specify a parameter for the " + atoOption() + " mode.";
+		_replyMsg += " Syntax: <" + atoParam() + ">.\n";
+	}
+	else
+		_replyMsg += desctiption + "\n";
 	sendOrPushMessage(_replyMsg, _client);
 }
 
@@ -395,7 +394,7 @@ void MessageHandler::sendOrPushMessage(std::string& msg, Client* target){
 
 	if (sendQue.empty()){
 		result = send(target->getSocketNumber(), msg.c_str(), msg.length(), MSG_DONTWAIT);
-		std::cout << "send Msg : " << msg << "\n";
+		std::cout << " send Msg : " << msg << "\n";
 		if (result == -1)
 			result = 0;
 		else if (static_cast<size_t>(result) == msg.length()){

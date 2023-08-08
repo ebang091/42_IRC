@@ -30,8 +30,7 @@ void SocketHandler::makeSocketAndListen(int portNumber){
     if (listen(_serverSocket, LISTEN_QUEUE_SIZE) == -1)
         throw ErrorHandler::ListenException();
 
-	int original = fcntl(_serverSocket, F_GETFL, 0);
-    if (original == -1 || fcntl(_serverSocket, F_SETFL, original | O_NONBLOCK) == -1)
+    if (fcntl(_serverSocket, F_SETFL, O_NONBLOCK) == -1)
 		throw ErrorHandler::FcntlException();
 
     return ;    

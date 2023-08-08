@@ -1,9 +1,12 @@
 #include "FSM.hpp"
+#include "ClientManager.hpp"
 
 FSM::FSM()
 	: _channel(NULL)
 	, _client(NULL)
+	, _clientManager(NULL)
 	, _eventHandler(NULL)
+	, _messageHandler(NULL)
 {		
 }
 
@@ -36,6 +39,7 @@ void FSM::executeAndChangeState(STATE::CODE &state, std::queue<std::string>& par
 
 void FSM::executeMode(std::queue<std::string>& params, const std::string& options){
 	_eventHandler = &EventHandler::getInstance();
+	_clientManager = &ClientManager::getInstance();
 	_channel = _eventHandler->getRequestChannel();
     _client = _eventHandler->getRequestClient();
 	STATE::CODE state = STATE::NONE;
@@ -107,7 +111,7 @@ void FSM::plusK(std::queue<std::string>& params, STATE::CODE& state){
 	(void)state;
 
     if(params.empty())
-		return _messageHandler->sendErrorNoModeParam();
+		return _messageHandler->sendErrorNoModeParam("");
     password = params.front();
 	if(password.size() > CAP::KEYLEN)
 		password = password.substr(0, CAP::KEYLEN);
@@ -128,17 +132,19 @@ void FSM::plusO(std::queue<std::string>& params, STATE::CODE& state){
 	std::string broadcast;
 	(void)state;
 
-	if(params.size() == 0)
-		return _messageHandler->sendErrorNoModeParam();
+	if(params.empty())
+		return _messageHandler->sendErrorNoModeParam("");
 	
 	targetName = params.front();
 	params.pop();
+	_messageHandler->setTargetName(targetName);
 	
-	Client *find = _channel->getClientByNick(targetName);
-	if(find == NULL)
+	if(!_clientManager->getClientByNick(targetName))
 		return _messageHandler->sendErrorWithNickAndTargetName(NUMERIC::NO_SUCH_NICK);
 	
-	if(find == _channel->getOperatorByNick(targetName))
+	Client *find = _channel->getClientByNick(targetName);
+
+	if(!find || find == _channel->getOperatorByNick(targetName))
 		return;
 
 	_channel->insertOperator(find);
@@ -154,7 +160,7 @@ void FSM::plusL(std::queue<std::string>& params, STATE::CODE& state){
 	long limitNum;
     
     if(params.empty())
-		return _messageHandler->sendErrorNoModeParam();
+		return _messageHandler->sendErrorNoModeParam("");
     
     limitStr = params.front();
     params.pop();   
@@ -163,7 +169,7 @@ void FSM::plusL(std::queue<std::string>& params, STATE::CODE& state){
 	iss >> limitNum;
 
 	if (limitNum < 0)
-		return _messageHandler->sendErrorUnknown(" :Invalid limitStr mode parameter. Syntax: <limitStr>.");
+		return _messageHandler->sendErrorNoModeParam(limitStr + " :Invalid limit mode parameter. Syntax: <limit>.");
 
 	if (iss.fail())
 		limitNum = 0;
@@ -187,7 +193,7 @@ void FSM::minusN(std::queue<std::string>& params, STATE::CODE& state){
 	(void)state;
 	(void)params;
 
-	return _messageHandler->sendErrorUnknown(" :You cannot unset option n");
+	return _messageHandler->sendErrorUnknown(":You cannot unset option n");
 }
 
 void FSM::minusT(std::queue<std::string>& params, STATE::CODE& state){
@@ -224,7 +230,7 @@ void FSM::minusK(std::queue<std::string>& params, STATE::CODE& state){
 	(void)state;
 
 	if (params.empty())
-		return _messageHandler->sendErrorNoModeParam();
+		return _messageHandler->sendErrorNoModeParam("");
 
 	password = params.front();
     params.pop();
@@ -247,8 +253,8 @@ void FSM::minusO(std::queue<std::string>& params, STATE::CODE& state){
 	std::string targetName;
 	std::string broadcast;
 
-	if(params.size() == 0)
-		return _messageHandler->sendErrorNoModeParam();
+	if(params.empty())
+		return _messageHandler->sendErrorNoModeParam("");
 	
 	targetName = params.front();
 	params.pop();

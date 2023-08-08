@@ -10,11 +10,13 @@
 #include "MessageHandler.hpp"
 
 class EventHandler;
+class ClientManager;
 
 class FSM{
 private:
     Channel *_channel;
     Client *_client;
+	ClientManager *_clientManager;
 	EventHandler* _eventHandler;
 	MessageHandler* _messageHandler;
 

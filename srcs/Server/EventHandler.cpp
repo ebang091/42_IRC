@@ -33,8 +33,7 @@ void EventHandler::init(){
 void EventHandler::listenToClients(){
 	init();
 
-	while (true)
-	{
+	while (true){
 		_numberOfNewEvents = kevent(_kq, &_changeList[0], _changeList.size(), _event_list, EVENT_BUFFER_SIZE, NULL);
 		if (_numberOfNewEvents == -1)
 			throw ErrorHandler::KeventException();
@@ -48,6 +47,7 @@ void EventHandler::listenToClients(){
 					throw ErrorHandler::KeventException();
 				else
 					disconnectCurClient();
+				return;
 			}
 			else if (_curEvent->filter == EVFILT_READ){
 				if (static_cast<int>(_curEvent->ident) == _serverSocket)
@@ -61,6 +61,7 @@ void EventHandler::listenToClients(){
                     MessageHandler::getInstance().sendRemainBuffer(curClient);
             }
         }
+		//system("leaks ircserv");
 	}
 }
 
@@ -72,6 +73,7 @@ void EventHandler::disconnectCurClient(){
 	clientManager.eraseClientByNick(curClient->getNickName());
 	clientManager.eraseClientByFD(_curEvent->ident);
 	close(_curEvent->ident);
+	MessageHandler::getInstance().flushOutput();
 }
 
 void EventHandler::acceptNewClient(){
@@ -80,7 +82,8 @@ void EventHandler::acceptNewClient(){
 	if ((clientSocket = accept(_serverSocket, NULL, NULL)) == -1)
 		return;
 	
-	fcntl(clientSocket, F_SETFL, O_NONBLOCK);
+	if (fcntl(clientSocket, F_SETFL, O_NONBLOCK) == -1)
+		throw ErrorHandler::FcntlException();
 	changeEvents(clientSocket, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
 	_clientManager->insertClientByFD(clientSocket);
 }
@@ -98,6 +101,7 @@ void EventHandler::transportData(){
 	}
 	buf[n] = '\0';
 	try{
+		std::cout << "recv : " << buf << "\n";
 		parser.parseCommandsAndExecute(buf);
 	}
 	catch(const std::exception& e){

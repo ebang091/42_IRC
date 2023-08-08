@@ -16,6 +16,8 @@ Channel::Channel(const std::string& channelName, Client* client)
 	_operators.insert(std::make_pair(client->getNickName(), client));
 	_clientList.insert(std::make_pair(BOT_NAME, clientptr));
 	_operators.insert(std::make_pair(BOT_NAME, clientptr));
+
+	_permissions = PERMISSION::T | PERMISSION::N;
 }
 
 Client* Channel::getOperatorByNick(const std::string& nickName) const
@@ -113,7 +115,7 @@ void Channel::setName(const std::string& name){
 void Channel::setTopic(const std::string& topic, Client *setUser){
 	this->_topic.__content = topic;
 	time(&(this->_topic.__creationTime));
-	this->_topic.__setUser += setUser->getNickName() + "!" + setUser->getUserName() + "@" + setUser->getHost();
+	this->_topic.__setUser = setUser->getNickName() + "!" + setUser->getUserName() + "@" + setUser->getHost();
 }
 
 void Channel::setPassword(const std::string& password){
@@ -162,9 +164,8 @@ void Channel::sendToClients(){
 		// else if (static_cast<size_t>(result) == msg.length())
 		// 	continue;
 	    // iter->second->sendQuePush(msg.substr(result, msg.size() - result));
-
-		std::cout << "sendToClients() message: " << iter->second->getNickName() << ": " << msg << "\n";
 	}
+	messageHandler.flushOutput();
 }
 
 void Channel::sendToClients(std::set<int>& isSent){
@@ -175,9 +176,11 @@ void Channel::sendToClients(std::set<int>& isSent){
 		for (std::map<std::string, Client*>::iterator iter = _clientList.begin(); iter != _clientList.end(); ++iter){
 			if (iter->second == NULL)
 				continue;
+				
 			int curFd = iter->second->getSocketNumber();
 			if (isSent.find(curFd) != isSent.end())
 				continue;
+
 			isSent.insert(curFd);
 			messageHandler.sendOrPushMessage(msg, iter->second);
 			// ssize_t result = send(iter->second->getSocketNumber(), msg.c_str(), msg.length(), MSG_DONTWAIT);
@@ -186,10 +189,9 @@ void Channel::sendToClients(std::set<int>& isSent){
 			// else if (static_cast<size_t>(result) == msg.length())
 			// 	continue;
 			// iter->second->sendQuePush(msg.substr(result, msg.size() - result));
-
-			std::cout << "sendToClients() message: " << iter->second->getNickName() << ": " << msg << "\n";
 		}
 	}
+	messageHandler.flushOutput();
 }
 
 void Channel::getClientList(std::vector<std::string>& list)
