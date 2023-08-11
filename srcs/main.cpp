@@ -1,13 +1,13 @@
 #include <iostream>
 #include "Server.hpp"
 
-// void v()
+// void checkLeak()
 // {
 // 	system("leaks ircserv");
 // }
 
 int main(int argc, char **argv){
-	//atexit(v);
+	//atexit(checkLeak);
 	if(argc != 3){
 		std::cout << "usage: ./isrcserv <port> <password>\n";
 		return 1;

@@ -27,6 +27,7 @@
 #define GET_PERMISSION_L(permissions) permissions & PERMISSION::L
 #define SWITCH_PERMISSION_L(permissions) permissions ^ PERMISSION::L
 #define VERIFY_SUCCESS(status) (status == NUMERIC::SUCCESS) || (status == NUMERIC::WELCOME) || (status == NUMERIC::YOURHOST) || (status == NUMERIC::CREATED) || (status == NUMERIC::MYINFO) || (status == NUMERIC::ISUPPORT)
+
 #define MESSAGELINE1 " : **************************************************\n"
 #define MESSAGELINE2 " : *             H    E    L    L    O              *\n"
 #define MESSAGELINE3 " : *  This is a private irc server. Please contact  *\n"
