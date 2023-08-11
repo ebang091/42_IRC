@@ -19,7 +19,7 @@ MessageHandler::MessageHandler()
 {
 	// -- welcome
 	codeMap.insert(std::make_pair(NUMERIC::WELCOME, " :Welcome to the Localnet IRC Network"));  
-	codeMap.insert(std::make_pair(NUMERIC::INTRO, " :Your host is irc.local, running version kwsongeban_ver0.0"));
+	codeMap.insert(std::make_pair(NUMERIC::INTRO, " :Your host is irc.local, running version ft_irc ver1.0"));
 	codeMap.insert(std::make_pair(NUMERIC::SERVERCREATE, " :This server was created "));
 	codeMap.insert(std::make_pair(NUMERIC::MYINFO, " :irc.local ft_irc iosw biklmnopstv :bklov"));
 	codeMap.insert(std::make_pair(NUMERIC::CAPINFO, " :are supported by this server")); 
@@ -394,7 +394,7 @@ void MessageHandler::sendOrPushMessage(std::string& msg, Client* target){
 
 	if (sendQue.empty()){
 		result = send(target->getSocketNumber(), msg.c_str(), msg.length(), MSG_DONTWAIT);
-		std::cout << " send Msg : " << msg << "\n";
+		//std::cout << " send Msg : " << msg << "\n";
 		if (result == -1)
 			result = 0;
 		else if (static_cast<size_t>(result) == msg.length()){
@@ -497,6 +497,9 @@ void MessageHandler::sendConnectionSuccess(){
 
 	setServerInfo(NUMERIC::MESSAGEOFDAY);
 	_replyMsg += _nickName + MESSAGELINE4;
+
+	setServerInfo(NUMERIC::MESSAGEOFDAY);
+	_replyMsg += _nickName + MESSAGELINE5;
 	
 	setServerInfo(NUMERIC::MESSAGEOFDAY); 
 	_replyMsg += _nickName + MESSAGELINE1;

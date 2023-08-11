@@ -6,14 +6,14 @@
 #    By: kwsong <kwsong@student.42seoul.kr>         +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/07/13 19:22:49 by kwsong            #+#    #+#              #
-#    Updated: 2023/08/08 16:58:12 by kwsong           ###   ########.fr        #
+#    Updated: 2023/08/11 12:54:46 by kwsong           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME = ircserv
 
 CC = c++
-CXXFLAGS = -std=c++98 -Wall -Wextra -Werror -fsanitize=address -g
+CXXFLAGS = -std=c++98 -Wall -Wextra -Werror #-fsanitize=address -g
 
 SRCS_FILE = main.cpp \
 		ErrorHandler.cpp \

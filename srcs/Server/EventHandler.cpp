@@ -47,7 +47,6 @@ void EventHandler::listenToClients(){
 					throw ErrorHandler::KeventException();
 				else
 					disconnectCurClient();
-				return;
 			}
 			else if (_curEvent->filter == EVFILT_READ){
 				if (static_cast<int>(_curEvent->ident) == _serverSocket)
@@ -101,14 +100,14 @@ void EventHandler::transportData(){
 	}
 	buf[n] = '\0';
 	try{
-		std::cout << "recv : " << buf << "\n";
+		//std::cout << "recv : " << buf << "\n";
 		parser.parseCommandsAndExecute(buf);
 	}
 	catch(const std::exception& e){
 		std::cerr << e.what() << '\n';
 		disconnectCurClient();
 	}
-	//test();
+	//debugPrint();
 }    
 
 Client* EventHandler::getRequestClient() const
@@ -126,7 +125,7 @@ void EventHandler::setRequestChannel(Channel* channel)
 	_requestChannel = channel;
 }
 
-void test(){
+void debugPrint(){
 	std::cout << "---- TEST -----\n";
 	ClientManager& clm = ClientManager::getInstance();
 	ChannelManager& chm = ChannelManager::getInstance();
